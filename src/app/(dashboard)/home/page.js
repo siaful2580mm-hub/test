@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useSystem } from '@/hooks/useSystem';
 
+
 // Components
 import Header from '@/components/shared/Header';
 import BalanceCard from '@/components/dashboard/BalanceCard';
