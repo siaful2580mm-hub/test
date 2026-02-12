@@ -1,68 +1,47 @@
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Zap, Globe } from 'lucide-react';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Hero Section */}
-      <div className="bg-[#0A2540] text-white p-8 rounded-b-[40px] shadow-2xl">
-        <div className="flex justify-between items-center mb-8">
-          <div className="font-bold text-2xl">TaskKing</div>
-          <div className="bg-white/10 px-3 py-1 rounded-full text-xs">Beta v1.0</div>
-        </div>
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-center font-sans">
+      
+      {/* লোগো বা আইকন */}
+      <div className="bg-blue-50 p-4 rounded-full mb-6">
+        <h1 className="text-4xl font-bold text-[#0A2540]">👑</h1>
+      </div>
+
+      {/* হিরো সেকশন */}
+      <h1 className="text-3xl font-bold text-[#0A2540] mb-2">
+        TaskKing <span className="text-[#0057FF]">Ultimate</span>
+      </h1>
+      
+      <p className="text-gray-500 mb-8 max-w-xs mx-auto">
+        বাংলাদেশের সেরা মাইক্রো-টাস্কিং প্ল্যাটফর্ম। ছোট কাজ করুন, বিকাশে পেমেন্ট নিন।
+      </p>
+
+      {/* বাটন সেকশন */}
+      <div className="w-full max-w-xs space-y-4">
+        <Link 
+          href="/login" 
+          className="block w-full bg-[#E2136E] text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition"
+        >
+          লগিন করুন
+        </Link>
         
-        <h1 className="text-4xl font-bold leading-tight mb-4">
-          ঘরে বসে <br/> <span className="text-[#0057FF]">আয় করুন</span>
-        </h1>
-        <p className="text-gray-300 mb-8 text-sm">
-          বাংলাদেশের সবচেয়ে বিশ্বস্ত মাইক্রো-টাস্কিং প্ল্যাটফর্ম। ছোট ছোট কাজ করুন এবং প্রতিদিন পেমেন্ট নিন।
-        </p>
-
-        <div className="flex gap-4">
-          <Link href="/login" className="flex-1 bg-[#E2136E] text-center py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition">
-            লগিন করুন
-          </Link>
-          <Link href="/register" className="flex-1 bg-white text-[#0A2540] text-center py-3 rounded-xl font-bold shadow-lg hover:bg-gray-100 transition">
-            রেজিস্টার
-          </Link>
-        </div>
+        <Link 
+          href="/register" 
+          className="block w-full bg-white border-2 border-[#0A2540] text-[#0A2540] py-3 rounded-xl font-bold hover:bg-gray-50 transition"
+        >
+          নতুন একাউন্ট খুলুন
+        </Link>
       </div>
 
-      {/* Features */}
-      <div className="p-6 space-y-6 mt-4">
-        <FeatureItem 
-          icon={<Zap className="text-yellow-500" />} 
-          title="দ্রুত পেমেন্ট" 
-          desc="বিকাশ ও নগদে পেমেন্ট নিন মাত্র ১০ মিনিটে।" 
-        />
-        <FeatureItem 
-          icon={<ShieldCheck className="text-green-500" />} 
-          title="শতভাগ নিরাপদ" 
-          desc="আপনার তথ্য এবং ব্যালেন্স সম্পূর্ণ সুরক্ষিত।" 
-        />
-        <FeatureItem 
-          icon={<Globe className="text-blue-500" />} 
-          title="সহজ কাজ" 
-          desc="ভিডিও দেখা এবং লাইক দেওয়ার মত সহজ কাজ।" 
-        />
+      {/* ফুটার */}
+      <div className="mt-12 text-xs text-gray-400">
+        &copy; 2026 TaskKing Project.
+        <br />
+        Status: <span className="text-green-500 font-bold">System Online</span>
       </div>
 
-      {/* Footer */}
-      <div className="mt-auto p-6 text-center text-xs text-gray-400">
-        &copy; 2024 TaskKing Ultimate Edition.
-      </div>
     </div>
   );
 }
-
-function FeatureItem({ icon, title, desc }) {
-  return (
-    <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
-      <div className="bg-white p-3 rounded-full shadow-sm">{icon}</div>
-      <div>
-        <h3 className="font-bold text-[#0A2540]">{title}</h3>
-        <p className="text-xs text-gray-500 mt-1">{desc}</p>
-      </div>
-    </div>
-  );
-    }
