@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="flex items-center justify-center h-[80vh]">
+    <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm border border-gray-100">
+        <div class="text-center mb-6">
+            <div class="text-4xl mb-2">🚀</div>
+            <h2 class="text-2xl font-bold text-[#0A2540]">TaskKing</h2>
+            <p class="text-gray-500 text-sm">লগ ইন করতে আপনার তথ্য দিন</p>
+        </div>
+
+        <form method="POST" action="/login" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">ইমেইল</label>
+                <input type="email" name="email" required class="w-full p-3 border rounded-lg focus:outline-[#E2136E] focus:ring-1 focus:ring-[#E2136E]" placeholder="example@mail.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">পাসওয়ার্ড</label>
+                <input type="password" name="password" required class="w-full p-3 border rounded-lg focus:outline-[#E2136E] focus:ring-1 focus:ring-[#E2136E]" placeholder="******">
+            </div>
+            <button type="submit" class="w-full bg-[#E2136E] text-white py-3 rounded-lg font-bold hover:bg-opacity-90 shadow-md transition">
+                পরবর্তী
+            </button>
+        </form>
+        
+        <p class="mt-4 text-center text-sm text-gray-500">
+            একাউন্ট নেই? <a href="#" class="text-[#E2136E] font-bold">রেজিস্ট্রেশন করুন</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
