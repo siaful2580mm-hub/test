@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header Section -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0A2540]">⚙️ এডমিন প্যানেল</h1>
+            <p class="text-gray-500 text-sm">সাইট কন্ট্রোল সেন্টার</p>
+        </div>
+        <div class="bg-blue-100 text-[#0057FF] px-4 py-2 rounded-lg font-bold">
+            Total Users: {{ user_count }}
+        </div>
+    </div>
+
+    <!-- Settings Form -->
+    <form method="POST" action="/admin">
+        
+        <!-- 1. Global Controls -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-4 bg-gray-50 border-b font-bold text-gray-700">সাইট কন্ট্রোল</div>
+            
+            <div class="p-6 space-y-6">
+                <!-- Maintenance Mode Toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-[#0A2540]">🚧 মেইনটেনেন্স মোড</h3>
+                        <p class="text-xs text-gray-500">অন করলে ইউজাররা সাইটে ঢুকতে পারবে না।</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="maintenance" class="sr-only peer" {{ 'checked' if settings.maintenance_mode }}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                    </label>
+                </div>
+
+                <hr class="border-gray-100">
+
+                <!-- Activation Required Toggle -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-[#0A2540]">🔒 একাউন্ট এক্টিভেশন</h3>
+                        <p class="text-xs text-gray-500">অন করলে ইউজারদের টাকা দিয়ে একাউন্ট খুলতে হবে।</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="activation" class="sr-only peer" {{ 'checked' if settings.activation_required }}>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0057FF]"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Notice Board -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+            <div class="p-4 bg-gray-50 border-b font-bold text-gray-700">নোটিশ বোর্ড</div>
+            <div class="p-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">হোমপেজের নোটিশ</label>
+                <textarea name="notice" rows="3" class="w-full p-3 border rounded-lg focus:outline-[#E2136E] focus:ring-1 focus:ring-[#E2136E]">{{ settings.notice_text }}</textarea>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <button type="submit" class="w-full bg-[#0A2540] text-white py-4 rounded-xl font-bold text-lg mt-6 hover:bg-opacity-90 shadow-lg transition transform active:scale-95">
+            সেভ করুন
+        </button>
+
+    </form>
+</div>
+{% endblock %}
