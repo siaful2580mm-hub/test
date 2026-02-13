@@ -174,32 +174,44 @@ def submit_activation():
 # -------------------------------------------------------------------
 # 5. ADMIN PANEL (The Control Room)
 # -------------------------------------------------------------------
+# --- ADMIN PANEL ROUTE ---
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def admin_panel():
+    # ১. সেটিংস আপডেট লজিক (POST Request)
     if request.method == 'POST':
-        # Get form data
+        # HTML ফর্ম থেকে ডাটা নেওয়া
         m_mode = True if request.form.get('maintenance') == 'on' else False
         a_req = True if request.form.get('activation') == 'on' else False
         notice = request.form.get('notice')
-        
+
         try:
-            # Update settings in DB
+            # Supabase-এ আপডেট করা
             supabase.table('site_settings').update({
-                'maintenance_mode': m_mode, 
+                'maintenance_mode': m_mode,
                 'activation_required': a_req,
                 'notice_text': notice
             }).eq('id', 1).execute()
+
+            flash("✅ সেটিংস সফলভাবে সেভ হয়েছে!", "success")
             
-            flash("✅ সেটিংস সেভ করা হয়েছে!", "success")
+            # নতুন সেটিংস লোড করার জন্য পেজ রিফ্রেশ
+            return redirect(url_for('admin_panel'))
+            
         except Exception as e:
             flash(f"Error: {str(e)}", "error")
-        
-        return redirect(url_for('admin_panel'))
-        
-    return render_template('admin.html', user=g.user, settings=g.settings)
 
+    # ২. পেজ লোড করার সময় বর্তমান সেটিংস দেখানো (GET Request)
+    # g.settings এবং g.user অটোমেটিক লোড হয় (before_request এর মাধ্যমে)
+    
+    # টোটাল ইউজার কাউন্ট (অপশনাল - ড্যাশবোর্ডে দেখানোর জন্য)
+    try:
+        user_count = supabase.table('profiles').select('*', count='exact').execute().count
+    except:
+        user_count = 0
+
+    return render_template('admin.html', user=g.user, settings=g.settings, user_count=user_count)
 # --- VERCEL ENTRY POINT ---
 # This is required for local testing, Vercel ignores it but uses the 'app' object
 if __name__ == '__main__':
