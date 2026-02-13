@@ -133,9 +133,9 @@ def register():
             return redirect(url_for('login'))
         except Exception as e:
             flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে। অন্য ইমেইল ব্যবহার করুন।", "error")
+            return redirect(url_for('register'))
             
-    return render_template('login.html') # Or make a separate register.html
-
+    return render_template('register.html') # এই লাইনটি চেক করুন
 @app.route('/logout')
 def logout():
     session.clear()
