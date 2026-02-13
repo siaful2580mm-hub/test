@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Background Circle (Secure Blue) -->
-  <circle cx="256" cy="256" r="256" fill="#0057FF"/>
-  <!-- Crown Icon (White) -->
-  <path fill="#FFFFFF" d="M138.7 185.3L96 352h320l-42.7-166.7L292 305.6l-36-150.9-36 150.9L138.7 185.3zM256 64l58.9 146.6 28.5-119.5L448 384H64l104.6-292.9 28.5 119.5L256 64z"/>
-</svg>
