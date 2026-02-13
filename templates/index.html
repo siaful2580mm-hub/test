@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!-- ১. নোটিশ বোর্ড -->
+{% if settings.notice_text %}
+<div class="bg-blue-50 border-l-4 border-[#0057FF] text-blue-900 p-4 mb-6 rounded-r-lg shadow-sm flex items-start gap-3">
+    <div class="text-xl">📢</div>
+    <div>
+        <p class="font-bold text-sm text-[#0057FF]">নোটিশ</p>
+        <p class="text-sm">{{ settings.notice_text }}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- ২. প্রোফাইল এবং ব্যালেন্স কার্ড -->
+<div class="bg-white rounded-2xl p-6 shadow-md mb-6 relative overflow-hidden border border-gray-100">
+    <!-- প্রোফাইল ইনফো -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center text-2xl border border-gray-200">
+                👤
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-[#0A2540]">
+                    {{ user.email.split('@')[0] }}
+                </h2>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded {{ 'bg-green-100 text-green-700' if user.is_active else 'bg-red-100 text-red-700' }}">
+                    {{ 'Verified Member' if user.is_active else 'Unverified' }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ৩. ব্যালেন্স ট্যাপ বাটন (Tap to Reveal) -->
+    <div class="flex justify-center">
+        <div class="bg-[#E2136E] rounded-full p-1 pl-1 pr-6 cursor-pointer shadow-lg transition-all duration-300 w-full max-w-xs relative group active:scale-95" id="balanceBtn">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-[#E2136E] rounded-full h-10 w-10 flex items-center justify-center font-bold text-xl shadow-inner">
+                    ৳
+                </div>
+                <div class="flex flex-col text-white">
+                    <span class="text-[10px] opacity-90 font-medium">ব্যালেন্স দেখতে ট্যাপ করুন</span>
+                    <!-- ব্লার করা ব্যালেন্স -->
+                    <span id="balanceText" class="font-bold text-lg filter blur-sm transition-all duration-500">
+                        {{ user.balance }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ৪. কুইক একশন বাটন -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+    <a href="/tasks" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:bg-gray-50">
+        <div class="text-4xl mb-2">📺</div>
+        <span class="text-[#0A2540] font-bold text-sm">ভিডিও টাস্ক</span>
+        <span class="text-xs text-gray-400 mt-1">আয় করুন</span>
+    </a>
+    
+    <a href="#" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:bg-gray-50 opacity-50 cursor-not-allowed">
+        <div class="text-4xl mb-2">💸</div>
+        <span class="text-[#0A2540] font-bold text-sm">উত্তোলন</span>
+        <span class="text-xs text-gray-400 mt-1">শীঘ্রই আসছে</span>
+    </a>
+</div>
+
+<!-- ৫. রিসেন্ট অ্যাক্টিভিটি (Demo) -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+    <h3 class="font-bold text-[#0A2540] mb-4 border-b pb-2">রিসেন্ট হিস্টোরি</h3>
+    <div class="text-center text-gray-400 py-4 text-sm">
+        কোনো লেনদেন পাওয়া যায়নি
+    </div>
+</div>
+{% endblock %}
