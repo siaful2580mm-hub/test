@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+    <h2 class="text-xl font-bold text-[#0A2540] mb-4">নুতন টাস্ক যোগ করুন</h2>
+    
+    <form method="POST" action="/adtask" class="space-y-4">
+        
+        <!-- Title -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">টাস্ক টাইটেল</label>
+            <input type="text" name="title" required placeholder="FB Page Like" class="w-full p-3 border rounded-lg focus:outline-blue-500">
+        </div>
+
+        <!-- Category -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">ক্যাটাগরি</label>
+                <select name="category" class="w-full p-3 border rounded-lg">
+                    <option value="Facebook">Facebook</option>
+                    <option value="YouTube">YouTube</option>
+                    <option value="TikTok">TikTok</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">টাকার পরিমাণ</label>
+                <input type="number" step="0.01" name="reward" value="5.00" class="w-full p-3 border rounded-lg">
+            </div>
+        </div>
+
+        <!-- Task Type (Screenshot Check) -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">কাজের ধরন</label>
+            <select name="task_type" class="w-full p-3 border rounded-lg">
+                <option value="screenshot">Screenshot (Proof Required)</option>
+                <option value="link">Just Click (No Proof)</option>
+            </select>
+        </div>
+
+        <!-- Link -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">কাজের লিংক</label>
+            <input type="url" name="link" required placeholder="https://facebook.com/..." class="w-full p-3 border rounded-lg">
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">বিবরণ (কি করতে হবে)</label>
+            <textarea name="description" rows="3" class="w-full p-3 border rounded-lg" placeholder="পেজে লাইক দিয়ে স্ক্রিনশট দিন..."></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-[#0A2540] text-white py-3 rounded-lg font-bold hover:bg-opacity-90">
+            টাস্ক পাবলিশ করুন
+        </button>
+    </form>
+</div>
+{% endblock %}
