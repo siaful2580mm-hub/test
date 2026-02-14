@@ -2,133 +2,191 @@
 
 {% block content %}
 
-<!-- ১. প্রোফাইল হেডার (bKash Style) -->
-<div class="bg-white rounded-2xl p-4 shadow-sm mb-4 border border-gray-100 flex items-center gap-4">
-    <div class="h-16 w-16 rounded-full bg-[#0A2540] text-white flex items-center justify-center text-3xl shadow-inner">
+<!-- ১. প্রোফাইল হেডার (User Info) -->
+<div class="bg-white rounded-2xl p-5 shadow-sm mb-5 border border-gray-100 flex items-center gap-4 relative overflow-hidden">
+    <!-- Background Design -->
+    <div class="absolute right-0 top-0 bg-blue-50 h-24 w-24 rounded-bl-full opacity-50"></div>
+
+    <div class="h-16 w-16 rounded-full bg-[#0A2540] text-white flex items-center justify-center text-3xl shadow-lg border-2 border-white z-10">
         👤
     </div>
-    <div class="flex-grow">
+    <div class="flex-grow z-10">
         <h2 class="text-xl font-bold text-[#0A2540]">{{ user.email.split('@')[0] }}</h2>
-        <p class="text-xs text-gray-500">{{ user.email }}</p>
-        <div class="mt-1">
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded {{ 'bg-green-100 text-green-700' if user.is_active else 'bg-red-100 text-red-700' }}">
-                {{ 'Verified ID' if user.is_active else 'Not Verified' }}
+        <div class="flex items-center gap-2 mt-1">
+            <span class="text-xs text-gray-500">ID: {{ user.referral_code if user.referral_code else 'N/A' }}</span>
+            
+            <!-- Status Badge -->
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1
+                {{ 'bg-green-100 text-green-700' if user.is_active else 'bg-red-100 text-red-700' }}">
+                {{ '✅ Verified' if user.is_active else '⚠️ Unverified' }}
             </span>
         </div>
     </div>
 </div>
 
-<!-- ২. রেফারেল সেকশন (Invite & Earn) -->
-<div class="bg-gradient-to-r from-[#E2136E] to-[#b00e53] rounded-2xl p-5 text-white shadow-lg mb-6 relative overflow-hidden">
-    <!-- Background Decor -->
-    <div class="absolute -right-4 -top-4 bg-white/10 h-24 w-24 rounded-full blur-xl"></div>
-    
-    <h3 class="font-bold text-lg mb-1">📢 রেফার করুন, আয় করুন!</h3>
-    <p class="text-xs text-white/80 mb-4">আপনার বন্ধুদের ইনভাইট করুন এবং বোনাস পান।</p>
-    
-    <div class="bg-white p-1 rounded-lg flex items-center justify-between">
-        <input type="text" id="refLink" value="https://taskking.vercel.app/register?ref={{ user.referral_code }}" 
-               class="text-gray-600 text-xs px-2 w-full outline-none bg-transparent" readonly>
-        
-        <button onclick="copyRef()" class="bg-[#0A2540] text-white px-3 py-1.5 rounded text-xs font-bold active:scale-95 transition">
-            কপি করুন
-        </button>
+<!-- ২. ব্যালেন্স কার্ড (Mini) -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
+        <p class="text-xs text-gray-500 mb-1">বর্তমান ব্যালেন্স</p>
+        <p class="text-xl font-bold text-[#E2136E]">৳ {{ user.balance }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
+        <p class="text-xs text-gray-500 mb-1">মোট আয়</p>
+        <p class="text-xl font-bold text-[#0A2540]">৳ {{ user.balance }}</p> <!-- Future: Add total_earnings in DB -->
     </div>
 </div>
 
-<!-- ৩. মেনু নেভিগেশন (More Options) -->
+<!-- ৩. রেফারেল সেকশন (Unique System) -->
+<div class="bg-gradient-to-r from-[#E2136E] to-[#9c0f4d] rounded-2xl p-5 text-white shadow-lg mb-6 relative overflow-hidden">
+    <!-- Decor -->
+    <div class="absolute -right-6 -top-6 bg-white/20 h-32 w-32 rounded-full blur-2xl"></div>
+    
+    <div class="relative z-10">
+        <h3 class="font-bold text-lg mb-1 flex items-center gap-2">
+            📢 রেফারেল বোনাস
+        </h3>
+        <p class="text-xs text-white/90 mb-4">আপনার ইউনিক লিংক শেয়ার করুন এবং ৫ টাকা বোনাস পান!</p>
+        
+        <div class="bg-white/10 backdrop-blur-sm p-1.5 rounded-lg flex items-center justify-between border border-white/20">
+            <!-- Link Display -->
+            <input type="text" id="refLink" 
+                   value="..." 
+                   class="text-white text-xs px-2 w-full outline-none bg-transparent font-mono tracking-wide" 
+                   readonly>
+            
+            <!-- Copy Button -->
+            <button onclick="copyRef(this)" class="bg-white text-[#E2136E] px-4 py-2 rounded-md text-xs font-bold hover:bg-gray-100 active:scale-95 transition shadow-sm">
+                কপি করুন
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ৪. মেনু নেভিগেশন (More Options) -->
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
     
-    <!-- Withdraw -->
-    <a href="#" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition">
-        <div class="flex items-center gap-3">
-            <div class="bg-blue-50 text-[#0057FF] p-2 rounded-lg">💸</div>
-            <span class="text-[#0A2540] font-medium text-sm">টাকা উত্তোলন (Withdraw)</span>
+    <!-- Withdraw Money -->
+    <a href="#" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition group">
+        <div class="flex items-center gap-4">
+            <div class="bg-blue-50 text-[#0057FF] p-2.5 rounded-xl group-hover:scale-110 transition">💸</div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">টাকা উত্তোলন</span>
+                <span class="text-[10px] text-gray-400">বিকাশ / নগদ / রকেট</span>
+            </div>
         </div>
-        <span class="text-gray-400">❯</span>
+        <span class="text-gray-300">❯</span>
     </a>
 
     <!-- History -->
-    <a href="#" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition">
-        <div class="flex items-center gap-3">
-            <div class="bg-purple-50 text-purple-600 p-2 rounded-lg">📜</div>
-            <span class="text-[#0A2540] font-medium text-sm">লেনদেন হিস্টোরি</span>
+    <a href="#" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition group">
+        <div class="flex items-center gap-4">
+            <div class="bg-purple-50 text-purple-600 p-2.5 rounded-xl group-hover:scale-110 transition">📜</div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">লেনদেন হিস্টোরি</span>
+                <span class="text-[10px] text-gray-400">সকল পেমেন্ট প্রুফ</span>
+            </div>
         </div>
-        <span class="text-gray-400">❯</span>
+        <span class="text-gray-300">❯</span>
     </a>
 
-    <!-- Telegram Support -->
-    <a href="https://t.me/your_channel" target="_blank" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition">
-        <div class="flex items-center gap-3">
-            <div class="bg-blue-50 text-blue-500 p-2 rounded-lg">✈️</div>
-            <span class="text-[#0A2540] font-medium text-sm">সাপোর্ট গ্রুপ (Telegram)</span>
+    <!-- Support Group -->
+    <a href="https://t.me/your_telegram_channel" target="_blank" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition group">
+        <div class="flex items-center gap-4">
+            <div class="bg-sky-50 text-sky-500 p-2.5 rounded-xl group-hover:scale-110 transition">✈️</div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">সাপোর্ট গ্রুপ</span>
+                <span class="text-[10px] text-gray-400">টেলিগ্রামে জয়েন করুন</span>
+            </div>
         </div>
-        <span class="text-gray-400">❯</span>
+        <span class="text-gray-300">❯</span>
     </a>
 
     <!-- Admin Panel (Only for Admin) -->
     {% if user.role == 'admin' %}
-    <a href="/admin" class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition">
-        <div class="flex items-center gap-3">
-            <div class="bg-[#0A2540] text-white p-2 rounded-lg">⚙️</div>
-            <span class="text-[#0A2540] font-bold text-sm">এডমিন প্যানেল</span>
+    <a href="/admin" class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition border-l-4 border-[#0A2540]">
+        <div class="flex items-center gap-4">
+            <div class="bg-[#0A2540] text-white p-2.5 rounded-xl">⚙️</div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">এডমিন প্যানেল</span>
+                <span class="text-[10px] text-gray-500">সাইট কন্ট্রোল সেন্টার</span>
+            </div>
         </div>
         <span class="text-gray-400">❯</span>
     </a>
     {% endif %}
 </div>
 
-<!-- ৪. টিপস এবং গাইডলাইন -->
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-20">
+<!-- ৫. টিপস এবং গাইডলাইন -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-8">
     <h3 class="font-bold text-[#0A2540] mb-4 border-b pb-2 flex items-center gap-2">
-        <span>💡</span> কাজের নিয়ম (Tips)
+        <span>💡</span> কাজের নিয়মাবলি
     </h3>
     <ul class="space-y-3 text-sm text-gray-600">
-        <li class="flex gap-2">
-            <span class="text-green-500">✔</span> 
-            সঠিকভাবে ভিডিও দেখুন, না হলে পেমেন্ট পাবেন না।
+        <li class="flex gap-3 items-start">
+            <span class="text-green-500 mt-1">✔</span> 
+            <span>ভিপিএন (VPN) ব্যবহার করলে একাউন্ট ব্যান হবে।</span>
         </li>
-        <li class="flex gap-2">
-            <span class="text-green-500">✔</span> 
-            ভিপিএন (VPN) ব্যবহার করা নিষিদ্ধ।
+        <li class="flex gap-3 items-start">
+            <span class="text-green-500 mt-1">✔</span> 
+            <span>প্রতি রেফারলে ১০% লাইফটাইম কমিশন।</span>
         </li>
-        <li class="flex gap-2">
-            <span class="text-green-500">✔</span> 
-            প্রতি রেফারলে ১০% বোনাস পাবেন।
+        <li class="flex gap-3 items-start">
+            <span class="text-green-500 mt-1">✔</span> 
+            <span>টাকা উত্তোলনের জন্য একাউন্ট এক্টিভ থাকতে হবে।</span>
         </li>
     </ul>
 </div>
 
-<!-- JavaScript for Copy Link -->
-<!-- Account Page এর নিচে স্ক্রিপ্ট অংশ -->
+<!-- JavaScript for Dynamic Link & Copy -->
 <script>
-    function copyRef() {
+    document.addEventListener('DOMContentLoaded', () => {
+        // ১. বর্তমান ডোমেইন অটোমেটিক ডিটেক্ট করা (Vercel/Localhost)
+        const domain = window.location.origin;
+        
+        // ২. ইউজারের ইউনিক কোড
+        const uniqueCode = "{{ user.referral_code if user.referral_code else 'GenerateID' }}";
+        
+        // ৩. পূর্ণ লিংক তৈরি
+        const fullLink = `${domain}/register?ref=${uniqueCode}`;
+        
+        // ৪. ইনপুট বক্সে সেট করা
+        const inputField = document.getElementById("refLink");
+        if(inputField) {
+            inputField.value = fullLink;
+        }
+    });
+
+    function copyRef(btnElement) {
         const copyText = document.getElementById("refLink");
         
-        // Mobile device support
+        // Mobile Selection Fix
         copyText.select();
         copyText.setSelectionRange(0, 99999); 
-        
+
+        // Copy Command
         try {
             navigator.clipboard.writeText(copyText.value).then(() => {
-                alert("✅ লিংক কপি হয়েছে!");
+                showFeedback(btnElement);
             });
         } catch (err) {
             // Fallback for older browsers
             document.execCommand('copy');
-            alert("✅ লিংক কপি হয়েছে!");
+            showFeedback(btnElement);
         }
     }
-    
-    // পেজ লোড হলে অটোমেটিক লিংক জেনারেট হবে
-    window.addEventListener('DOMContentLoaded', (event) => {
-        const domain = window.location.origin; // যেমন: https://taskking.vercel.app
-        // ইউজার নেম না থাকলে 'user' ডিফল্ট ভ্যালু
-        const refCode = "{{ user.referral_code or user.email.split('@')[0] }}"; 
+
+    function showFeedback(btn) {
+        const originalText = btn.innerText;
+        btn.innerText = "কপি হয়েছে!";
+        btn.classList.add("bg-green-500", "text-white");
+        btn.classList.remove("text-[#E2136E]", "bg-white");
         
-        const fullLink = `${domain}/register?ref=${refCode}`;
-        document.getElementById("refLink").value = fullLink;
-    });
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.classList.remove("bg-green-500", "text-white");
+            btn.classList.add("text-[#E2136E]", "bg-white");
+        }, 2000);
+    }
 </script>
 
 {% endblock %}
