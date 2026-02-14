@@ -365,37 +365,20 @@ def account():
     # রেফারেল লিংক তৈরির জন্য ডোমেইন নেম দরকার, কিন্তু আমরা ফ্রন্টএন্ড JS দিয়ে হ্যান্ডেল করব
     return render_template('account.html', user=g.user, settings=g.settings)
     
-# --- LOGIN ROUTE (FIXED SESSION) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # যদি ইউজার ইতিমধ্যে লগিন থাকে, তবে ড্যাশবোর্ডে পাঠাও
-    if 'user_id' in session:
-        return redirect(url_for('dashboard'))
-
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        
         try:
-            # ১. Supabase দিয়ে লগিন চেক করা
             res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            
-            # ২. সেশন স্থায়ী করা (যাতে লগআউট না হয়)
-            session.permanent = True  # <--- এই লাইনটি খুবই গুরুত্বপূর্ণ
-            
-            # ৩. সেশনে ডাটা রাখা
             session['user_id'] = res.user.id
             session['access_token'] = res.session.access_token
-            
-            flash("✅ স্বাগতম! আপনি সফলভাবে লগিন করেছেন।", "success")
             return redirect(url_for('dashboard'))
-            
         except Exception as e:
-            # পাসওয়ার্ড ভুল হলে
-            flash("❌ ইমেইল বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।", "error")
-            print(f"Login Error: {e}") # ডিবাগিং এর জন্য
-            
+            flash("❌ ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।", "error")
     return render_template('login.html')
+
 # --- REGISTER ROUTE (UNIQUE REFERRAL SYSTEM) ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
