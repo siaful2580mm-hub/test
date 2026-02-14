@@ -100,33 +100,35 @@
 </div>
 
 <!-- JavaScript for Copy Link -->
+<!-- Account Page এর নিচে স্ক্রিপ্ট অংশ -->
 <script>
     function copyRef() {
-        // Get current domain dynamically
-        const domain = window.location.origin;
-        const refCode = "{{ user.referral_code or user.email.split('@')[0] }}";
-        const fullLink = `${domain}/register?ref=${refCode}`;
-        
         const copyText = document.getElementById("refLink");
-        copyText.value = fullLink; // Update input with correct domain
         
+        // Mobile device support
         copyText.select();
-        copyText.setSelectionRange(0, 99999); // For mobile
-        navigator.clipboard.writeText(copyText.value);
+        copyText.setSelectionRange(0, 99999); 
         
-        // Button Feedback
-        event.target.innerText = "কপি হয়েছে!";
-        setTimeout(() => {
-            event.target.innerText = "কপি করুন";
-        }, 2000);
+        try {
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                alert("✅ লিংক কপি হয়েছে!");
+            });
+        } catch (err) {
+            // Fallback for older browsers
+            document.execCommand('copy');
+            alert("✅ লিংক কপি হয়েছে!");
+        }
     }
     
-    // Page load এ সঠিক লিংক সেট করা
-    window.onload = function() {
-        const domain = window.location.origin;
-        const refCode = "{{ user.referral_code or user.email.split('@')[0] }}";
-        document.getElementById("refLink").value = `${domain}/register?ref=${refCode}`;
-    }
+    // পেজ লোড হলে অটোমেটিক লিংক জেনারেট হবে
+    window.addEventListener('DOMContentLoaded', (event) => {
+        const domain = window.location.origin; // যেমন: https://taskking.vercel.app
+        // ইউজার নেম না থাকলে 'user' ডিফল্ট ভ্যালু
+        const refCode = "{{ user.referral_code or user.email.split('@')[0] }}"; 
+        
+        const fullLink = `${domain}/register?ref=${refCode}`;
+        document.getElementById("refLink").value = fullLink;
+    });
 </script>
 
 {% endblock %}
