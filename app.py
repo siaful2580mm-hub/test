@@ -1,6 +1,8 @@
 import os
 import random
 import string
+import requests
+import base64
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 from supabase import create_client, Client
@@ -112,6 +114,92 @@ def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
+
+# --- ADMIN: ADD TASK (Fb Page Like / Screenshot Task) ---
+@app.route('/adtask', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_task():
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        link = request.form.get('link')
+        reward = float(request.form.get('reward'))
+        category = request.form.get('category') # Facebook, YouTube
+        task_type = request.form.get('task_type') # 'screenshot' or 'link'
+        
+        try:
+            supabase.table('tasks').insert({
+                'title': title,
+                'description': description,
+                'link': link,
+                'reward': reward,
+                'category': category,
+                'task_type': task_type,
+                'is_active': True
+            }).execute()
+            flash("✅ টাস্ক সফলভাবে যোগ করা হয়েছে!", "success")
+        except Exception as e:
+            flash(f"Error: {str(e)}", "error")
+            
+        return redirect(url_for('add_task'))
+        
+    return render_template('adtask.html', user=g.user)
+
+# --- USER: SUBMIT TASK (ImgBB Upload) ---
+@app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
+@login_required
+def submit_task(task_id):
+    # টাস্ক ডিটেইলস আনা
+    task_res = supabase.table('tasks').select('*').eq('id', task_id).single().execute()
+    task = task_res.data
+
+    if request.method == 'POST':
+        # ১. ছবি ফাইল ধরা
+        if 'screenshot' not in request.files:
+            flash("ছবি আপলোড করুন!", "error")
+            return redirect(request.url)
+            
+        file = request.files['screenshot']
+        if file.filename == '':
+            flash("কোনো ছবি সিলেক্ট করা হয়নি", "error")
+            return redirect(request.url)
+
+        try:
+            # ২. ImgBB তে আপলোড করা
+            api_key = "f5789c14135a479b4e3893c6b9ccf074" # আপনার দেওয়া কী
+            image_string = base64.b64encode(file.read())
+            
+            payload = {
+                "key": api_key,
+                "image": image_string,
+            }
+            
+            # ImgBB API কল
+            response = requests.post("https://api.imgbb.com/1/upload", data=payload)
+            data = response.json()
+            
+            if data['success']:
+                img_url = data['data']['url']
+                
+                # ৩. ডাটাবেসে লিংক সেভ করা
+                supabase.table('submissions').insert({
+                    'user_id': session['user_id'],
+                    'task_id': task_id,
+                    'proof_link': img_url,
+                    'status': 'pending'
+                }).execute()
+                
+                flash("✅ স্ক্রিনশট জমা হয়েছে! এডমিন চেক করে পেমেন্ট দিবে।", "success")
+                return redirect(url_for('tasks'))
+            else:
+                flash("❌ ছবি আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।", "error")
+                
+        except Exception as e:
+            flash(f"Error: {str(e)}", "error")
+
+    return render_template('submit_task.html', task=task, user=g.user)
+
 
 # --- ACCOUNT / MENU PAGE ---
 @app.route('/account')
