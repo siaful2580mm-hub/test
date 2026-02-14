@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-lg mx-auto">
+    
+    <!-- Task Info -->
+    <div class="text-center mb-6">
+        <div class="bg-blue-100 text-blue-600 h-16 w-16 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+            📸
+        </div>
+        <h2 class="text-xl font-bold text-[#0A2540]">{{ task.title }}</h2>
+        <p class="text-sm text-gray-500 mt-2">{{ task.description }}</p>
+        <p class="text-lg font-bold text-[#E2136E] mt-2">Reward: ৳ {{ task.reward }}</p>
+    </div>
+
+    <!-- Step 1: Link -->
+    <div class="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+        <p class="text-sm font-bold text-gray-700 mb-2">ধাপ ১: লিংকে গিয়ে কাজটি করুন</p>
+        <a href="{{ task.link }}" target="_blank" class="block text-center w-full bg-[#0057FF] text-white py-2 rounded-lg font-bold shadow hover:bg-blue-700">
+            কাজ শুরু করুন (Click Here)
+        </a>
+    </div>
+
+    <!-- Step 2: Upload -->
+    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+        <div>
+            <p class="text-sm font-bold text-gray-700 mb-2">ধাপ ২: প্রুফ (Screenshot) আপলোড করুন</p>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition relative">
+                <input type="file" name="screenshot" accept="image/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <div class="text-gray-400">
+                    <span class="text-3xl block mb-2">📷</span>
+                    <span class="text-sm">Tap to Select Image</span>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-[#0A2540] text-white py-3 rounded-lg font-bold shadow-lg">
+            জমা দিন (Submit)
+        </button>
+    </form>
+</div>
+{% endblock %}
