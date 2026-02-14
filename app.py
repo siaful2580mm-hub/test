@@ -134,64 +134,61 @@ def login():
             flash("❌ ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।", "error")
     return render_template('login.html')
 
-# --- REGISTER ROUTE (UPDATED WITH REFERRAL SYSTEM) ---
+# --- REGISTER ROUTE (UNIQUE REFERRAL SYSTEM) ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    # ১. যদি লিংকে ক্লিক করে আসে (GET Request)
+    # GET: রেফারেল লিংক থেকে আসলে কোড ধরা
     if request.method == 'GET':
-        ref_code = request.args.get('ref') # URL থেকে ref কোড নেওয়া
+        ref_code = request.args.get('ref')
         return render_template('register.html', ref_code=ref_code)
 
-    # ২. ফর্ম সাবমিট করলে (POST Request)
+    # POST: ফরম সাবমিট
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        ref_code = request.form.get('ref_code') # হিডেন ইনপুট থেকে কোড নেওয়া
+        used_ref_code = request.form.get('ref_code') # যে রেফার করেছে তার কোড
         
         try:
-            # A. Supabase-এ ইউজার তৈরি করা
+            # ১. সাইন আপ (Supabase Auth)
             res = supabase.auth.sign_up({"email": email, "password": password})
             new_user_id = res.user.id
             
-            # B. রেফারেল বোনাস লজিক (যদি ref_code থাকে)
-            if ref_code:
+            # ২. নিজের জন্য ইউনিক কোড তৈরি করা (যেমন: TK4092)
+            my_unique_code = generate_ref_code()
+            
+            # ৩. ডাটাবেসে নিজের কোড আপডেট করা
+            supabase.table('profiles').update({
+                'referral_code': my_unique_code
+            }).eq('id', new_user_id).execute()
+
+            # ৪. যদি কারো রেফারে এসে থাকে (Bonus System)
+            if used_ref_code:
                 try:
-                    # ১. যার কোড ব্যবহার হয়েছে তার ID খুঁজে বের করা
-                    referrer_res = supabase.table('profiles').select('id, balance').eq('referral_code', ref_code).single().execute()
+                    # রেফারার খুঁজে বের করা
+                    referrer_res = supabase.table('profiles').select('*').eq('referral_code', used_ref_code).single().execute()
                     referrer = referrer_res.data
                     
                     if referrer:
-                        referrer_id = referrer['id']
-                        
-                        # ২. নতুন ইউজারের প্রোফাইলে referred_by সেট করা
-                        supabase.table('profiles').update({
-                            'referred_by': referrer_id
-                        }).eq('id', new_user_id).execute()
-                        
-                        # ৩. যে রেফার করেছে তাকে বোনাস দেওয়া (যেমন: ১০ টাকা)
-                        bonus_amount = 5.00 # বোনাস এমাউন্ট
-                        new_balance = float(referrer['balance']) + bonus_amount
+                        # বোনাস দেওয়া (৫ টাকা)
+                        new_balance = float(referrer['balance']) + 5.00
                         
                         supabase.table('profiles').update({
                             'balance': new_balance
-                        }).eq('id', referrer_id).execute()
+                        }).eq('id', referrer['id']).execute()
                         
-                        # ৪. লগ রাখা (Optional)
-                        supabase.table('referral_logs').insert({
-                            'referrer_id': referrer_id,
-                            'new_user_id': new_user_id,
-                            'bonus_amount': bonus_amount
-                        }).execute()
+                        # নতুন ইউজারের 'referred_by' সেট করা
+                        supabase.table('profiles').update({
+                            'referred_by': referrer['id']
+                        }).eq('id', new_user_id).execute()
                         
-                except Exception as ref_error:
-                    print(f"Referral Error: {ref_error}") 
-                    # রেফারেল এরর হলেও মেইন রেজিস্ট্রেশন আটকাবে না
+                except Exception as e:
+                    print(f"Referral Error: {e}")
 
             flash("✅ একাউন্ট তৈরি হয়েছে! লগিন করুন।", "success")
             return redirect(url_for('login'))
             
         except Exception as e:
-            flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে। ইমেইলটি হয়তো আগেই ব্যবহৃত।", "error")
+            flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে।", "error")
             return redirect(url_for('register'))
             
     return render_template('register.html')
