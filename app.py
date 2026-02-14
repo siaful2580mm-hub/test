@@ -1,4 +1,6 @@
 import os
+import random
+import string
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 from supabase import create_client, Client
@@ -84,6 +86,13 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# --- HELPER: UNIQUE CODE GENERATOR ---
+def generate_ref_code():
+    # TK + 4 Random Digits/Letters (Example: TK4A2B)
+    chars = string.ascii_uppercase + string.digits
+    code = 'TK' + ''.join(random.choices(chars, k=4))
+    return code
+    
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
