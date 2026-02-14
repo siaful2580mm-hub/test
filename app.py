@@ -22,16 +22,13 @@ if not url or not key:
 supabase: Client = create_client(url, key)
 
 # -------------------------------------------------------------------
-# 2. MIDDLEWARE (The "Brain" that checks rules before every page load)
+# 2. MIDDLEWARE (Updated Logic)
 # -------------------------------------------------------------------
 @app.before_request
 def before_request_checks():
     """
     This function runs before EVERY request.
-    It checks:
-    1. Is the site in Maintenance Mode?
-    2. Is the user logged in?
-    3. Does the user need to pay (Activation)?
+    It checks Maintenance, Login, and Activation status.
     """
     
     # A. Load Site Settings (Global)
@@ -39,7 +36,6 @@ def before_request_checks():
         response = supabase.table('site_settings').select('*').eq('id', 1).single().execute()
         g.settings = response.data
     except:
-        # Default fallback if DB fails
         g.settings = {'maintenance_mode': False, 'activation_required': False, 'notice_text': ''}
 
     # B. Load User (If logged in)
@@ -49,31 +45,36 @@ def before_request_checks():
             user_resp = supabase.table('profiles').select('*').eq('id', session['user_id']).single().execute()
             g.user = user_resp.data
         except:
-            session.clear() # Invalid session
+            session.clear()
 
     # C. CHECK: Maintenance Mode
-    # If Mode is ON, and User is NOT Admin -> Show Maintenance Page
     if g.settings.get('maintenance_mode'):
-        # Allow static files (css/js) and login page
         if request.endpoint in ['static', 'login', 'logout', 'admin_login']:
             return
-        
-        # If user is admin, let them pass
         if g.user and g.user.get('role') == 'admin':
             return
-            
         return render_template('maintenance.html')
 
-    # D. CHECK: Activation (Pay to Earn)
-    # If Activation ON, User Logged In, User Not Active, Not Admin -> Redirect
+    # D. CHECK: Activation (Pay to Earn) - [UPDATED HERE]
+    # লজিক: ড্যাশবোর্ড দেখা যাবে, কিন্তু 'tasks' পেজে গেলে আটকাবে।
     if g.settings.get('activation_required'):
         if g.user and not g.user.get('is_active') and g.user.get('role') != 'admin':
-            allowed_routes = ['static', 'logout', 'activate_account', 'submit_activation']
-            if request.endpoint not in allowed_routes:
+            
+            # ১. যদি ইউজার 'tasks' পেজে যেতে চায় -> তাকে আটকাও
+            if request.endpoint == 'tasks':
+                flash("⚠️ কাজ করার জন্য একাউন্ট ভেরিফাই করুন!", "error")
                 return redirect(url_for('activate_account'))
+            
+            # ২. এই পেজগুলোতে সবাই ঢুকতে পারবে (Verified না হলেও)
+            # dashboard এবং index এখানে যুক্ত আছে, তাই প্রোফাইল দেখা যাবে।
+            allowed_routes = ['static', 'logout', 'activate_account', 'submit_activation', 'dashboard', 'index', 'admin_panel']
+            
+            # ৩. যদি কেউ allowed লিস্টের বাইরের পেজে (যেমন hidden link) যেতে চায় -> আটকাও
+            if request.endpoint and request.endpoint not in allowed_routes:
+                 return redirect(url_for('activate_account'))
 
 # -------------------------------------------------------------------
-# 3. HELPER DECORATORS (Security)
+# 3. HELPER DECORATORS
 # -------------------------------------------------------------------
 def login_required(f):
     @wraps(f)
@@ -93,7 +94,7 @@ def admin_required(f):
     return decorated_function
 
 # -------------------------------------------------------------------
-# 4. ROUTES (Pages)
+# 4. ROUTES
 # -------------------------------------------------------------------
 
 @app.route('/')
@@ -102,22 +103,18 @@ def index():
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
 
-# --- AUTH SYSTEM ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        
         try:
-            # Sign in with Supabase Auth
             res = supabase.auth.sign_in_with_password({"email": email, "password": password})
             session['user_id'] = res.user.id
             session['access_token'] = res.session.access_token
             return redirect(url_for('dashboard'))
         except Exception as e:
             flash("❌ ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।", "error")
-            
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -125,23 +122,20 @@ def register():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        
         try:
-            # Create user in Supabase
             res = supabase.auth.sign_up({"email": email, "password": password})
             flash("✅ একাউন্ট তৈরি হয়েছে! লগিন করুন।", "success")
             return redirect(url_for('login'))
         except Exception as e:
             flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে। অন্য ইমেইল ব্যবহার করুন।", "error")
             return redirect(url_for('register'))
-            
-    return render_template('register.html') # এই লাইনটি চেক করুন
+    return render_template('register.html')
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# --- USER DASHBOARD ---
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -150,11 +144,9 @@ def dashboard():
 @app.route('/tasks')
 @login_required
 def tasks():
-    # Fetch active tasks from DB
     response = supabase.table('tasks').select('*').eq('is_active', True).execute()
     return render_template('tasks.html', tasks=response.data, user=g.user)
 
-# --- ACTIVATION SYSTEM ---
 @app.route('/activate')
 @login_required
 def activate_account():
@@ -164,30 +156,22 @@ def activate_account():
 @login_required
 def submit_activation():
     trx_id = request.form.get('trx_id')
-    method = request.form.get('method')
-    
-    # Save request to DB (You need a 'activations' table or update profile)
-    # For now, we just flash a message
     flash("✅ রিকোয়েস্ট জমা হয়েছে। এডমিন চেক করে এপ্রুভ করবেন।", "success")
     return redirect(url_for('activate_account'))
 
 # -------------------------------------------------------------------
-# 5. ADMIN PANEL (The Control Room)
+# 5. ADMIN PANEL
 # -------------------------------------------------------------------
-# --- ADMIN PANEL ROUTE ---
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def admin_panel():
-    # ১. সেটিংস আপডেট লজিক (POST Request)
     if request.method == 'POST':
-        # HTML ফর্ম থেকে ডাটা নেওয়া
         m_mode = True if request.form.get('maintenance') == 'on' else False
         a_req = True if request.form.get('activation') == 'on' else False
         notice = request.form.get('notice')
 
         try:
-            # Supabase-এ আপডেট করা
             supabase.table('site_settings').update({
                 'maintenance_mode': m_mode,
                 'activation_required': a_req,
@@ -195,24 +179,16 @@ def admin_panel():
             }).eq('id', 1).execute()
 
             flash("✅ সেটিংস সফলভাবে সেভ হয়েছে!", "success")
-            
-            # নতুন সেটিংস লোড করার জন্য পেজ রিফ্রেশ
             return redirect(url_for('admin_panel'))
-            
         except Exception as e:
             flash(f"Error: {str(e)}", "error")
 
-    # ২. পেজ লোড করার সময় বর্তমান সেটিংস দেখানো (GET Request)
-    # g.settings এবং g.user অটোমেটিক লোড হয় (before_request এর মাধ্যমে)
-    
-    # টোটাল ইউজার কাউন্ট (অপশনাল - ড্যাশবোর্ডে দেখানোর জন্য)
     try:
         user_count = supabase.table('profiles').select('*', count='exact').execute().count
     except:
         user_count = 0
 
     return render_template('admin.html', user=g.user, settings=g.settings, user_count=user_count)
-# --- VERCEL ENTRY POINT ---
-# This is required for local testing, Vercel ignores it but uses the 'app' object
+
 if __name__ == '__main__':
     app.run(debug=True)
