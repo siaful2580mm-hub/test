@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex items-center gap-3">
+    <div class="bg-blue-50 text-[#0057FF] p-3 rounded-full text-xl">📢</div>
+    <div>
+        <h2 class="text-xl font-bold text-[#0A2540]">নোটিশ বোর্ড</h2>
+        <p class="text-xs text-gray-500">সকল আপডেট এবং ঘোষণা</p>
+    </div>
+</div>
+
+<!-- 1. ADMIN POST FORM (Only Visible to Admin) -->
+{% if user.role == 'admin' %}
+<div class="bg-white p-6 rounded-2xl shadow-md border-l-4 border-[#E2136E] mb-8">
+    <h3 class="font-bold text-[#0A2540] mb-4">নতুন নোটিশ লিখুন</h3>
+    <form method="POST" action="/notice" class="space-y-4">
+        <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">শিরোনাম</label>
+            <input type="text" name="title" required placeholder="নোটিশের বিষয়..." 
+                   class="w-full p-3 border rounded-lg focus:outline-[#E2136E]">
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">বিস্তারিত</label>
+            <textarea name="content" required rows="3" placeholder="কি জানাতে চান..." 
+                      class="w-full p-3 border rounded-lg focus:outline-[#E2136E]"></textarea>
+        </div>
+        <button type="submit" class="bg-[#0A2540] text-white px-6 py-2 rounded-lg font-bold hover:opacity-90">
+            পাবলিশ করুন
+        </button>
+    </form>
+</div>
+{% endif %}
+
+<!-- 2. NOTICE LIST (Visible to Everyone) -->
+<div class="space-y-4">
+    {% for notice in notices %}
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative group transition hover:shadow-md">
+        
+        <!-- Icon & Date -->
+        <div class="flex justify-between items-start mb-2">
+            <div class="flex items-center gap-2">
+                <span class="text-xl">📌</span>
+                <span class="text-xs text-gray-400 font-mono">{{ notice.created_at[:10] }}</span>
+            </div>
+            
+            <!-- Delete Button (Only Admin) -->
+            {% if user.role == 'admin' %}
+            <a href="/notice/delete/{{ notice.id }}" onclick="return confirm('ডিলিট করবেন?')" 
+               class="text-red-400 hover:text-red-600 p-1 bg-red-50 rounded">
+                🗑️
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Content -->
+        <h3 class="text-lg font-bold text-[#0A2540] mb-2">{{ notice.title }}</h3>
+        <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ notice.content }}</p>
+
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-gray-400 bg-white rounded-2xl border border-dashed border-gray-300">
+        <p>কোনো নোটিশ নেই।</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
