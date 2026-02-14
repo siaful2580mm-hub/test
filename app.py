@@ -125,7 +125,52 @@ def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
+# --- NOTICE BOARD ROUTE ---
+@app.route('/notice', methods=['GET', 'POST'])
+@login_required
+def notice():
+    # ১. নতুন নোটিশ পোস্ট করা (শুধুমাত্র এডমিন)
+    if request.method == 'POST':
+        # সিকিউরিটি চেক: এডমিন না হলে রিজেক্ট
+        if g.user.get('role') != 'admin':
+            flash("⚠️ শুধুমাত্র এডমিন নোটিশ দিতে পারবে।", "error")
+            return redirect(url_for('notice'))
 
+        title = request.form.get('title')
+        content = request.form.get('content')
+
+        try:
+            supabase.table('notices').insert({
+                'title': title,
+                'content': content
+            }).execute()
+            flash("✅ নোটিশ পাবলিশ করা হয়েছে!", "success")
+        except Exception as e:
+            flash("Error publishing notice", "error")
+            
+        return redirect(url_for('notice'))
+
+    # ২. সব নোটিশ লোড করা (সবার জন্য)
+    try:
+        res = supabase.table('notices').select('*').order('created_at', desc=True).execute()
+        notices = res.data
+    except:
+        notices = []
+
+    return render_template('notice.html', notices=notices, user=g.user)
+
+# --- DELETE NOTICE (ADMIN ONLY) ---
+@app.route('/notice/delete/<int:id>')
+@login_required
+@admin_required
+def delete_notice(id):
+    try:
+        supabase.table('notices').delete().eq('id', id).execute()
+        flash("🗑️ নোটিশ ডিলিট করা হয়েছে।", "success")
+    except:
+        flash("Error deleting notice", "error")
+        
+    return redirect(url_for('notice'))
 
 # --- ADMIN: ADD TASK (Fb Page Like / Screenshot Task) ---
 @app.route('/adtask', methods=['GET', 'POST'])
