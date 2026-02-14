@@ -92,15 +92,14 @@
                 <span class="text-[10px] font-semibold mt-1 {{ 'text-bkash-pink' if request.endpoint == 'tasks' else 'text-gray-400' }}">টাস্ক</span>
             </a>
 
-            <!-- Account / Admin (Updated Logic) -->
-            <!-- এখন এটি ড্যাশবোর্ডে যাবে, অ্যাক্টিভেশন পেজে নয় -->
-            <a href="{{ '/admin' if session.get('role') == 'admin' else '/dashboard' }}" class="flex flex-col items-center justify-center w-full h-full space-y-1 
-               {{ 'text-bkash-pink' if request.endpoint in ['admin_panel'] else 'text-gray-400 hover:text-bkash-blue' }}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span class="text-[10px] font-semibold">একাউন্ট</span>
-            </a>
+            <!-- Account Nav Item (Updated) -->
+<a href="/account" class="flex flex-col items-center justify-center w-full h-full space-y-1 
+   {{ 'text-bkash-pink' if request.endpoint == 'account' else 'text-gray-400 hover:text-bkash-blue' }}">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+    <span class="text-[10px] font-semibold">একাউন্ট</span>
+</a>
 
         </div>
     </div>
