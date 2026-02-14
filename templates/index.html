@@ -2,70 +2,85 @@
 
 {% block content %}
 
-<!-- ১. নোটিশ বোর্ড (সবসময় দেখাবে যদি এডমিন সেট করে) -->
+<!-- ১. নোটিশ বোর্ড (Notice Board) -->
 {% if settings.notice_text %}
-<div class="bg-blue-50 border-l-4 border-[#0057FF] text-blue-900 p-4 mb-6 rounded-r-lg shadow-sm flex items-start gap-3">
-    <div class="text-xl">📢</div>
+<div class="bg-white border-l-4 border-[#0057FF] p-4 mb-6 rounded-r-xl shadow-sm flex items-start gap-4 animate-pulse">
+    <div class="bg-blue-50 text-[#0057FF] h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
+        <i class="fa-solid fa-bullhorn text-lg"></i>
+    </div>
     <div>
-        <p class="font-bold text-sm text-[#0057FF]">নোটিশ</p>
-        <p class="text-sm">{{ settings.notice_text }}</p>
+        <p class="font-bold text-xs text-[#0057FF] uppercase tracking-wider mb-1">Notice</p>
+        <p class="text-sm text-gray-700 leading-relaxed">{{ settings.notice_text }}</p>
     </div>
 </div>
 {% endif %}
 
-<!-- ২. অ্যাক্টিভেশন ওয়ার্নিং (শর্ত সাপেক্ষে দেখাবে) -->
-<!-- লজিক: যদি সেটিং অন থাকে AND ইউজার এক্টিভ না থাকে -->
+<!-- ২. অ্যাক্টিভেশন ওয়ার্নিং (Activation Alert) -->
 {% if settings.activation_required and not user.is_active %}
-<div class="bg-red-50 border border-red-200 p-4 mb-6 rounded-2xl shadow-sm animate-pulse">
-    <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="bg-red-100 text-red-600 p-2 rounded-full">🔒</div>
+<div class="bg-red-50 border border-red-100 p-5 mb-6 rounded-2xl shadow-sm relative overflow-hidden group">
+    <!-- Background Icon -->
+    <i class="fa-solid fa-lock absolute -right-3 -bottom-3 text-6xl text-red-100 opacity-50 transform rotate-12 group-hover:scale-110 transition"></i>
+    
+    <div class="flex items-center justify-between relative z-10">
+        <div class="flex items-center gap-4">
+            <div class="bg-white text-red-500 h-12 w-12 rounded-full flex items-center justify-center shadow-sm text-xl">
+                <i class="fa-solid fa-user-lock"></i>
+            </div>
             <div>
                 <h3 class="font-bold text-red-700 text-sm">একাউন্ট ভেরিফাই করুন</h3>
-                <p class="text-xs text-red-500">কাজ শুরু করতে এক্টিভেশন প্রয়োজন</p>
+                <p class="text-xs text-red-500 mt-1">ফুল এক্সেস পেতে একাউন্ট এক্টিভ করুন</p>
             </div>
         </div>
-        <a href="/activate" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow hover:bg-red-700 transition">
-            Verify Now
+        <a href="/activate" class="bg-red-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-red-200 hover:bg-red-700 active:scale-95 transition flex items-center gap-2">
+            <span>Verify</span>
+            <i class="fa-solid fa-arrow-right"></i>
         </a>
     </div>
 </div>
 {% endif %}
 
-<!-- ৩. প্রোফাইল এবং ব্যালেন্স কার্ড -->
-<div class="bg-white rounded-2xl p-6 shadow-md mb-6 relative overflow-hidden border border-gray-100">
-    <div class="flex items-center justify-between mb-6">
+<!-- ৩. মেইন ব্যালেন্স কার্ড (Main Card) -->
+<div class="bg-white rounded-3xl p-6 shadow-lg shadow-gray-100 mb-8 relative overflow-hidden border border-gray-50">
+    <!-- User Info -->
+    <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-3">
-            <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center text-2xl border border-gray-200">
-                👤
+            <div class="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center text-xl text-gray-600 border border-gray-200">
+                <i class="fa-regular fa-user"></i>
             </div>
             <div>
                 <h2 class="text-lg font-bold text-[#0A2540]">
-                    {{ user.email.split('@')[0] }}
+                    {{ user.email.split('@')[0] | title }}
                 </h2>
                 
-                <!-- স্ট্যাটাস ব্যাজ লজিক -->
-                <!-- শুধুমাত্র যদি এক্টিভেশন অন থাকে এবং ইউজার আনভেরিফাইড হয় তবেই দেখাবে -->
-                {% if settings.activation_required and not user.is_active %}
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700">
-                    ⚠️ Unverified
+                <!-- Status Badge -->
+                {% if user.is_active %}
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">
+                    <i class="fa-solid fa-circle-check"></i> Verified
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+                    <i class="fa-solid fa-circle-exclamation"></i> Unverified
                 </span>
                 {% endif %}
             </div>
         </div>
+        <!-- Settings Icon -->
+        <a href="/account" class="text-gray-400 hover:text-[#E2136E] transition">
+            <i class="fa-solid fa-gear text-xl"></i>
+        </a>
     </div>
 
-    <!-- ব্যালেন্স ট্যাপ বাটন -->
-    <div class="flex justify-center">
-        <div class="bg-[#E2136E] rounded-full p-1 pl-1 pr-6 cursor-pointer shadow-lg transition-all duration-300 w-full max-w-xs relative group active:scale-95" id="balanceBtn">
-            <div class="flex items-center gap-3">
-                <div class="bg-white text-[#E2136E] rounded-full h-10 w-10 flex items-center justify-center font-bold text-xl shadow-inner">
-                    ৳
+    <!-- Balance Tap Button (bKash Style) -->
+    <div class="flex justify-center relative z-20">
+        <div class="bg-[#E2136E] rounded-full p-1.5 pl-1.5 pr-8 cursor-pointer shadow-xl shadow-pink-200 transition-all duration-300 w-full max-w-xs relative group active:scale-95 hover:bg-[#c2105e]" id="balanceBtn">
+            <div class="flex items-center gap-4">
+                <div class="bg-white text-[#E2136E] rounded-full h-11 w-11 flex items-center justify-center font-bold text-xl shadow-inner">
+                    <i class="fa-solid fa-bangladeshi-taka-sign"></i>
                 </div>
-                <div class="flex flex-col text-white">
-                    <span class="text-[10px] opacity-90 font-medium">ব্যালেন্স দেখতে ট্যাপ করুন</span>
-                    <span id="balanceText" class="font-bold text-lg filter blur-sm transition-all duration-500">
-                        ৳ {{ user.balance }}
+                <div class="flex flex-col text-white text-left">
+                    <span class="text-[10px] opacity-90 font-medium tracking-wide">ব্যালেন্স দেখুন</span>
+                    <span id="balanceText" class="font-bold text-xl filter blur-sm transition-all duration-500 font-mono">
+                        {{ user.balance }}
                     </span>
                 </div>
             </div>
@@ -73,19 +88,46 @@
     </div>
 </div>
 
-<!-- ৪. কুইক একশন -->
-<div class="grid grid-cols-2 gap-4 mb-6">
-    <a href="/tasks" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:bg-gray-50">
-        <div class="text-4xl mb-2">📺</div>
-        <span class="text-[#0A2540] font-bold text-sm">ভিডিও টাস্ক</span>
-        <span class="text-xs text-gray-400 mt-1">আয় করুন</span>
+<!-- ৪. কুইক একশন গ্রিড (Quick Actions) -->
+<h3 class="font-bold text-[#0A2540] mb-4 text-sm px-1">কুইক মেনু</h3>
+<div class="grid grid-cols-2 gap-4 mb-8">
+    
+    <!-- Task Button -->
+    <a href="/tasks" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:scale-95 group">
+        <div class="h-12 w-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition">
+            <i class="fa-brands fa-youtube"></i>
+        </div>
+        <span class="text-[#0A2540] font-bold text-sm">টাস্ক</span>
+        <span class="text-[10px] text-gray-400 mt-0.5">আয় করুন</span>
     </a>
     
-    <a href="#" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:bg-gray-50 opacity-50 cursor-not-allowed">
-        <div class="text-4xl mb-2">💸</div>
+    <!-- Withdraw Button (Active) -->
+    <a href="/withdraw" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:scale-95 group">
+        <div class="h-12 w-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+        </div>
         <span class="text-[#0A2540] font-bold text-sm">উত্তোলন</span>
-        <span class="text-xs text-gray-400 mt-1">শীঘ্রই আসছে</span>
+        <span class="text-[10px] text-gray-400 mt-0.5">টাকা নিন</span>
     </a>
+
+    <!-- History Button -->
+    <a href="/history" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:scale-95 group">
+        <div class="h-12 w-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <span class="text-[#0A2540] font-bold text-sm">হিস্টোরি</span>
+        <span class="text-[10px] text-gray-400 mt-0.5">সকল লেনদেন</span>
+    </a>
+
+    <!-- Support/More Button -->
+    <a href="/account" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:scale-95 group">
+        <div class="h-12 w-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+        <span class="text-[#0A2540] font-bold text-sm">মেনু</span>
+        <span class="text-[10px] text-gray-400 mt-0.5">অন্যান্য</span>
+    </a>
+
 </div>
 
 {% endblock %}
