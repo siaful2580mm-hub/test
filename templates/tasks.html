@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="bg-white rounded-xl shadow-sm p-5 mb-5 border border-gray-100 flex items-center justify-between">
+    <div>
+        <h2 class="text-xl font-bold text-[#0A2540]">আপনার কাজসমূহ</h2>
+        <p class="text-xs text-gray-500 mt-1">কাজ শেষ করে স্ক্রিনশট জমা দিন</p>
+    </div>
+    <div class="bg-blue-50 text-[#0057FF] px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
+        {{ tasks|length }} টি কাজ বাকি
+    </div>
+</div>
+
+<!-- Task List -->
+<div class="space-y-4">
+    {% for task in tasks %}
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:shadow-md relative overflow-hidden group">
+        
+        <!-- Hover Effect Line -->
+        <div class="absolute left-0 top-0 bottom-0 w-1 bg-gray-200 group-hover:bg-[#E2136E] transition-colors"></div>
+
+        <div class="flex items-start gap-4 pl-2">
+            <!-- Icon based on category -->
+            <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl shadow-sm flex-shrink-0
+                {% if 'YouTube' in task.category %} bg-red-50 text-red-600 
+                {% elif 'Facebook' in task.category %} bg-blue-50 text-blue-600 
+                {% elif 'TikTok' in task.category %} bg-gray-900 text-white
+                {% else %} bg-gray-50 text-gray-600 {% endif %}">
+                {% if 'YouTube' in task.category %} ▶️ 
+                {% elif 'Facebook' in task.category %} f 
+                {% elif 'TikTok' in task.category %} ♪ 
+                {% else %} 📌 {% endif %}
+            </div>
+            
+            <div>
+                <h3 class="font-bold text-[#0A2540] text-lg leading-tight">{{ task.title }}</h3>
+                <p class="text-sm text-gray-500 mt-1 line-clamp-1">{{ task.description }}</p>
+                
+                <!-- Badge & Reward -->
+                <div class="flex items-center gap-3 mt-2">
+                    <span class="text-xs font-bold bg-green-50 text-green-700 px-2 py-0.5 rounded">
+                        Reward: ৳ {{ task.reward }}
+                    </span>
+                    {% if task.task_type == 'screenshot' %}
+                    <span class="text-[10px] font-bold bg-purple-50 text-purple-600 px-2 py-0.5 rounded flex items-center gap-1">
+                        📸 Proof Required
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Button Logic -->
+        <div class="md:self-center pl-2">
+            {% if task.task_type == 'screenshot' %}
+                <!-- ১. স্ক্রিনশট টাস্ক হলে সাবমিশন পেজে যাবে -->
+                <a href="/task/submit/{{ task.id }}" class="block w-full text-center bg-[#0A2540] text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow hover:bg-opacity-90 active:scale-95 transition">
+                    কাজ শুরু করুন
+                </a>
+            {% else %}
+                <!-- ২. সাধারণ লিংক টাস্ক হলে সরাসরি লিংকে যাবে -->
+                <a href="{{ task.link }}" target="_blank" class="block w-full text-center bg-[#0057FF] text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow hover:bg-blue-600 active:scale-95 transition">
+                    ভিজিট করুন
+                </a>
+            {% endif %}
+        </div>
+
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-16 bg-white rounded-2xl border border-dashed border-gray-300">
+        <div class="text-6xl mb-4 opacity-50">😴</div>
+        <h3 class="text-lg font-bold text-gray-700">কোনো কাজ নেই</h3>
+        <p class="text-gray-400 text-sm mt-1">নতুন কাজের জন্য অপেক্ষা করুন।</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
