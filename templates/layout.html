@@ -8,53 +8,77 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts -->
+    <!-- FontAwesome Icons (Pro Look) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Bangla Support) -->
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Custom Styles (bKash Theme) -->
+    <!-- Custom Styles -->
     <style>
-        body { font-family: 'Hind Siliguri', sans-serif; background-color: #F3F4F6; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Hind Siliguri', sans-serif; background-color: #F8FAFC; -webkit-tap-highlight-color: transparent; }
+        
+        /* bKash Color Palette */
         .bg-bkash-navy { background-color: #0A2540; }
         .bg-bkash-pink { background-color: #E2136E; }
         .text-bkash-pink { color: #E2136E; }
-        .bg-bkash-blue { background-color: #0057FF; }
+        .text-bkash-navy { color: #0A2540; }
         
-        /* Smooth Fade In Animation */
+        /* Animation */
         .fade-in { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Support Widget Pulse */
+        .pulse-ring {
+            box-shadow: 0 0 0 0 rgba(0, 87, 255, 0.7);
+            animation: pulse-blue 2s infinite;
+        }
+        @keyframes pulse-blue {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 87, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 87, 255, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 87, 255, 0); }
+        }
     </style>
 </head>
-<body class="flex flex-col min-h-screen text-gray-800">
+<body class="flex flex-col min-h-screen text-gray-800 bg-gray-50">
 
     <!-- 1. TOP NAVBAR -->
-    <nav class="bg-bkash-navy text-white shadow-lg sticky top-0 z-50">
+    <nav class="bg-bkash-navy text-white shadow-xl sticky top-0 z-50">
         <div class="container mx-auto px-4 h-16 flex justify-between items-center">
             <!-- Logo -->
-            <a href="/" class="flex items-center gap-2 group">
-                <div class="bg-white/10 p-2 rounded-lg transition group-hover:bg-white/20">🚀</div>
-                <span class="text-xl font-bold tracking-wide">TaskKing</span>
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="bg-white/10 h-10 w-10 flex items-center justify-center rounded-xl group-hover:bg-white/20 transition duration-300">
+                    <i class="fa-solid fa-rocket text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-bold tracking-wide block leading-none">TaskKing</span>
+                    <span class="text-[10px] text-gray-300 tracking-wider">EARN MONEY</span>
+                </div>
             </a>
 
-            <!-- Logout Button (Only if logged in) -->
+            <!-- Logout Button -->
             {% if session.get('user_id') %}
             <div>
-                <a href="/logout" class="text-sm bg-white/10 px-3 py-1.5 rounded hover:bg-bkash-pink transition border border-transparent hover:border-white/20">
-                    লগ আউট
+                <a href="/logout" class="flex items-center gap-2 text-xs font-bold bg-white/10 px-4 py-2 rounded-full hover:bg-bkash-pink transition border border-white/10 hover:border-white/30 backdrop-blur-sm">
+                    <span>LOGOUT</span>
+                    <i class="fa-solid fa-right-from-bracket"></i>
                 </a>
             </div>
             {% endif %}
         </div>
     </nav>
 
-    <!-- 2. FLASH MESSAGES (Alerts) -->
+    <!-- 2. FLASH MESSAGES -->
     <div class="container mx-auto px-4 mt-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div class="flash-msg p-3 mb-2 rounded border-l-4 shadow-sm fade-in flex items-center gap-2 
-                {{ 'bg-red-50 border-red-500 text-red-700' if category == 'error' else 'bg-green-50 border-green-500 text-green-700' }}">
-                <span>{{ '❌' if category == 'error' else '✅' }}</span>
-                <span class="font-medium text-sm">{{ message }}</span>
+              <div class="flash-msg p-4 mb-3 rounded-xl shadow-sm border-l-4 fade-in flex items-center gap-3 bg-white 
+                {{ 'border-red-500' if category == 'error' else 'border-green-500' }}">
+                <div class="h-8 w-8 rounded-full flex items-center justify-center {{ 'bg-red-100 text-red-600' if category == 'error' else 'bg-green-100 text-green-600' }}">
+                    <i class="fa-solid {{ 'fa-triangle-exclamation' if category == 'error' else 'fa-check' }}"></i>
+                </div>
+                <span class="font-medium text-sm text-gray-700">{{ message }}</span>
               </div>
             {% endfor %}
           {% endif %}
@@ -62,63 +86,85 @@
     </div>
 
     <!-- 3. MAIN CONTENT -->
-    <main class="flex-grow container mx-auto px-4 pb-24 pt-2">
+    <main class="flex-grow container mx-auto px-4 pb-28 pt-2">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- 4. BOTTOM NAVIGATION (Mobile Only) -->
+    <!-- 4. FLOATING SUPPORT WIDGET (New!) -->
+    <a href="https://t.me/your_telegram_username" target="_blank" class="fixed bottom-24 right-5 md:bottom-10 md:right-10 z-40 group">
+        <div class="relative">
+            <!-- Tooltip -->
+            <div class="absolute right-14 top-2 bg-gray-800 text-white text-xs px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
+                Need Help?
+            </div>
+            <!-- Icon -->
+            <div class="h-14 w-14 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg shadow-blue-500/40 pulse-ring transition transform hover:scale-110">
+                <i class="fa-brands fa-telegram"></i>
+            </div>
+        </div>
+    </a>
+
+    <!-- 5. BOTTOM NAVIGATION (Mobile App Style) -->
     {% if session.get('user_id') %}
-    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:hidden z-40">
-        <div class="flex justify-around items-center h-16">
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] md:hidden z-50 rounded-t-2xl">
+        <div class="flex justify-around items-center h-[70px] px-2">
             
-            <!-- Home (Dashboard) -->
-            <a href="/dashboard" class="flex flex-col items-center justify-center w-full h-full space-y-1 
-               {{ 'text-bkash-pink' if request.endpoint == 'dashboard' else 'text-gray-400 hover:text-bkash-blue' }}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                <span class="text-[10px] font-semibold">হোম</span>
+            <!-- Home -->
+            <a href="/dashboard" class="flex flex-col items-center justify-center w-full h-full space-y-1 group">
+                <i class="fa-solid fa-house text-xl transition-colors duration-300 
+                   {{ 'text-bkash-pink' if request.endpoint == 'dashboard' else 'text-gray-400 group-hover:text-bkash-navy' }}"></i>
+                <span class="text-[10px] font-bold transition-colors duration-300
+                   {{ 'text-bkash-pink' if request.endpoint == 'dashboard' else 'text-gray-400 group-hover:text-bkash-navy' }}">হোম</span>
             </a>
 
-            <!-- Tasks (Middle Button) -->
-            <a href="/tasks" class="flex flex-col items-center justify-center w-full h-full space-y-1 relative group">
-                <div class="bg-gray-100 rounded-full p-1 -mt-6 border-4 border-white shadow-sm transition group-active:scale-95">
-                    <div class="bg-bkash-navy text-white p-2 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
+            <!-- Tasks (Floating Center Button) -->
+            <a href="/tasks" class="relative w-full flex justify-center group">
+                <div class="absolute -top-10 bg-white p-1.5 rounded-full border-t border-gray-100 shadow-sm">
+                    <div class="h-14 w-14 rounded-full flex items-center justify-center shadow-lg transition-transform duration-300 group-active:scale-95
+                        {{ 'bg-bkash-pink text-white shadow-pink-500/30' if request.endpoint == 'tasks' else 'bg-bkash-navy text-white shadow-blue-900/30' }}">
+                        <i class="fa-solid fa-list-check text-2xl"></i>
                     </div>
                 </div>
-                <span class="text-[10px] font-semibold mt-1 {{ 'text-bkash-pink' if request.endpoint == 'tasks' else 'text-gray-400' }}">টাস্ক</span>
+                <div class="mt-8 text-center">
+                    <span class="text-[10px] font-bold transition-colors duration-300
+                       {{ 'text-bkash-pink' if request.endpoint == 'tasks' else 'text-gray-400 group-hover:text-bkash-navy' }}">টাস্ক</span>
+                </div>
             </a>
 
-            <!-- Account Nav Item (Updated) -->
-<a href="/account" class="flex flex-col items-center justify-center w-full h-full space-y-1 
-   {{ 'text-bkash-pink' if request.endpoint == 'account' else 'text-gray-400 hover:text-bkash-blue' }}">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-    <span class="text-[10px] font-semibold">একাউন্ট</span>
-</a>
+            <!-- Account -->
+            <a href="/account" class="flex flex-col items-center justify-center w-full h-full space-y-1 group">
+                <i class="fa-solid fa-user-gear text-xl transition-colors duration-300
+                   {{ 'text-bkash-pink' if request.endpoint == 'account' else 'text-gray-400 group-hover:text-bkash-navy' }}"></i>
+                <span class="text-[10px] font-bold transition-colors duration-300
+                   {{ 'text-bkash-pink' if request.endpoint == 'account' else 'text-gray-400 group-hover:text-bkash-navy' }}">একাউন্ট</span>
+            </a>
 
         </div>
     </div>
     {% endif %}
 
     <!-- Footer (Desktop Only) -->
-    <footer class="hidden md:block bg-white border-t mt-auto py-6 text-center text-gray-500 text-sm">
-        <p>© 2024 TaskKing. All rights reserved.</p>
+    <footer class="hidden md:block bg-white border-t mt-auto py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center gap-6 mb-4 text-gray-400">
+                <a href="#" class="hover:text-bkash-pink transition"><i class="fa-brands fa-facebook text-xl"></i></a>
+                <a href="#" class="hover:text-bkash-pink transition"><i class="fa-brands fa-telegram text-xl"></i></a>
+                <a href="#" class="hover:text-bkash-pink transition"><i class="fa-brands fa-youtube text-xl"></i></a>
+            </div>
+            <p class="text-gray-500 text-sm">© 2024 TaskKing. All rights reserved.</p>
+        </div>
     </footer>
 
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
-        // Auto-hide flash messages after 3.5 seconds
+        // Auto-hide flash messages
         setTimeout(function() {
             const alerts = document.querySelectorAll('.flash-msg');
             alerts.forEach(function(alert) {
-                alert.style.transition = 'opacity 0.5s ease';
+                alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
                 alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
                 setTimeout(() => alert.remove(), 500);
             });
         }, 3500);
