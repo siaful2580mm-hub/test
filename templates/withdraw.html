@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 text-center">
+    <p class="text-gray-500 text-sm">বর্তমান ব্যালেন্স</p>
+    <h2 class="text-3xl font-bold text-[#E2136E]">৳ {{ user.balance }}</h2>
+</div>
+
+<!-- Conditions Status Card -->
+<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
+    <h3 class="font-bold text-[#0A2540] mb-4 border-b pb-2">উত্তোলনের শর্তসমূহ</h3>
+    
+    <!-- Condition 1: Referrals -->
+    <div class="mb-4">
+        <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600">রেফারেল প্রয়োজন (৩টি)</span>
+            <span class="font-bold {{ 'text-green-600' if ref_count >= 3 else 'text-red-500' }}">
+                {{ ref_count }} / 3
+            </span>
+        </div>
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-[#0057FF] h-2.5 rounded-full transition-all duration-500" 
+                 style="width: {{ (ref_count / 3) * 100 if ref_count < 3 else 100 }}%"></div>
+        </div>
+        {% if ref_count < 3 %}
+        <p class="text-xs text-red-400 mt-1">আরও {{ 3 - ref_count }} জনকে রেফার করুন।</p>
+        {% endif %}
+    </div>
+
+    <!-- Condition 2: Min Balance -->
+    <div>
+        <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600">মিনিমাম ব্যালেন্স (২৫০ টাকা)</span>
+            <span class="font-bold {{ 'text-green-600' if user.balance >= 250 else 'text-red-500' }}">
+                {{ 'OK' if user.balance >= 250 else 'কম আছে' }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Withdraw Form -->
+<form method="POST" action="/withdraw" class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">পেমেন্ট মেথড</label>
+        <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+                <input type="radio" name="method" value="bKash" class="peer sr-only" checked>
+                <div class="p-2 border rounded-lg text-center peer-checked:bg-[#E2136E] peer-checked:text-white peer-checked:border-[#E2136E] transition">
+                    বিকাশ
+                </div>
+            </label>
+            <label class="cursor-pointer">
+                <input type="radio" name="method" value="Nagad" class="peer sr-only">
+                <div class="p-2 border rounded-lg text-center peer-checked:bg-[#F7931A] peer-checked:text-white peer-checked:border-[#F7931A] transition">
+                    নগদ
+                </div>
+            </label>
+            <label class="cursor-pointer">
+                <input type="radio" name="method" value="Rocket" class="peer sr-only">
+                <div class="p-2 border rounded-lg text-center peer-checked:bg-[#8C3494] peer-checked:text-white peer-checked:border-[#8C3494] transition">
+                    রকেট
+                </div>
+            </label>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">মোবাইল নাম্বার</label>
+        <input type="number" name="number" required placeholder="017xxxxxxxx" class="w-full p-3 border rounded-lg focus:outline-[#E2136E]">
+    </div>
+
+    <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700">টাকার পরিমাণ</label>
+        <input type="number" name="amount" min="250" required placeholder="250" class="w-full p-3 border rounded-lg focus:outline-[#E2136E]">
+    </div>
+
+    {% if ref_count >= 3 and user.balance >= 250 %}
+        <button type="submit" class="w-full bg-[#E2136E] text-white py-3 rounded-lg font-bold shadow-lg hover:bg-opacity-90">
+            উত্তোলন করুন
+        </button>
+    {% else %}
+        <button type="button" disabled class="w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-bold cursor-not-allowed">
+            শর্ত পূরণ হয়নি
+        </button>
+    {% endif %}
+
+</form>
+{% endblock %}
