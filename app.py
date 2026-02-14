@@ -103,6 +103,13 @@ def index():
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
 
+# --- ACCOUNT / MENU PAGE ---
+@app.route('/account')
+@login_required
+def account():
+    # রেফারেল লিংক তৈরির জন্য ডোমেইন নেম দরকার, কিন্তু আমরা ফ্রন্টএন্ড JS দিয়ে হ্যান্ডেল করব
+    return render_template('account.html', user=g.user, settings=g.settings)
+    
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
