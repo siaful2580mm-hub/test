@@ -7,14 +7,15 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash, g
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from datetime import timedelta
 
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY", "super-secret-key-change-this")
-
+app.secret_key = os.getenv("SECRET_KEY", "TypeYourRandomSecretKeyHere123")
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7) # ৭ দিন লগিন থাকবে
 # -------------------------------------------------------------------
 # 1. DATABASE CONNECTION (Supabase)
 # -------------------------------------------------------------------
@@ -32,52 +33,62 @@ supabase: Client = create_client(url, key)
 @app.before_request
 def before_request_checks():
     """
-    This function runs before EVERY request.
-    It checks Maintenance, Login, and Activation status.
+    এই ফাংশনটি প্রতিবার পেজ লোড হওয়ার আগে রান হয়।
+    এটি চেক করে: ১. মেইনটেনেন্স মোড ২. ইউজার লগিন আছে কিনা ৩. এক্টিভেশন স্ট্যাটাস
     """
     
-    # A. Load Site Settings (Global)
+    # ১. সাইট সেটিংস লোড করা (Global Settings)
     try:
+        # ডাটাবেস থেকে সেটিংস আনার চেষ্টা
         response = supabase.table('site_settings').select('*').eq('id', 1).single().execute()
         g.settings = response.data
     except:
+        # ডাটাবেস ফেইল করলে ডিফল্ট সেটিংস (যাতে সাইট ক্র্যাশ না করে)
         g.settings = {'maintenance_mode': False, 'activation_required': False, 'notice_text': ''}
 
-    # B. Load User (If logged in)
+    # ২. ইউজার লোড করা (User Session Check) - [FIXED LOGOUT ISSUE]
     g.user = None
     if 'user_id' in session:
         try:
             user_resp = supabase.table('profiles').select('*').eq('id', session['user_id']).single().execute()
             g.user = user_resp.data
-        except:
-            session.clear()
+        except Exception as e:
+            # ⚠️ আগে এখানে session.clear() ছিল, তাই নেট স্লো হলে লগআউট হয়ে যেত।
+            # এখন আমরা লগআউট করছি না, শুধু g.user ফাঁকা রাখছি।
+            # যদি সত্যি ইউজার না থাকে, তবে login_required ডেকোরেটর তাকে পরে লগইন পেজে পাঠাবে।
+            print(f"Database/User Fetch Error: {e}") 
+            # session.clear() <--- এই লাইনটি ডিলিট করা হয়েছে
 
-    # C. CHECK: Maintenance Mode
+    # ৩. মেইনটেনেন্স মোড চেক (Maintenance Mode)
     if g.settings.get('maintenance_mode'):
-        if request.endpoint in ['static', 'login', 'logout', 'admin_login']:
+        # এই পেজগুলো মেইনটেনেন্স মোডেও দেখা যাবে
+        allowed_public = ['static', 'login', 'logout', 'admin_login']
+        
+        if request.endpoint in allowed_public:
             return
+        
+        # এডমিন হলে সব পেজ দেখতে পারবে
         if g.user and g.user.get('role') == 'admin':
             return
+            
+        # বাকিদের মেইনটেনেন্স পেজ দেখাবে
         return render_template('maintenance.html')
 
-    # D. CHECK: Activation (Pay to Earn) - [UPDATED HERE]
-    # লজিক: ড্যাশবোর্ড দেখা যাবে, কিন্তু 'tasks' পেজে গেলে আটকাবে।
+    # ৪. এক্টিভেশন চেক (Pay to Earn Logic)
+    # লজিক: আনভেরিফাইড ইউজার ড্যাশবোর্ড দেখবে, কিন্তু কাজ (Tasks) করতে পারবে না।
     if g.settings.get('activation_required'):
+        # যদি ইউজার লগিন থাকে + আনভেরিফাইড হয় + এডমিন না হয়
         if g.user and not g.user.get('is_active') and g.user.get('role') != 'admin':
             
-            # ১. যদি ইউজার 'tasks' পেজে যেতে চায় -> তাকে আটকাও
-            if request.endpoint == 'tasks':
-                flash("⚠️ কাজ করার জন্য একাউন্ট ভেরিফাই করুন!", "error")
+            # ক. যদি টাস্ক পেজে বা টাস্ক সাবমিট করতে যায় -> আটকাও
+            restricted_pages = ['tasks', 'submit_task']
+            
+            if request.endpoint in restricted_pages:
+                flash("⚠️ কাজ শুরু করার জন্য একাউন্ট ভেরিফাই করুন!", "error")
                 return redirect(url_for('activate_account'))
             
-            # ২. এই পেজগুলোতে সবাই ঢুকতে পারবে (Verified না হলেও)
-            # dashboard এবং index এখানে যুক্ত আছে, তাই প্রোফাইল দেখা যাবে।
-            allowed_routes = ['static', 'logout', 'activate_account', 'submit_activation', 'dashboard', 'index', 'admin_panel']
-            
-            # ৩. যদি কেউ allowed লিস্টের বাইরের পেজে (যেমন hidden link) যেতে চায় -> আটকাও
-            if request.endpoint and request.endpoint not in allowed_routes:
-                 return redirect(url_for('activate_account'))
-
+            # খ. অন্য সব পেজ (Dashboard, History, Account) দেখতে পারবে।
+            # তাই এখানে আর কোনো return বা redirect নেই।
 # -------------------------------------------------------------------
 # 3. HELPER DECORATORS
 # -------------------------------------------------------------------
