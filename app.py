@@ -644,13 +644,95 @@ def history():
 @login_required
 def activate_account():
     return render_template('activation.html', user=g.user)
-
+# --- USER: SUBMIT ACTIVATION REQUEST ---
 @app.route('/activate/submit', methods=['POST'])
 @login_required
 def submit_activation():
+    # ফর্ম ডাটা নেওয়া
+    method = request.form.get('method')
+    sender_number = request.form.get('sender_number')
     trx_id = request.form.get('trx_id')
-    flash("✅ রিকোয়েস্ট জমা হয়েছে। এডমিন চেক করে এপ্রুভ করবেন।", "success")
-    return redirect(url_for('activate_account'))
+    
+    try:
+        # ডাটাবেসে সেভ করা
+        supabase.table('activation_requests').insert({
+            'user_id': session['user_id'],
+            'method': method,
+            'sender_number': sender_number,
+            'trx_id': trx_id,
+            'status': 'pending'
+        }).execute()
+        
+        flash("✅ তথ্য জমা হয়েছে! এডমিন ভেরিফাই করে একাউন্ট চালু করবেন।", "success")
+        return redirect(url_for('dashboard'))
+        
+    except Exception as e:
+        flash(f"Error: {str(e)}", "error")
+        return redirect(url_for('activate_account'))
+
+
+# --- ADMIN: APPROVE / REJECT ACTIVATION ---
+@app.route('/admin/activation/<action>/<int:req_id>')
+@login_required
+@admin_required
+def activation_action(action, req_id):
+    try:
+        # ১. রিকোয়েস্ট ডিটেইলস আনা
+        req_res = supabase.table('activation_requests').select('*').eq('id', req_id).single().execute()
+        req_data = req_res.data
+        
+        if not req_data:
+            flash("রিকোয়েস্ট পাওয়া যায়নি!", "error")
+            return redirect(url_for('admin_activations'))
+
+        # ২. যদি APPROVE করা হয়
+        if action == 'approve':
+            # A. ইউজারকে Active করা (Main Job)
+            supabase.table('profiles').update({
+                'is_active': True
+            }).eq('id', req_data['user_id']).execute()
+            
+            # B. রিকোয়েস্ট স্ট্যাটাস আপডেট
+            supabase.table('activation_requests').update({
+                'status': 'approved'
+            }).eq('id', req_id).execute()
+            
+            flash(f"✅ ইউজার সফলভাবে অ্যাক্টিভ হয়েছে!", "success")
+
+        # ৩. যদি REJECT করা হয়
+        elif action == 'reject':
+            supabase.table('activation_requests').update({
+                'status': 'rejected'
+            }).eq('id', req_id).execute()
+            flash("❌ রিকোয়েস্ট বাতিল করা হয়েছে।", "error")
+
+    except Exception as e:
+        flash(f"Error: {str(e)}", "error")
+        
+    return redirect(url_for('admin_activations'))
+
+
+# --- ADMIN: VIEW ACTIVATION REQUESTS ---
+@app.route('/admin/activations')
+@login_required
+@admin_required
+def admin_activations():
+    # ১. পেন্ডিং রিকোয়েস্ট আনা
+    req_res = supabase.table('activation_requests').select('*').eq('status', 'pending').order('created_at', desc=True).execute()
+    requests_data = req_res.data
+    
+    # ২. ইউজার ইমেইল যুক্ত করা
+    final_data = []
+    for req in requests_data:
+        try:
+            user = supabase.table('profiles').select('email').eq('id', req['user_id']).single().execute().data
+            req['user_email'] = user['email']
+            final_data.append(req)
+        except:
+            continue
+
+    return render_template('activations.html', requests=final_data)
+
 
 # -------------------------------------------------------------------
 # 5. ADMIN PANEL
