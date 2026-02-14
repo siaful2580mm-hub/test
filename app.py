@@ -146,6 +146,78 @@ def add_task():
         
     return render_template('adtask.html', user=g.user)
 
+
+# --- ADMIN: VIEW PENDING SUBMISSIONS ---
+@app.route('/admin/submissions')
+@login_required
+@admin_required
+def admin_submissions():
+    # ১. শুধুমাত্র 'pending' স্ট্যাটাসের সাবমিশনগুলো আনা
+    subs_res = supabase.table('submissions').select('*').eq('status', 'pending').order('created_at', desc=True).execute()
+    submissions = subs_res.data
+    
+    # ২. ডাটা প্রসেসিং (User Email এবং Task Title বের করা)
+    final_data = []
+    for sub in submissions:
+        try:
+            # ইউজার ইনফো আনা
+            user = supabase.table('profiles').select('email').eq('id', sub['user_id']).single().execute().data
+            # টাস্ক ইনফো আনা
+            task = supabase.table('tasks').select('title, reward').eq('id', sub['task_id']).single().execute().data
+            
+            # সব ডাটা একজায়গায করা
+            sub['user_email'] = user['email']
+            sub['task_title'] = task['title']
+            sub['reward'] = task['reward']
+            final_data.append(sub)
+        except:
+            continue # যদি ইউজার বা টাস্ক ডিলিট হয়ে থাকে, তবে স্কিপ করবে
+
+    return render_template('submissions.html', submissions=final_data)
+
+# --- ADMIN: APPROVE / REJECT ACTION ---
+@app.route('/admin/submission/<action>/<int:sub_id>')
+@login_required
+@admin_required
+def submission_action(action, sub_id):
+    # ১. সাবমিশন ডিটেইলস আনা
+    sub_res = supabase.table('submissions').select('*').eq('id', sub_id).single().execute()
+    submission = sub_res.data
+    
+    if not submission:
+        flash("❌ সাবমিশন পাওয়া যায়নি!", "error")
+        return redirect(url_for('admin_submissions'))
+
+    # ২. যদি APPROVE করা হয়
+    if action == 'approve':
+        try:
+            # A. টাস্কের রিওওার্ড জানা
+            task_res = supabase.table('tasks').select('reward').eq('id', submission['task_id']).single().execute()
+            reward = float(task_res.data['reward'])
+            
+            # B. ইউজারের বর্তমান ব্যালেন্স জানা
+            user_res = supabase.table('profiles').select('balance').eq('id', submission['user_id']).single().execute()
+            current_balance = float(user_res.data['balance'])
+            
+            # C. ব্যালেন্স আপডেট করা (Balance + Reward)
+            new_balance = current_balance + reward
+            supabase.table('profiles').update({'balance': new_balance}).eq('id', submission['user_id']).execute()
+            
+            # D. স্ট্যাটাস আপডেট (Approved)
+            supabase.table('submissions').update({'status': 'approved'}).eq('id', sub_id).execute()
+            
+            flash(f"✅ অ্যাপ্রুভ করা হয়েছে! ইউজার ৳{reward} পেয়েছে।", "success")
+            
+        except Exception as e:
+            flash(f"Error: {str(e)}", "error")
+
+    # ৩. যদি REJECT করা হয়
+    elif action == 'reject':
+        supabase.table('submissions').update({'status': 'rejected'}).eq('id', sub_id).execute()
+        flash("❌ রিজেক্ট করা হয়েছে।", "error")
+
+    return redirect(url_for('admin_submissions'))
+    
 # --- USER: SUBMIT TASK (ImgBB Upload) ---
 @app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
