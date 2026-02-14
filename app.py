@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
+
 # Load environment variables
 load_dotenv()
 
