@@ -115,6 +115,7 @@ def index():
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
 
+
 # --- ADMIN: ADD TASK (Fb Page Like / Screenshot Task) ---
 @app.route('/adtask', methods=['GET', 'POST'])
 @login_required
@@ -513,13 +514,59 @@ def update_user_balance():
 @login_required
 def dashboard():
     return render_template('index.html', user=g.user, settings=g.settings)
-
+# --- 1. UPDATED TASKS ROUTE (Hide Completed Tasks) ---
 @app.route('/tasks')
 @login_required
 def tasks():
-    response = supabase.table('tasks').select('*').eq('is_active', True).execute()
-    return render_template('tasks.html', tasks=response.data, user=g.user)
+    try:
+        # A. সব অ্যাক্টিভ টাস্ক আনা
+        all_tasks = supabase.table('tasks').select('*').eq('is_active', True).execute().data
+        
+        # B. ইউজার ইতিমধ্যে যেসব টাস্ক সাবমিট করেছে তাদের ID আনা
+        submitted_res = supabase.table('submissions').select('task_id').eq('user_id', session['user_id']).execute()
+        
+        # লিস্ট কম্প্রিহেনশন দিয়ে ID গুলো আলাদা করা
+        completed_task_ids = [item['task_id'] for item in submitted_res.data]
+        
+        # C. ফিল্টারিং: যেসব টাস্ক completed লিস্টে নেই, শুধু সেগুলোই দেখাবে
+        available_tasks = [task for task in all_tasks if task['id'] not in completed_task_ids]
+        
+    except Exception as e:
+        available_tasks = []
+        print(f"Error: {e}")
 
+    return render_template('tasks.html', tasks=available_tasks, user=g.user)
+
+
+# --- 2. NEW HISTORY ROUTE (Task & Withdraw) ---
+@app.route('/history')
+@login_required
+def history():
+    # A. কাজের হিস্টোরি (Task Submissions)
+    try:
+        subs_res = supabase.table('submissions').select('*').eq('user_id', session['user_id']).order('created_at', desc=True).execute()
+        my_tasks = subs_res.data
+        
+        # টাস্কের নাম (Title) যুক্ত করা (যেহেতু submissions টেবিলে শুধু ID আছে)
+        for item in my_tasks:
+            try:
+                task_info = supabase.table('tasks').select('title, reward').eq('id', item['task_id']).single().execute()
+                item['title'] = task_info.data['title']
+                item['reward'] = task_info.data['reward']
+            except:
+                item['title'] = "Unknown Task" # যদি টাস্ক ডিলিট হয়ে যায়
+                item['reward'] = 0
+    except:
+        my_tasks = []
+
+    # B. উইথড্রয়াল হিস্টোরি (Withdrawals)
+    try:
+        with_res = supabase.table('withdrawals').select('*').eq('user_id', session['user_id']).order('created_at', desc=True).execute()
+        my_withdrawals = with_res.data
+    except:
+        my_withdrawals = []
+
+    return render_template('history.html', tasks=my_tasks, withdrawals=my_withdrawals, user=g.user)
 @app.route('/activate')
 @login_required
 def activate_account():
