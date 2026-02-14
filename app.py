@@ -640,21 +640,45 @@ def history():
         my_withdrawals = []
 
     return render_template('history.html', tasks=my_tasks, withdrawals=my_withdrawals, user=g.user)
+# --- USER: ACTIVATION PAGE & STATUS CHECK ---
 @app.route('/activate')
 @login_required
 def activate_account():
-    return render_template('activation.html', user=g.user)
-# --- USER: SUBMIT ACTIVATION REQUEST ---
+    # ১. যদি ইউজার ইতিমধ্যে এক্টিভ থাকে, ড্যাশবোর্ডে পাঠাও
+    if g.user.get('is_active'):
+        flash("✅ আপনার একাউন্ট ইতিমধ্যে ভেরিফাইড!", "success")
+        return redirect(url_for('dashboard'))
+
+    # ২. চেক করা ইউজার আগে কোনো রিকোয়েস্ট পাঠিয়েছে কিনা
+    try:
+        req_res = supabase.table('activation_requests').select('*').eq('user_id', session['user_id']).order('created_at', desc=True).limit(1).execute()
+        existing_request = req_res.data[0] if req_res.data else None
+    except:
+        existing_request = None
+
+    return render_template('activation.html', user=g.user, request_data=existing_request)
+
+
+# --- USER: SUBMIT REQUEST (ONLY ONCE) ---
 @app.route('/activate/submit', methods=['POST'])
 @login_required
 def submit_activation():
-    # ফর্ম ডাটা নেওয়া
+    # ১. আবার চেক করা ইউজার অলরেডি সাবমিট করেছে কিনা (ডাবল সাবমিশন রোধ)
+    try:
+        check_res = supabase.table('activation_requests').select('*').eq('user_id', session['user_id']).eq('status', 'pending').execute()
+        if check_res.data:
+            flash("⚠️ আপনার একটি রিকোয়েস্ট ইতিমধ্যে পেন্ডিং আছে। অপেক্ষা করুন।", "warning")
+            return redirect(url_for('activate_account'))
+    except:
+        pass
+
+    # ২. ফর্ম ডাটা নেওয়া
     method = request.form.get('method')
     sender_number = request.form.get('sender_number')
     trx_id = request.form.get('trx_id')
     
     try:
-        # ডাটাবেসে সেভ করা
+        # ৩. ডাটাবেসে সেভ করা
         supabase.table('activation_requests').insert({
             'user_id': session['user_id'],
             'method': method,
@@ -663,14 +687,14 @@ def submit_activation():
             'status': 'pending'
         }).execute()
         
-        flash("✅ তথ্য জমা হয়েছে! এডমিন ভেরিফাই করে একাউন্ট চালু করবেন।", "success")
-        return redirect(url_for('dashboard'))
+        flash("✅ তথ্য জমা হয়েছে! এডমিন শীঘ্রই যাচাই করবেন।", "success")
         
     except Exception as e:
-        flash(f"Error: {str(e)}", "error")
-        return redirect(url_for('activate_account'))
-
-
+        print(f"Activation Error: {e}")
+        flash("❌ ডাটা সেভ হয়নি। আবার চেষ্টা করুন।", "error")
+        
+    return redirect(url_for('activate_account'))
+    
 # --- ADMIN: APPROVE / REJECT ACTIVATION ---
 @app.route('/admin/activation/<action>/<int:req_id>')
 @login_required
