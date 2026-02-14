@@ -9,7 +9,14 @@
         </div>
 
         <form method="POST" action="/register" class="space-y-4">
-            <div>
+          
+            
+            <form method="POST" action="/register" class="space-y-4">
+    
+    <!-- এই লাইনটি যোগ করুন (Hidden Referral Code) -->
+    <input type="hidden" name="ref_code" value="{{ ref_code if ref_code else '' }}">
+
+<div>
                 <label class="block text-sm font-medium text-gray-700">ইমেইল</label>
                 <input type="email" name="email" required class="w-full p-3 border rounded-lg focus:outline-[#E2136E]" placeholder="user@example.com">
             </div>
