@@ -430,6 +430,85 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+
+# --- ADMIN: USER MANAGEMENT ---
+
+# 1. User List & Search
+@app.route('/admin/users')
+@login_required
+@admin_required
+def admin_users():
+    search_query = request.args.get('q')
+    
+    # বেসিক কুয়েরি
+    query = supabase.table('profiles').select('*').order('created_at', desc=True)
+    
+    # যদি সার্চ করা হয়
+    if search_query:
+        query = query.ilike('email', f'%{search_query}%')
+        
+    try:
+        users = query.execute().data
+    except Exception as e:
+        users = []
+        flash(f"Error fetching users: {str(e)}", "error")
+
+    return render_template('users.html', users=users)
+
+# 2. Ban / Unban User
+@app.route('/admin/user/ban/<uuid:user_id>')
+@login_required
+@admin_required
+def ban_user(user_id):
+    try:
+        # বর্তমান স্ট্যাটাস জানা
+        user_res = supabase.table('profiles').select('is_banned').eq('id', str(user_id)).single().execute()
+        current_status = user_res.data['is_banned']
+        
+        # স্ট্যাটাস উল্টে দেওয়া (Toggle)
+        new_status = not current_status
+        supabase.table('profiles').update({'is_banned': new_status}).eq('id', str(user_id)).execute()
+        
+        msg = "🔴 ইউজারকে ব্যান করা হয়েছে!" if new_status else "🟢 ইউজার আনব্যান হয়েছে!"
+        flash(msg, "success")
+        
+    except Exception as e:
+        flash("Action Failed", "error")
+        
+    return redirect(url_for('admin_users'))
+
+# 3. Delete User Profile
+@app.route('/admin/user/delete/<uuid:user_id>')
+@login_required
+@admin_required
+def delete_user(user_id):
+    try:
+        # প্রোফাইল ডিলিট (Auth User থেকে যাবে, কিন্তু ডাটা মুছে যাবে)
+        supabase.table('profiles').delete().eq('id', str(user_id)).execute()
+        flash("🗑️ ইউজার প্রোফাইল ডিলিট করা হয়েছে।", "success")
+    except Exception as e:
+        flash(f"Delete Failed: {str(e)}", "error")
+        
+    return redirect(url_for('admin_users'))
+
+# 4. Update Balance
+@app.route('/admin/user/balance', methods=['POST'])
+@login_required
+@admin_required
+def update_user_balance():
+    user_id = request.form.get('user_id')
+    new_balance = request.form.get('amount')
+    
+    try:
+        supabase.table('profiles').update({
+            'balance': float(new_balance)
+        }).eq('id', user_id).execute()
+        
+        flash("💰 ব্যালেন্স আপডেট করা হয়েছে!", "success")
+    except Exception as e:
+        flash("Update Failed", "error")
+        
+    return redirect(url_for('admin_users'))
 @app.route('/dashboard')
 @login_required
 def dashboard():
