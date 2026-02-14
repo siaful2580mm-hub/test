@@ -175,49 +175,63 @@ def admin_submissions():
 
     return render_template('submissions.html', submissions=final_data)
 
-# --- ADMIN: APPROVE / REJECT ACTION ---
+# --- ADMIN: APPROVE / REJECT ACTION (FIXED) ---
 @app.route('/admin/submission/<action>/<int:sub_id>')
 @login_required
 @admin_required
 def submission_action(action, sub_id):
-    # ১. সাবমিশন ডিটেইলস আনা
-    sub_res = supabase.table('submissions').select('*').eq('id', sub_id).single().execute()
-    submission = sub_res.data
-    
-    if not submission:
-        flash("❌ সাবমিশন পাওয়া যায়নি!", "error")
-        return redirect(url_for('admin_submissions'))
+    try:
+        # ১. সাবমিশন ডিটেইলস খুঁজে বের করা
+        sub_res = supabase.table('submissions').select('*').eq('id', sub_id).single().execute()
+        submission = sub_res.data
+        
+        if not submission:
+            flash("❌ সাবমিশন পাওয়া যায়নি!", "error")
+            return redirect(url_for('admin_submissions'))
 
-    # ২. যদি APPROVE করা হয়
-    if action == 'approve':
-        try:
-            # A. টাস্কের রিওওার্ড জানা
+        # ২. ডাবল পেমেন্ট আটকানো (যদি অলরেডি অ্যাপ্রুভড থাকে)
+        if submission['status'] == 'approved':
+            flash("⚠️ এটি আগেই অ্যাপ্রুভ করা হয়েছে!", "warning")
+            return redirect(url_for('admin_submissions'))
+
+        # ৩. যদি একশন 'approve' হয়
+        if action == 'approve':
+            # A. টাস্কের টাকার পরিমাণ জানা
             task_res = supabase.table('tasks').select('reward').eq('id', submission['task_id']).single().execute()
             reward = float(task_res.data['reward'])
             
             # B. ইউজারের বর্তমান ব্যালেন্স জানা
             user_res = supabase.table('profiles').select('balance').eq('id', submission['user_id']).single().execute()
-            current_balance = float(user_res.data['balance'])
+            # ব্যালেন্স যদি NULL থাকে তবে 0 ধরবে
+            current_balance = float(user_res.data['balance']) if user_res.data['balance'] else 0.0
             
-            # C. ব্যালেন্স আপডেট করা (Balance + Reward)
+            # C. নতুন ব্যালেন্স হিসাব করা
             new_balance = current_balance + reward
-            supabase.table('profiles').update({'balance': new_balance}).eq('id', submission['user_id']).execute()
             
-            # D. স্ট্যাটাস আপডেট (Approved)
-            supabase.table('submissions').update({'status': 'approved'}).eq('id', sub_id).execute()
+            # D. প্রোফাইল টেবিলে ব্যালেন্স আপডেট করা
+            supabase.table('profiles').update({
+                'balance': new_balance
+            }).eq('id', submission['user_id']).execute()
             
-            flash(f"✅ অ্যাপ্রুভ করা হয়েছে! ইউজার ৳{reward} পেয়েছে।", "success")
+            # E. সাবমিশন স্ট্যাটাস 'approved' করা
+            supabase.table('submissions').update({
+                'status': 'approved'
+            }).eq('id', sub_id).execute()
             
-        except Exception as e:
-            flash(f"Error: {str(e)}", "error")
+            flash(f"✅ অ্যাপ্রুভ সফল! ইউজার ৳{reward} পেয়েছে।", "success")
 
-    # ৩. যদি REJECT করা হয়
-    elif action == 'reject':
-        supabase.table('submissions').update({'status': 'rejected'}).eq('id', sub_id).execute()
-        flash("❌ রিজেক্ট করা হয়েছে।", "error")
+        # ৪. যদি একশন 'reject' হয়
+        elif action == 'reject':
+            supabase.table('submissions').update({
+                'status': 'rejected'
+            }).eq('id', sub_id).execute()
+            flash("❌ রিজেক্ট করা হয়েছে।", "error")
+
+    except Exception as e:
+        print(f"Error: {e}") # Vercel Logs এ এরর দেখার জন্য
+        flash(f"ত্রুটি হয়েছে: {str(e)}", "error")
 
     return redirect(url_for('admin_submissions'))
-    
 # --- USER: SUBMIT TASK (ImgBB Upload) ---
 @app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
