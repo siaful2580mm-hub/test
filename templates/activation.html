@@ -1,20 +1,141 @@
 {% extends "layout.html" %}
+
 {% block content %}
-<div class="bg-white rounded-2xl p-6 shadow-md text-center mt-4">
-    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔒</div>
-    <h2 class="text-xl font-bold text-[#0A2540] mb-2">একাউন্ট এক্টিভেশন প্রয়োজন</h2>
-    <p class="text-gray-500 text-sm mb-6">ড্যাশবোর্ড দেখতে এবং কাজ করতে আপনাকে একাউন্ট ভেরিফাই করতে হবে।</p>
+
+<!-- ১. হেডার সেকশন -->
+<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex items-center justify-between">
+    <div>
+        <h2 class="text-lg font-bold text-[#0A2540]">একাউন্ট অ্যাক্টিভেশন</h2>
+        <p class="text-xs text-[#E2136E] font-bold">এককালীন ফি: ৩০৳</p>
+    </div>
+    <a href="/dashboard" class="text-xs bg-gray-100 text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-200 transition flex items-center gap-1">
+        <i class="fa-solid fa-arrow-left"></i> ড্যাশবোর্ড
+    </a>
+</div>
+
+<!-- ২. তথ্যের সেকশন (কেন ফি প্রয়োজন?) -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+    <div class="flex items-center gap-2 mb-4 border-b pb-2">
+        <i class="fa-solid fa-circle-info text-[#0057FF]"></i>
+        <h3 class="font-bold text-[#0A2540]">অ্যাক্টিভেশন সংক্রান্ত তথ্য</h3>
+    </div>
     
-    <div class="bg-gray-50 p-4 rounded-lg border border-dashed border-gray-300 mb-6">
-        <p class="font-bold text-[#E2136E]">সেন্ড মানি করুন: 01700000000</p>
-        <p class="text-xs text-gray-400">(bKash / Nagad)</p>
+    <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+        আপনার একাউন্টটি সম্পূর্ণভাবে চালু করতে এবং সকল কাজ শুরু করতে, অনুগ্রহ করে নিচের নির্দেশনা অনুযায়ী <span class="font-bold text-[#0A2540]">এককালীন অ্যাক্টিভেশন ফি</span> প্রদান করুন।
+    </p>
+
+    <div class="bg-blue-50 rounded-xl p-4 mb-4">
+        <h4 class="font-bold text-[#0057FF] text-xs mb-3 uppercase tracking-wider">কেন এই অ্যাক্টিভেশন ফি প্রয়োজন?</h4>
+        <ul class="space-y-3 text-sm text-gray-700">
+            <li class="flex gap-3 items-start">
+                <i class="fa-solid fa-shield-halved text-green-600 mt-1"></i>
+                <span><span class="font-bold">স্প্যাম প্রতিরোধ:</span> এটি স্বয়ংক্রিয় বট এবং অ-serious ব্যবহারকারীদের রেজিস্টার করা থেকে বিরত রাখে।</span>
+            </li>
+            <li class="flex gap-3 items-start">
+                <i class="fa-solid fa-server text-blue-600 mt-1"></i>
+                <span><span class="font-bold">উন্নত পরিষেবা:</span> এই ফি আমাদের সার্ভার রক্ষণাবেক্ষণ এবং আপনাকে আরও ভালো পরিষেবা প্রদানে সাহায্য করে।</span>
+            </li>
+            <li class="flex gap-3 items-start">
+                <i class="fa-solid fa-gem text-[#E2136E] mt-1"></i>
+                <span><span class="font-bold">এক্সক্লুসিভ অ্যাক্সেস:</span> সফল অ্যাক্টিভেশনের পর আপনি আমাদের সকল প্রিমিয়াম কাজ এবং ফিচার ব্যবহার করার সুযোগ পাবেন।</span>
+            </li>
+        </ul>
     </div>
 
-    <form method="POST" action="/activate">
-        <input type="text" name="trx_id" placeholder="Transaction ID দিন" required class="w-full p-3 border rounded-lg mb-4 text-center">
-        <button type="submit" class="w-full bg-[#0057FF] text-white py-3 rounded-lg font-bold">
-            ভেরিফাই করুন
+    <div class="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-200">
+        <i class="fa-solid fa-check-double text-green-500"></i>
+        <p>এককালীন পেমেন্ট: মনে রাখবেন, এটি শুধুমাত্র একবারই প্রদান করতে হবে। এরপর আর কোনো ফি নেই।</p>
+    </div>
+</div>
+
+<!-- ৩. পেমেন্ট নির্দেশনা ও নম্বর -->
+<div class="bg-gradient-to-r from-[#E2136E] to-[#b00e53] text-white rounded-2xl shadow-lg p-6 mb-8 relative overflow-hidden">
+    <!-- Decor -->
+    <div class="absolute -right-6 -top-6 bg-white/20 h-32 w-32 rounded-full blur-2xl"></div>
+
+    <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-paper-plane"></i> পেমেন্ট নির্দেশনা
+    </h3>
+    <p class="text-sm text-white/90 mb-4">
+        নিচের নম্বরে <span class="font-bold text-yellow-300">৩০ টাকা সেন্ড মানি (Send Money)</span> করুন।
+    </p>
+
+    <!-- Number Box -->
+    <div class="bg-white text-[#0A2540] rounded-xl p-4 flex items-center justify-between shadow-sm">
+        <div>
+            <p class="text-xs text-gray-500 mb-1">আমাদের অফিসিয়াল নম্বর</p>
+            <p class="text-2xl font-bold font-mono tracking-wider" id="payNumber">01912107604</p>
+        </div>
+        <button onclick="copyNumber()" class="bg-[#E2136E] text-white px-4 py-2 rounded-lg text-xs font-bold active:scale-95 transition">
+            কপি করুন
         </button>
+    </div>
+</div>
+
+<!-- ৪. তথ্য জমা দেওয়ার ফর্ম -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <h3 class="font-bold text-[#0A2540] mb-6 border-b pb-2">পেমেন্টের তথ্য জমা দিন</h3>
+
+    <form method="POST" action="/activate/submit" class="space-y-5">
+        
+        <!-- Payment Method -->
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">১. পেমেন্ট মেথড</label>
+            <div class="grid grid-cols-3 gap-3">
+                <label class="cursor-pointer">
+                    <input type="radio" name="method" value="bKash" class="peer sr-only" checked>
+                    <div class="py-2 border-2 border-gray-200 rounded-lg text-center peer-checked:border-[#E2136E] peer-checked:bg-pink-50 peer-checked:text-[#E2136E] transition text-sm font-bold">
+                        bKash
+                    </div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="radio" name="method" value="Nagad" class="peer sr-only">
+                    <div class="py-2 border-2 border-gray-200 rounded-lg text-center peer-checked:border-[#F7931A] peer-checked:bg-orange-50 peer-checked:text-[#F7931A] transition text-sm font-bold">
+                        Nagad
+                    </div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="radio" name="method" value="Rocket" class="peer sr-only">
+                    <div class="py-2 border-2 border-gray-200 rounded-lg text-center peer-checked:border-[#8C3494] peer-checked:bg-purple-50 peer-checked:text-[#8C3494] transition text-sm font-bold">
+                        Rocket
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Sender Number -->
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">২. আপনার সেন্ডার নম্বর</label>
+            <input type="number" name="sender_number" required placeholder="01xxxxxxxxx" 
+                   class="w-full p-3 border rounded-xl focus:outline-[#E2136E] bg-gray-50 focus:bg-white transition">
+            <p class="text-xs text-gray-400 mt-1 ml-1">যে নম্বর থেকে টাকা পাঠিয়েছেন</p>
+        </div>
+
+        <!-- TrxID -->
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-2">৩. ট্রানজেকশন আইডি (TrxID)</label>
+            <input type="text" name="trx_id" required placeholder="Example: 9H56..." 
+                   class="w-full p-3 border rounded-xl focus:outline-[#E2136E] bg-gray-50 focus:bg-white transition uppercase">
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="w-full bg-[#0A2540] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#0057FF] transition shadow-lg mt-4">
+            তথ্য জমা দিন
+        </button>
+
     </form>
 </div>
+
+<!-- Copy Script -->
+<script>
+    function copyNumber() {
+        const numberText = document.getElementById("payNumber").innerText;
+        navigator.clipboard.writeText(numberText).then(() => {
+            alert("নম্বর কপি হয়েছে: " + numberText);
+        }).catch(err => {
+            console.error('Copy failed', err);
+        });
+    }
+</script>
+
 {% endblock %}
