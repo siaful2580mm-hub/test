@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<!-- ১. প্রোফাইল হেডার (bKash Style) -->
+<div class="bg-white rounded-2xl p-4 shadow-sm mb-4 border border-gray-100 flex items-center gap-4">
+    <div class="h-16 w-16 rounded-full bg-[#0A2540] text-white flex items-center justify-center text-3xl shadow-inner">
+        👤
+    </div>
+    <div class="flex-grow">
+        <h2 class="text-xl font-bold text-[#0A2540]">{{ user.email.split('@')[0] }}</h2>
+        <p class="text-xs text-gray-500">{{ user.email }}</p>
+        <div class="mt-1">
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded {{ 'bg-green-100 text-green-700' if user.is_active else 'bg-red-100 text-red-700' }}">
+                {{ 'Verified ID' if user.is_active else 'Not Verified' }}
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- ২. রেফারেল সেকশন (Invite & Earn) -->
+<div class="bg-gradient-to-r from-[#E2136E] to-[#b00e53] rounded-2xl p-5 text-white shadow-lg mb-6 relative overflow-hidden">
+    <!-- Background Decor -->
+    <div class="absolute -right-4 -top-4 bg-white/10 h-24 w-24 rounded-full blur-xl"></div>
+    
+    <h3 class="font-bold text-lg mb-1">📢 রেফার করুন, আয় করুন!</h3>
+    <p class="text-xs text-white/80 mb-4">আপনার বন্ধুদের ইনভাইট করুন এবং বোনাস পান।</p>
+    
+    <div class="bg-white p-1 rounded-lg flex items-center justify-between">
+        <input type="text" id="refLink" value="https://taskking.vercel.app/register?ref={{ user.referral_code }}" 
+               class="text-gray-600 text-xs px-2 w-full outline-none bg-transparent" readonly>
+        
+        <button onclick="copyRef()" class="bg-[#0A2540] text-white px-3 py-1.5 rounded text-xs font-bold active:scale-95 transition">
+            কপি করুন
+        </button>
+    </div>
+</div>
+
+<!-- ৩. মেনু নেভিগেশন (More Options) -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+    
+    <!-- Withdraw -->
+    <a href="#" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-50 text-[#0057FF] p-2 rounded-lg">💸</div>
+            <span class="text-[#0A2540] font-medium text-sm">টাকা উত্তোলন (Withdraw)</span>
+        </div>
+        <span class="text-gray-400">❯</span>
+    </a>
+
+    <!-- History -->
+    <a href="#" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition">
+        <div class="flex items-center gap-3">
+            <div class="bg-purple-50 text-purple-600 p-2 rounded-lg">📜</div>
+            <span class="text-[#0A2540] font-medium text-sm">লেনদেন হিস্টোরি</span>
+        </div>
+        <span class="text-gray-400">❯</span>
+    </a>
+
+    <!-- Telegram Support -->
+    <a href="https://t.me/your_channel" target="_blank" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-50 text-blue-500 p-2 rounded-lg">✈️</div>
+            <span class="text-[#0A2540] font-medium text-sm">সাপোর্ট গ্রুপ (Telegram)</span>
+        </div>
+        <span class="text-gray-400">❯</span>
+    </a>
+
+    <!-- Admin Panel (Only for Admin) -->
+    {% if user.role == 'admin' %}
+    <a href="/admin" class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition">
+        <div class="flex items-center gap-3">
+            <div class="bg-[#0A2540] text-white p-2 rounded-lg">⚙️</div>
+            <span class="text-[#0A2540] font-bold text-sm">এডমিন প্যানেল</span>
+        </div>
+        <span class="text-gray-400">❯</span>
+    </a>
+    {% endif %}
+</div>
+
+<!-- ৪. টিপস এবং গাইডলাইন -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-20">
+    <h3 class="font-bold text-[#0A2540] mb-4 border-b pb-2 flex items-center gap-2">
+        <span>💡</span> কাজের নিয়ম (Tips)
+    </h3>
+    <ul class="space-y-3 text-sm text-gray-600">
+        <li class="flex gap-2">
+            <span class="text-green-500">✔</span> 
+            সঠিকভাবে ভিডিও দেখুন, না হলে পেমেন্ট পাবেন না।
+        </li>
+        <li class="flex gap-2">
+            <span class="text-green-500">✔</span> 
+            ভিপিএন (VPN) ব্যবহার করা নিষিদ্ধ।
+        </li>
+        <li class="flex gap-2">
+            <span class="text-green-500">✔</span> 
+            প্রতি রেফারলে ১০% বোনাস পাবেন।
+        </li>
+    </ul>
+</div>
+
+<!-- JavaScript for Copy Link -->
+<script>
+    function copyRef() {
+        // Get current domain dynamically
+        const domain = window.location.origin;
+        const refCode = "{{ user.referral_code or user.email.split('@')[0] }}";
+        const fullLink = `${domain}/register?ref=${refCode}`;
+        
+        const copyText = document.getElementById("refLink");
+        copyText.value = fullLink; // Update input with correct domain
+        
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile
+        navigator.clipboard.writeText(copyText.value);
+        
+        // Button Feedback
+        event.target.innerText = "কপি হয়েছে!";
+        setTimeout(() => {
+            event.target.innerText = "কপি করুন";
+        }, 2000);
+    }
+    
+    // Page load এ সঠিক লিংক সেট করা
+    window.onload = function() {
+        const domain = window.location.origin;
+        const refCode = "{{ user.referral_code or user.email.split('@')[0] }}";
+        document.getElementById("refLink").value = `${domain}/register?ref=${refCode}`;
+    }
+</script>
+
+{% endblock %}
