@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-sm p-5 mb-6 border-b border-gray-200 flex justify-between items-center">
+    <h2 class="text-xl font-bold text-[#0A2540]">উত্তোলন রিকোয়েস্ট (Withdrawals)</h2>
+    <a href="/admin" class="text-sm text-gray-500 hover:text-blue-600">Back to Admin</a>
+</div>
+
+<div class="grid gap-4 md:grid-cols-2">
+    {% for req in requests %}
+    <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-5 relative overflow-hidden group hover:border-blue-100 transition">
+        
+        <!-- Badge -->
+        <div class="absolute top-4 right-4 bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded">
+            Pending
+        </div>
+
+        <!-- User Info -->
+        <div class="mb-4">
+            <h3 class="font-bold text-[#0A2540]">{{ req.user_email }}</h3>
+            <p class="text-xs text-gray-500 font-mono"><i class="fa-regular fa-clock"></i> {{ req.created_at[:10] }}</p>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="bg-gray-50 rounded-xl p-4 mb-4 space-y-2 text-sm border border-gray-100">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-500">Method</span>
+                <span class="font-bold px-2 py-0.5 rounded text-xs
+                    {% if req.method == 'bKash' %} bg-pink-100 text-pink-600 
+                    {% elif req.method == 'Nagad' %} bg-orange-100 text-orange-600 
+                    {% else %} bg-purple-100 text-purple-600 {% endif %}">
+                    {{ req.method }}
+                </span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500">Number</span>
+                <span class="font-mono font-bold select-all">{{ req.number }}</span>
+            </div>
+            <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                <span class="font-bold text-gray-700">Amount</span>
+                <span class="font-bold text-xl text-[#E2136E]">৳ {{ req.amount }}</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-3">
+            <a href="/admin/withdraw/reject/{{ req.id }}" onclick="return confirm('রিজেক্ট করলে টাকা ইউজারের ব্যালেন্সে ফেরত যাবে। নিশ্চিত?')" 
+               class="flex-1 bg-white border border-red-200 text-red-600 py-2.5 rounded-xl text-sm font-bold text-center hover:bg-red-50 transition">
+               <i class="fa-solid fa-xmark"></i> রিজেক্ট (Refund)
+            </a>
+            <a href="/admin/withdraw/approve/{{ req.id }}" onclick="return confirm('আপনি কি টাকা পাঠিয়েছেন? এটি অ্যাপ্রুভ মার্ক করা হবে।')" 
+               class="flex-1 bg-green-600 text-white py-2.5 rounded-xl text-sm font-bold text-center hover:bg-green-700 shadow-lg shadow-green-200 transition">
+               <i class="fa-solid fa-check"></i> পেমেন্ট সম্পন্ন
+            </a>
+        </div>
+
+    </div>
+    {% else %}
+    <div class="col-span-full text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
+        <div class="text-4xl mb-3 text-gray-300">
+            <i class="fa-solid fa-money-bill-transfer"></i>
+        </div>
+        <p class="text-gray-500">কোনো উইথড্রয়াল রিকোয়েস্ট পেন্ডিং নেই।</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
