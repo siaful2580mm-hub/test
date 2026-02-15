@@ -124,7 +124,7 @@ def admin_required(f):
 def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+    return render_template('home.html')
 # --- NOTICE BOARD ROUTE ---
 @app.route('/notice', methods=['GET', 'POST'])
 @login_required
