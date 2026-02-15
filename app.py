@@ -592,8 +592,9 @@ def dashboard():
 @login_required
 def tasks():
     try:
-        # A. সব অ্যাক্টিভ টাস্ক আনা
-        all_tasks = supabase.table('tasks').select('*').eq('is_active', True).execute().data
+        # A. সব অ্যাক্টিভ টাস্ক আনা (নতুন টাস্ক আগে থাকবে)
+        # .order('id', desc=True) যোগ করা হয়েছে
+        all_tasks = supabase.table('tasks').select('*').eq('is_active', True).order('id', desc=True).execute().data
         
         # B. ইউজার ইতিমধ্যে যেসব টাস্ক সাবমিট করেছে তাদের ID আনা
         submitted_res = supabase.table('submissions').select('task_id').eq('user_id', session['user_id']).execute()
@@ -609,8 +610,6 @@ def tasks():
         print(f"Error: {e}")
 
     return render_template('tasks.html', tasks=available_tasks, user=g.user)
-
-
 # --- 2. NEW HISTORY ROUTE (Task & Withdraw) ---
 @app.route('/history')
 @login_required
