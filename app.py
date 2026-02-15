@@ -291,43 +291,61 @@ def submission_action(action, sub_id):
     return redirect(url_for('admin_submissions'))
 
 
-# --- USER: WITHDRAWAL REQUEST ---
+# --- WITHDRAW ROUTE (FIXED COUNTING LOGIC) ---
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
-    # ১. ইউজারের বর্তমান রেফারেল সংখ্যা বের করা
-    # profiles টেবিলে referred_by কলামে এই ইউজারের ID কতবার আছে তা গুনছি
+    # ১. রেফারেল সংখ্যা গণনা (Correct Way)
     try:
-        ref_count_res = supabase.table('profiles').select('*', count='exact', head=True).eq('referred_by', session['user_id']).execute()
-        ref_count = ref_count_res.count
-    except:
+        # আমরা খুঁজছি profiles টেবিলে কতজন ইউজারের 'referred_by' কলামে আমার ID আছে
+        # count='exact', head=True মানে আমরা শুধু সংখ্যাটি চাই, ডাটা নয়
+        count_res = supabase.table('profiles') \
+            .select('id', count='exact', head=True) \
+            .eq('referred_by', session['user_id']) \
+            .execute()
+            
+        # সঠিক সংখ্যা ভেরিয়েবলে রাখা
+        ref_count = count_res.count if count_res.count is not None else 0
+        
+        # ডিবাগিং: কনসোলে প্রিন্ট হবে (Vercel Logs এ দেখা যাবে)
+        print(f"User ID: {session['user_id']} | Referral Count: {ref_count}")
+
+    except Exception as e:
+        print(f"Count Error: {e}")
         ref_count = 0
 
-    # ২. ইউজারের ব্যালেন্স লোড করা (g.user থেকে)
+    # ২. ব্যালেন্স লোড (g.user থেকে)
     current_balance = float(g.user.get('balance', 0.0))
 
+    # ৩. ফর্ম সাবমিট হলে (POST)
     if request.method == 'POST':
         method = request.form.get('method')
         number = request.form.get('number')
-        amount = float(request.form.get('amount'))
-
-        # --- শর্ত ১: মিনিমাম ৩ রেফারেল ---
-        if ref_count < 3:
-            flash(f"❌ উইথড্র করতে কমপক্ষে ৩টি রেফার প্রয়োজন। আপনার আছে: {ref_count}টি।", "error")
-            return redirect(url_for('withdraw'))
-
-        # --- শর্ত ২: মিনিমাম ২৫০ টাকা ---
-        if amount < 250:
-            flash("❌ সর্বনিম্ন উইথড্রয়াল এমাউন্ট ২৫০ টাকা।", "error")
-            return redirect(url_for('withdraw'))
-
-        # --- শর্ত ৩: পর্যাপ্ত ব্যালেন্স আছে কিনা ---
-        if amount > current_balance:
-            flash("❌ আপনার একাউন্টে পর্যাপ্ত ব্যালেন্স নেই।", "error")
-            return redirect(url_for('withdraw'))
-
         try:
-            # ৩. রিকোয়েস্ট জমা দেওয়া
+            amount = float(request.form.get('amount'))
+        except:
+            amount = 0
+
+        # --- শর্ত চেক ---
+        
+        # শর্ত ১: ৩টি রেফারেল
+        if ref_count < 3:
+            flash(f"❌ উইথড্র করতে ৩টি রেফার প্রয়োজন। আপনার আছে: {ref_count}টি।", "error")
+            return redirect(url_for('withdraw'))
+
+        # শর্ত ২: মিনিমাম ২৫০ টাকা
+        if amount < 250:
+            flash("❌ সর্বনিম্ন উইথড্রয়াল ২৫০ টাকা।", "error")
+            return redirect(url_for('withdraw'))
+
+        # শর্ত ৩: পর্যাপ্ত ব্যালেন্স
+        if amount > current_balance:
+            flash("❌ আপনার একাউন্টে পর্যাপ্ত টাকা নেই।", "error")
+            return redirect(url_for('withdraw'))
+
+        # --- সব ঠিক থাকলে রিকোয়েস্ট জমা ---
+        try:
+            # A. রিকোয়েস্ট সেভ
             supabase.table('withdrawals').insert({
                 'user_id': session['user_id'],
                 'method': method,
@@ -336,18 +354,21 @@ def withdraw():
                 'status': 'pending'
             }).execute()
 
-            # ৪. ব্যালেন্স থেকে টাকা কেটে নেওয়া (সাথে সাথে)
+            # B. ব্যালেন্স থেকে টাকা কাটা
             new_balance = current_balance - amount
-            supabase.table('profiles').update({'balance': new_balance}).eq('id', session['user_id']).execute()
+            supabase.table('profiles').update({
+                'balance': new_balance
+            }).eq('id', session['user_id']).execute()
 
-            flash("✅ উইথড্র রিকোয়েস্ট সফল! এডমিন চেক করে টাকা পাঠাবে।", "success")
-            return redirect(url_for('account')) # অথবা dashboard
+            flash("✅ সফল! আপনার উইথড্র রিকোয়েস্ট জমা হয়েছে।", "success")
+            return redirect(url_for('history'))
 
         except Exception as e:
             flash(f"Error: {str(e)}", "error")
 
+    # ৪. পেজ দেখানো (GET)
+    # ref_count ভেরিয়েবলটি অবশ্যই টেমপ্লেটে পাঠাতে হবে
     return render_template('withdraw.html', user=g.user, ref_count=ref_count)
-    
 # --- USER: SUBMIT TASK (ImgBB Upload) ---
 @app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
