@@ -2,67 +2,83 @@
 
 {% block content %}
 
-
-<!-- Header -->
-<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 flex items-center gap-3">
-    <div class="bg-blue-50 text-[#0057FF] p-3 rounded-full text-xl">📢</div>
+<!-- Header Section -->
+<div class="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50 flex items-center gap-4">
+    <div class="h-12 w-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl shadow-sm">
+        <i class="fa-solid fa-bullhorn"></i>
+    </div>
     <div>
         <h2 class="text-xl font-bold text-[#0A2540]">নোটিশ বোর্ড</h2>
-        <p class="text-xs text-gray-500">সকল আপডেট এবং ঘোষণা</p>
+        <p class="text-xs text-gray-500 mt-1">সকল আপডেট এবং ঘোষণা</p>
     </div>
 </div>
 
 <!-- 1. ADMIN POST FORM (Only Visible to Admin) -->
 {% if user.role == 'admin' %}
-<div class="bg-white p-6 rounded-2xl shadow-md border-l-4 border-[#E2136E] mb-8">
-    <h3 class="font-bold text-[#0A2540] mb-4">নতুন নোটিশ লিখুন</h3>
+<div class="bg-white p-6 rounded-3xl shadow-lg shadow-pink-50 border border-gray-100 mb-8 relative overflow-hidden group">
+    <!-- Decorative Line -->
+    <div class="absolute top-0 left-0 w-1.5 h-full bg-[#E2136E]"></div>
+    
+    <div class="flex items-center gap-2 mb-4 text-[#0A2540]">
+        <i class="fa-solid fa-pen-to-square text-[#E2136E]"></i>
+        <h3 class="font-bold">নতুন নোটিশ লিখুন</h3>
+    </div>
+
     <form method="POST" action="/notice" class="space-y-4">
         <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">শিরোনাম</label>
+            <label class="block text-xs font-bold text-gray-700 mb-1 ml-1">শিরোনাম</label>
             <input type="text" name="title" required placeholder="নোটিশের বিষয়..." 
-                   class="w-full p-3 border rounded-lg focus:outline-[#E2136E]">
+                   class="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm">
         </div>
         <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">বিস্তারিত</label>
+            <label class="block text-xs font-bold text-gray-700 mb-1 ml-1">বিস্তারিত</label>
             <textarea name="content" required rows="3" placeholder="কি জানাতে চান..." 
-                      class="w-full p-3 border rounded-lg focus:outline-[#E2136E]"></textarea>
+                      class="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm"></textarea>
         </div>
-        <button type="submit" class="bg-[#0A2540] text-white px-6 py-2 rounded-lg font-bold hover:opacity-90">
-            পাবলিশ করুন
+        <button type="submit" class="flex items-center gap-2 bg-[#0A2540] text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-opacity-90 transition shadow-md">
+            <i class="fa-solid fa-paper-plane"></i> পাবলিশ করুন
         </button>
     </form>
 </div>
 {% endif %}
 
 <!-- 2. NOTICE LIST (Visible to Everyone) -->
-<div class="space-y-4">
+<div class="space-y-5">
     {% for notice in notices %}
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative group transition hover:shadow-md">
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 relative group transition hover:shadow-md hover:border-gray-200">
         
-        <!-- Icon & Date -->
-        <div class="flex justify-between items-start mb-2">
-            <div class="flex items-center gap-2">
-                <span class="text-xl">📌</span>
-                <span class="text-xs text-gray-400 font-mono">{{ notice.created_at[:10] }}</span>
+        <!-- Icon & Date Row -->
+        <div class="flex justify-between items-start mb-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-50 text-blue-600 h-8 w-8 rounded-full flex items-center justify-center text-xs shadow-sm">
+                    <i class="fa-solid fa-thumbtack"></i>
+                </div>
+                <span class="text-xs text-gray-400 font-mono flex items-center gap-1">
+                    <i class="fa-regular fa-clock"></i> {{ notice.created_at[:10] }}
+                </span>
             </div>
             
             <!-- Delete Button (Only Admin) -->
             {% if user.role == 'admin' %}
-            <a href="/notice/delete/{{ notice.id }}" onclick="return confirm('ডিলিট করবেন?')" 
-               class="text-red-400 hover:text-red-600 p-1 bg-red-50 rounded">
-                🗑️
+            <a href="/notice/delete/{{ notice.id }}" onclick="return confirm('আপনি কি নিশ্চিত যে এই নোটিশটি ডিলিট করবেন?')" 
+               class="h-8 w-8 bg-red-50 text-red-500 rounded-lg flex items-center justify-center hover:bg-red-500 hover:text-white transition shadow-sm" title="Delete">
+                <i class="fa-solid fa-trash-can"></i>
             </a>
             {% endif %}
         </div>
 
         <!-- Content -->
-        <h3 class="text-lg font-bold text-[#0A2540] mb-2">{{ notice.title }}</h3>
-        <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ notice.content }}</p>
+        <h3 class="text-lg font-bold text-[#0A2540] mb-2 leading-tight">{{ notice.title }}</h3>
+        <div class="text-sm text-gray-600 leading-relaxed whitespace-pre-line pl-1 border-l-2 border-gray-100">{{ notice.content }}</div>
 
     </div>
     {% else %}
-    <div class="text-center py-12 text-gray-400 bg-white rounded-2xl border border-dashed border-gray-300">
-        <p>কোনো নোটিশ নেই।</p>
+    <!-- Empty State -->
+    <div class="text-center py-16 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm">
+        <div class="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-3xl text-gray-300">
+            <i class="fa-regular fa-folder-open"></i>
+        </div>
+        <h3 class="text-sm font-bold text-gray-500">কোনো নোটিশ নেই</h3>
     </div>
     {% endfor %}
 </div>
