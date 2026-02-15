@@ -1,189 +1,70 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<div class="flex items-center justify-center min-h-[75vh]">
+    <div class="bg-white p-8 rounded-3xl shadow-xl shadow-pink-50 w-full max-w-sm border border-gray-100 relative overflow-hidden">
+        
+        <!-- Decorative Background -->
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[#0057FF] rounded-bl-full opacity-5 -mr-6 -mt-6"></div>
+        <div class="absolute bottom-0 left-0 w-20 h-20 bg-[#E2136E] rounded-tr-full opacity-5 -ml-6 -mb-6"></div>
 
-<!-- 1. HERO SECTION -->
-<div class="text-center py-16 md:py-24 px-4 relative overflow-hidden">
-    <!-- Background Decor -->
-    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-blue-50 rounded-full blur-3xl -z-10 opacity-60"></div>
-
-    <div class="inline-block p-2 px-4 rounded-full bg-blue-50 text-[#0057FF] text-xs font-bold mb-6 animate-bounce">
-        🚀 অনলাইনে আয়ের নতুন মাধ্যম
-    </div>
-    
-    <h1 class="text-4xl md:text-6xl font-bold text-[#0A2540] mb-6 leading-tight">
-        সহজ কাজ করে <br>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#0057FF] to-[#E2136E]">অনলাইনে আয় করুন</span>
-    </h1>
-    
-    <p class="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-        Riseii হলো বাংলাদেশের একটি নির্ভরযোগ্য প্ল্যাটফর্ম যেখানে আপনি ভিডিও দেখা, ফেসবুক পেইজে লাইক দেওয়া এবং বিভিন্ন সহজ কাজ সম্পন্ন করে সহজেই অর্থ উপার্জন করতে পারেন।
-    </p>
-
-    <div class="flex flex-col md:flex-row gap-4 justify-center">
-        <a href="/register" class="bg-[#E2136E] text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg shadow-pink-200 hover:bg-[#c2105e] transition hover:-translate-y-1">
-            বিনামূল্যে শুরু করুন <i class="fa-solid fa-arrow-right ml-2"></i>
-        </a>
-        <a href="/login" class="bg-white text-[#0A2540] border border-gray-200 px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-50 transition">
-            লগ ইন করুন
-        </a>
-    </div>
-
-    <!-- Dashboard Preview Image (Placeholder) -->
-    <div class="mt-16 mx-auto max-w-4xl bg-white p-2 rounded-3xl shadow-2xl border border-gray-100">
-        <div class="bg-gray-100 rounded-2xl h-48 md:h-80 flex items-center justify-center text-gray-400">
-            <div class="text-center">
-                <i class="fa-solid fa-chart-line text-6xl mb-4 text-[#0057FF] opacity-50"></i>
-                <p>Riseii Platform Dashboard</p>
+        <!-- Header -->
+        <div class="text-center mb-8 relative z-10">
+            <div class="h-16 w-16 bg-pink-50 text-[#E2136E] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm transform -rotate-3">
+                <i class="fa-solid fa-user-plus"></i>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- 2. FEATURES GRID -->
-<div class="py-16 container mx-auto px-4">
-    <div class="text-center mb-12">
-        <h2 class="text-3xl font-bold text-[#0A2540]">আমাদের সার্ভিস</h2>
-        <p class="text-gray-500 mt-2">আপনার আয়ের জন্য প্রয়োজনীয় সবকিছু</p>
-    </div>
-
-    <div class="grid md:grid-cols-3 gap-8">
-        <!-- Feature 1 -->
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-50 hover:shadow-lg transition group">
-            <div class="h-14 w-14 bg-blue-50 text-[#0057FF] rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
-                <i class="fa-solid fa-list-check"></i>
-            </div>
-            <h3 class="text-xl font-bold text-[#0A2540] mb-3">বিভিন্ন ধরণের কাজ</h3>
-            <p class="text-gray-500 text-sm leading-relaxed">
-                আপনার পছন্দ অনুযায়ী বিভিন্ন ধরণের কাজ (ফেসবুক, ইউটিউব, ওয়েবসাইট ভিজিট) থেকে বেছে নিন এবং আয় করুন।
-            </p>
+            <h2 class="text-2xl font-bold text-[#0A2540]">নতুন একাউন্ট</h2>
+            <p class="text-sm text-gray-500 mt-1">TaskKing-এ জয়েন করুন</p>
         </div>
 
-        <!-- Feature 2 -->
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-50 hover:shadow-lg transition group">
-            <div class="h-14 w-14 bg-pink-50 text-[#E2136E] rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
-                <i class="fa-solid fa-users"></i>
-            </div>
-            <h3 class="text-xl font-bold text-[#0A2540] mb-3">শক্তিশালী রেফারেল সিস্টেম</h3>
-            <p class="text-gray-500 text-sm leading-relaxed">
-                আপনার বন্ধুদের আমন্ত্রণ জানিয়ে আয় করুন। প্রতিটি সফল রেফারেলের জন্য আপনি এবং আপনার বন্ধু উভয়েই বোনাস পাবেন।
-            </p>
-        </div>
+        <!-- Register Form -->
+        <form method="POST" action="/register" class="space-y-5">
+            
+            <!-- Hidden Referral Code (CRITICAL) -->
+            <input type="hidden" name="ref_code" value="{{ ref_code if ref_code else '' }}">
 
-        <!-- Feature 3 -->
-        <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-50 hover:shadow-lg transition group">
-            <div class="h-14 w-14 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
-                <i class="fa-solid fa-bolt"></i>
-            </div>
-            <h3 class="text-xl font-bold text-[#0A2540] mb-3">দ্রুত পেমেন্ট</h3>
-            <p class="text-gray-500 text-sm leading-relaxed">
-                আপনার উপার্জিত অর্থ বিকাশ বা নগদের মাধ্যমে দ্রুত এবং নিরাপদে তুলে নিন। আমরা আপনার পেমেন্টকে গুরুত্ব দেই।
-            </p>
-        </div>
-    </div>
-</div>
-
-<!-- 3. STATS BAR -->
-<div class="bg-[#0A2540] text-white py-12 rounded-3xl mx-4 shadow-xl relative overflow-hidden">
-    <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -mr-16 -mt-16"></div>
-    <div class="text-center relative z-10">
-        <h2 class="text-3xl md:text-5xl font-bold mb-2">60,000+</h2>
-        <p class="text-blue-200">সন্তুষ্ট ব্যবহারকারী আমাদের সাথে আছেন!</p>
-    </div>
-</div>
-
-<!-- 4. ADVANCED FEATURES (Grid) -->
-<div class="py-20 container mx-auto px-4">
-    <div class="text-center mb-16">
-        <span class="text-[#E2136E] font-bold text-sm tracking-widest uppercase">Technology</span>
-        <h2 class="text-3xl font-bold text-[#0A2540] mt-2">আমাদের অসাধারণ ফিচারসমূহ</h2>
-        <p class="text-gray-500 mt-2 max-w-2xl mx-auto">আমরা আপনার কাজের অভিজ্ঞতাকে সেরা করতে এবং আপনার আয়কে সুরক্ষিত রাখতে সর্বাধুনিক প্রযুক্তি ব্যবহার করি।</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Item -->
-        <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 transition">
-            <div class="text-3xl text-blue-500"><i class="fa-solid fa-robot"></i></div>
+            <!-- Email Input -->
             <div>
-                <h4 class="font-bold text-[#0A2540]">AI চালিত পেমেন্ট বট</h4>
-                <p class="text-xs text-gray-500 mt-1">স্বয়ংক্রিয়ভাবে পেমেন্ট যাচাই করে, যা আগের চেয়ে অনেক বেশি দ্রুত।</p>
-            </div>
-        </div>
-        <!-- Item -->
-        <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 transition">
-            <div class="text-3xl text-green-500"><i class="fa-solid fa-clock-rotate-left"></i></div>
-            <div>
-                <h4 class="font-bold text-[#0A2540]">৩ ঘণ্টায় অটো উইথড্র</h4>
-                <p class="text-xs text-gray-500 mt-1">মাত্র ৩ ঘণ্টার মধ্যেই স্বয়ংক্রিয়ভাবে আপনার পেমেন্ট সম্পন্ন হবে।</p>
-            </div>
-        </div>
-        <!-- Item -->
-        <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 transition">
-            <div class="text-3xl text-[#E2136E]"><i class="fa-solid fa-layer-group"></i></div>
-            <div>
-                <h4 class="font-bold text-[#0A2540]">অসংখ্য টাস্ক</h4>
-                <p class="text-xs text-gray-500 mt-1">সব সময় নতুন কাজ যোগ করা হয়। আয়ের সুযোগ কখনও শেষ হবে না।</p>
-            </div>
-        </div>
-        <!-- Item -->
-        <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 transition">
-            <div class="text-3xl text-purple-500"><i class="fa-solid fa-headset"></i></div>
-            <div>
-                <h4 class="font-bold text-[#0A2540]">২৪/৭ লাইভ সাপোর্ট</h4>
-                <p class="text-xs text-gray-500 mt-1">সপ্তাহের ৭ দিন, ২৪ ঘণ্টা আমাদের সাপোর্ট টিম আপনার পাশে আছে।</p>
-            </div>
-        </div>
-        <!-- Item -->
-        <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 transition">
-            <div class="text-3xl text-orange-500"><i class="fa-brands fa-hive"></i></div>
-            <div>
-                <h4 class="font-bold text-[#0A2540]">Web3 ভিত্তিক</h4>
-                <p class="text-xs text-gray-500 mt-1">সর্বাধুনিক Web3 প্রযুক্তি, যা প্ল্যাটফর্মকে দিয়েছে অবিশ্বাস্য গতি।</p>
-            </div>
-        </div>
-        <!-- Item -->
-        <div class="flex items-start gap-4 p-6 bg-white rounded-2xl border border-gray-50 shadow-sm hover:border-blue-100 transition">
-            <div class="text-3xl text-teal-500"><i class="fa-solid fa-shield-halved"></i></div>
-            <div>
-                <h4 class="font-bold text-[#0A2540]">Z++ লেভেল নিরাপত্তা</h4>
-                <p class="text-xs text-gray-500 mt-1">Z++ লেভেলের নিরাপত্তা ব্যবস্থা, যা হ্যাকিং থেকে রাখে সম্পূর্ণ নিরাপদ।</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 5. TESTIMONIALS -->
-<div class="bg-blue-50 py-20">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-[#0A2540]">ব্যবহারকারীদের মতামত</h2>
-            <p class="text-gray-500 mt-2">আমাদের ব্যবহারকারীরা যা বলেন</p>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-            <!-- Review 1 -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <div class="text-[#E2136E] mb-4 text-2xl"><i class="fa-solid fa-quote-left"></i></div>
-                <p class="text-gray-600 italic mb-6">"Riseii ব্যবহার করা খুবই সহজ। আমি অবসর সময়ে ছোট ছোট কাজ করে ভালো পরিমাণ আয় করেছি। পেমেন্টও খুব দ্রুত পেয়েছি।"</p>
-                <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-[#0A2540]">RM</div>
-                    <div>
-                        <h5 class="font-bold text-[#0A2540] text-sm">Rahim Mia</h5>
-                        <p class="text-xs text-gray-400">ছাত্র, ঢাকা</p>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5 ml-1">ইমেইল এড্রেস</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fa-regular fa-envelope text-gray-400"></i>
                     </div>
+                    <input type="email" name="email" required 
+                           class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white" 
+                           placeholder="user@example.com">
                 </div>
             </div>
-            <!-- Review 2 -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm">
-                <div class="text-[#E2136E] mb-4 text-2xl"><i class="fa-solid fa-quote-left"></i></div>
-                <p class="text-gray-600 italic mb-6">"রেফারেল সিস্টেমটা অসাধারণ! আমি আমার বন্ধুদের জয়েন করিয়েছি এবং আমরা সবাই বোনাস পেয়েছি। খুবই নির্ভরযোগ্য একটি সাইট।"</p>
-                <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center font-bold text-[#0A2540]">SA</div>
-                    <div>
-                        <h5 class="font-bold text-[#0A2540] text-sm">Sadia Akter</h5>
-                        <p class="text-xs text-gray-400">গৃহিণী, চট্টগ্রাম</p>
+            
+            <!-- Password Input -->
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1.5 ml-1">পাসওয়ার্ড</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-lock text-gray-400"></i>
                     </div>
+                    <input type="password" name="password" required 
+                           class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white" 
+                           placeholder="••••••••">
                 </div>
             </div>
-            <!-- Review 3 -->
-            <div class="bg-white p-6 rounded-2x
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-[#0A2540] text-white py-3.5 rounded-xl font-bold hover:bg-[#0057FF] active:scale-95 transition shadow-lg shadow-blue-200 flex items-center justify-center gap-2 mt-2">
+                <span>সাইন আপ করুন</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+        
+        <!-- Login Link -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
+                আগেই একাউন্ট আছে? 
+                <a href="/login" class="text-[#E2136E] font-bold hover:underline ml-1">
+                    লগিন করুন
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
