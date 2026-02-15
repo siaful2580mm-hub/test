@@ -159,6 +159,26 @@ def notice():
 
     return render_template('notice.html', notices=notices, user=g.user)
 
+
+# --- REFERRAL LIST ROUTE ---
+@app.route('/referrals')
+@login_required
+def referrals():
+    try:
+        # ১. যারা আমার রেফারে জয়েন করেছে তাদের লিস্ট আনা
+        response = supabase.table('profiles').select('*').eq('referred_by', session['user_id']).order('created_at', desc=True).execute()
+        referred_users = response.data
+        
+        # ২. মোট সংখ্যা
+        count = len(referred_users)
+        
+    except Exception as e:
+        print(f"Ref Error: {e}")
+        referred_users = []
+        count = 0
+
+    return render_template('referrals.html', referrals=referred_users, count=count, user=g.user)
+    
 # --- DELETE NOTICE (ADMIN ONLY) ---
 @app.route('/notice/delete/<int:id>')
 @login_required
