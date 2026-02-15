@@ -2,89 +2,128 @@
 
 {% block content %}
 
-<!-- Header -->
-<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
-    <h2 class="text-xl font-bold text-[#0A2540]">📜 লেনদেন ও কাজের হিস্টোরি</h2>
-    <p class="text-xs text-gray-500">আপনার সকল অ্যাপ্রুভড ও পেন্ডিং রিকোয়েস্ট</p>
+<!-- Header Section -->
+<div class="bg-white rounded-3xl p-6 shadow-sm mb-8 border border-gray-50 flex items-center gap-4">
+    <div class="h-12 w-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center text-xl shadow-sm">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+    </div>
+    <div>
+        <h2 class="text-xl font-bold text-[#0A2540]">লেনদেন ও কাজ</h2>
+        <p class="text-xs text-gray-500 mt-1">আপনার সকল হিস্টোরি</p>
+    </div>
 </div>
 
-<!-- Tabs (Simple Visual Separation) -->
 <div class="space-y-8">
 
     <!-- SECTION 1: WITHDRAWAL HISTORY -->
     <div>
-        <h3 class="font-bold text-[#E2136E] mb-3 flex items-center gap-2">
-            💸 উত্তোলনের হিস্টোরি
+        <h3 class="font-bold text-[#E2136E] mb-4 flex items-center gap-2 pl-2">
+            <i class="fa-solid fa-money-bill-transfer"></i> উত্তোলনের হিস্টোরি
         </h3>
         
         {% if withdrawals %}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-50 overflow-hidden">
             {% for item in withdrawals %}
-            <div class="p-4 border-b border-gray-50 flex justify-between items-center last:border-none">
-                <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 rounded-full bg-pink-50 flex items-center justify-center text-lg">
-                        {{ '🚀' if item.method == 'Rocket' else ('💸' if item.method == 'Nagad' else 'b') }}
+            <div class="p-5 border-b border-gray-50 flex justify-between items-center last:border-none hover:bg-gray-50 transition">
+                
+                <div class="flex items-center gap-4">
+                    <!-- Dynamic Icon based on Method -->
+                    <div class="h-12 w-12 rounded-2xl flex items-center justify-center text-xl shadow-sm
+                        {% if item.method == 'Rocket' %} bg-purple-100 text-purple-600 
+                        {% elif item.method == 'Nagad' %} bg-orange-100 text-orange-600 
+                        {% else %} bg-pink-100 text-pink-600 {% endif %}"> <!-- bKash Default -->
+                        <i class="fa-solid fa-wallet"></i>
                     </div>
                     <div>
                         <p class="text-sm font-bold text-[#0A2540]">{{ item.method }} Transfer</p>
-                        <p class="text-xs text-gray-400">{{ item.created_at[:10] }} | {{ item.number }}</p>
+                        <p class="text-xs text-gray-400 font-mono mt-0.5">
+                            <i class="fa-regular fa-clock"></i> {{ item.created_at[:10] }}
+                        </p>
+                        <p class="text-[10px] text-gray-400">{{ item.number }}</p>
                     </div>
                 </div>
+
                 <div class="text-right">
-                    <p class="font-bold text-[#E2136E]">- ৳ {{ item.amount }}</p>
-                    <!-- Status Badge -->
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded
+                    <p class="font-bold text-[#E2136E] text-lg font-mono">- ৳{{ item.amount }}</p>
+                    
+                    <!-- Status Badge with Icons -->
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1
                         {% if item.status == 'approved' %} bg-green-100 text-green-700
                         {% elif item.status == 'rejected' %} bg-red-100 text-red-700
                         {% else %} bg-yellow-100 text-yellow-700 {% endif %}">
+                        
+                        {% if item.status == 'approved' %} <i class="fa-solid fa-check"></i>
+                        {% elif item.status == 'rejected' %} <i class="fa-solid fa-xmark"></i>
+                        {% else %} <i class="fa-regular fa-clock"></i> {% endif %}
+                        
                         {{ item.status | title }}
                     </span>
                 </div>
+
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-6 bg-gray-50 rounded-xl text-gray-400 text-sm">
-            কোনো উত্তোলনের রেকর্ড নেই।
+        <!-- Empty State -->
+        <div class="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200">
+            <div class="h-14 w-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl text-gray-300">
+                <i class="fa-solid fa-money-bill-1-wave"></i>
+            </div>
+            <p class="text-gray-400 text-sm">কোনো উত্তোলনের রেকর্ড নেই।</p>
         </div>
         {% endif %}
     </div>
 
     <!-- SECTION 2: TASK HISTORY -->
     <div>
-        <h3 class="font-bold text-[#0057FF] mb-3 flex items-center gap-2">
-            📋 কাজের হিস্টোরি
+        <h3 class="font-bold text-[#0057FF] mb-4 flex items-center gap-2 pl-2">
+            <i class="fa-solid fa-list-check"></i> কাজের হিস্টোরি
         </h3>
         
         {% if tasks %}
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-50 overflow-hidden">
             {% for task in tasks %}
-            <div class="p-4 border-b border-gray-50 flex justify-between items-center last:border-none">
-                <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center text-lg">
-                        ✅
+            <div class="p-5 border-b border-gray-50 flex justify-between items-center last:border-none hover:bg-gray-50 transition">
+                
+                <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shadow-sm">
+                        <i class="fa-solid fa-clipboard-check"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-bold text-[#0A2540]">{{ task.title }}</p>
-                        <p class="text-xs text-gray-400">{{ task.created_at[:10] }}</p>
+                        <p class="text-sm font-bold text-[#0A2540] line-clamp-1">{{ task.title }}</p>
+                        <p class="text-xs text-gray-400 font-mono mt-0.5">
+                            <i class="fa-regular fa-calendar"></i> {{ task.created_at[:10] }}
+                        </p>
                     </div>
                 </div>
+
                 <div class="text-right">
-                    <p class="font-bold text-[#0057FF]">+ ৳ {{ task.reward }}</p>
+                    <p class="font-bold text-[#0057FF] text-lg font-mono">+ ৳{{ task.reward }}</p>
+                    
                     <!-- Status Badge -->
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1
                         {% if task.status == 'approved' %} bg-green-100 text-green-700
                         {% elif task.status == 'rejected' %} bg-red-100 text-red-700
                         {% else %} bg-yellow-100 text-yellow-700 {% endif %}">
+                        
+                        {% if task.status == 'approved' %} <i class="fa-solid fa-check"></i>
+                        {% elif task.status == 'rejected' %} <i class="fa-solid fa-xmark"></i>
+                        {% else %} <i class="fa-regular fa-clock"></i> {% endif %}
+                        
                         {{ task.status | title }}
                     </span>
                 </div>
+
             </div>
             {% endfor %}
         </div>
         {% else %}
-        <div class="text-center py-6 bg-gray-50 rounded-xl text-gray-400 text-sm">
-            কোনো কাজের রেকর্ড নেই।
+        <!-- Empty State -->
+        <div class="text-center py-10 bg-white rounded-3xl border border-dashed border-gray-200">
+            <div class="h-14 w-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl text-gray-300">
+                <i class="fa-solid fa-clipboard-question"></i>
+            </div>
+            <p class="text-gray-400 text-sm">কোনো কাজের রেকর্ড নেই।</p>
         </div>
         {% endif %}
     </div>
