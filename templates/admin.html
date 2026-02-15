@@ -3,88 +3,30 @@
 {% block content %}
 <div class="space-y-6">
 
-    <!-- 1. Header Section -->
-    <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-            <div class="h-12 w-12 bg-[#0A2540] text-white rounded-full flex items-center justify-center text-xl shadow-md">
-                <i class="fa-solid fa-user-shield"></i>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold text-[#0A2540]">এডমিন প্যানেল</h1>
-                <p class="text-xs text-gray-500">কন্ট্রোল সেন্টার</p>
-            </div>
+    <!-- Header Section -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-[#0A2540]">⚙️ এডমিন প্যানেল</h1>
+            <p class="text-gray-500 text-sm">সাইট কন্ট্রোল সেন্টার</p>
         </div>
-        <div class="bg-blue-50 text-[#0057FF] px-4 py-2 rounded-xl font-bold text-sm border border-blue-100">
-            <i class="fa-solid fa-users"></i> {{ user_count }} Users
+        <div class="bg-blue-100 text-[#0057FF] px-4 py-2 rounded-lg font-bold">
+            Total Users: {{ user_count }}
         </div>
     </div>
 
-    <!-- 2. ADMIN MENU (Quick Actions) - [NEW ADDITION] -->
-    <h3 class="font-bold text-[#0A2540] text-sm px-2">ম্যানেজমেন্ট মেনু</h3>
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        
-        <!-- Activations (Payment Check) -->
-        <a href="/admin/activations" class="bg-green-600 text-white p-4 rounded-2xl shadow-lg shadow-green-100 flex flex-col items-center justify-center hover:scale-105 transition group relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-20 text-4xl"><i class="fa-solid fa-money-check-dollar"></i></div>
-            <div class="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center mb-2 text-xl backdrop-blur-sm">
-                <i class="fa-solid fa-check-double"></i>
-            </div>
-            <span class="font-bold text-xs">পেমেন্ট চেক</span>
-        </a>
-
-        <!-- Withdrawals -->
-        <a href="/admin/withdrawals" class="bg-orange-500 text-white p-4 rounded-2xl shadow-lg shadow-orange-100 flex flex-col items-center justify-center hover:scale-105 transition group relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-20 text-4xl"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-            <div class="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center mb-2 text-xl backdrop-blur-sm">
-                <i class="fa-solid fa-money-bill-transfer"></i>
-            </div>
-            <span class="font-bold text-xs">উত্তোলন রিকোয়েস্ট</span>
-        </a>
-
-        <!-- Task Submissions -->
-        <a href="/admin/submissions" class="bg-purple-600 text-white p-4 rounded-2xl shadow-lg shadow-purple-100 flex flex-col items-center justify-center hover:scale-105 transition group relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-20 text-4xl"><i class="fa-solid fa-images"></i></div>
-            <div class="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center mb-2 text-xl backdrop-blur-sm">
-                <i class="fa-solid fa-list-check"></i>
-            </div>
-            <span class="font-bold text-xs">কাজের প্রুফ চেক</span>
-        </a>
-
-        <!-- Add Task -->
-        <a href="/adtask" class="bg-[#0057FF] text-white p-4 rounded-2xl shadow-lg shadow-blue-100 flex flex-col items-center justify-center hover:scale-105 transition group relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-2 opacity-20 text-4xl"><i class="fa-solid fa-plus"></i></div>
-            <div class="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center mb-2 text-xl backdrop-blur-sm">
-                <i class="fa-solid fa-pen-to-square"></i>
-            </div>
-            <span class="font-bold text-xs">নতুন টাস্ক</span>
-        </a>
-
-        <!-- User List -->
-        <a href="/admin/users" class="bg-[#0A2540] text-white p-4 rounded-2xl shadow-lg shadow-gray-200 flex flex-col items-center justify-center hover:scale-105 transition group relative overflow-hidden md:col-span-2">
-            <div class="absolute top-0 right-0 p-2 opacity-20 text-4xl"><i class="fa-solid fa-users-gear"></i></div>
-            <div class="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center mb-2 text-xl backdrop-blur-sm">
-                <i class="fa-solid fa-user-group"></i>
-            </div>
-            <span class="font-bold text-xs">সকল ইউজার (Edit/Ban)</span>
-        </a>
-
-    </div>
-
-    <!-- 3. SETTINGS FORM (Existing) -->
+    <!-- Settings Form -->
     <form method="POST" action="/admin">
         
-        <!-- Global Controls -->
-        <div class="bg-white rounded-3xl shadow-sm border border-gray-50 overflow-hidden mt-4">
-            <div class="p-4 bg-gray-50 border-b font-bold text-gray-700 flex items-center gap-2">
-                <i class="fa-solid fa-sliders"></i> সাইট কন্ট্রোল
-            </div>
+        <!-- 1. Global Controls -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-4 bg-gray-50 border-b font-bold text-gray-700">সাইট কন্ট্রোল</div>
             
             <div class="p-6 space-y-6">
                 <!-- Maintenance Mode Toggle -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="font-bold text-[#0A2540] text-sm">🚧 মেইনটেনেন্স মোড</h3>
-                        <p class="text-[10px] text-gray-500">অন করলে ইউজাররা সাইটে ঢুকতে পারবে না।</p>
+                        <h3 class="font-bold text-[#0A2540]">🚧 মেইনটেনেন্স মোড</h3>
+                        <p class="text-xs text-gray-500">অন করলে ইউজাররা সাইটে ঢুকতে পারবে না।</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="maintenance" class="sr-only peer" {{ 'checked' if settings.maintenance_mode }}>
@@ -97,8 +39,8 @@
                 <!-- Activation Required Toggle -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="font-bold text-[#0A2540] text-sm">🔒 একাউন্ট এক্টিভেশন</h3>
-                        <p class="text-[10px] text-gray-500">অন করলে ইউজারদের টাকা দিয়ে একাউন্ট খুলতে হবে।</p>
+                        <h3 class="font-bold text-[#0A2540]">🔒 একাউন্ট এক্টিভেশন</h3>
+                        <p class="text-xs text-gray-500">অন করলে ইউজারদের টাকা দিয়ে একাউন্ট খুলতে হবে।</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="activation" class="sr-only peer" {{ 'checked' if settings.activation_required }}>
@@ -108,20 +50,18 @@
             </div>
         </div>
 
-        <!-- Notice Board Settings -->
-        <div class="bg-white rounded-3xl shadow-sm border border-gray-50 overflow-hidden mt-6">
-            <div class="p-4 bg-gray-50 border-b font-bold text-gray-700 flex items-center gap-2">
-                <i class="fa-solid fa-bullhorn"></i> নোটিশ বোর্ড
-            </div>
+        <!-- 2. Notice Board -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-6">
+            <div class="p-4 bg-gray-50 border-b font-bold text-gray-700">নোটিশ বোর্ড</div>
             <div class="p-6">
-                <label class="block text-xs font-bold text-gray-700 mb-2">হোমপেজের নোটিশ (সবার উপরে দেখাবে)</label>
-                <textarea name="notice" rows="3" class="w-full p-3 border rounded-xl focus:outline-[#E2136E] focus:ring-1 focus:ring-[#E2136E] text-sm bg-gray-50 focus:bg-white transition">{{ settings.notice_text }}</textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-2">হোমপেজের নোটিশ</label>
+                <textarea name="notice" rows="3" class="w-full p-3 border rounded-lg focus:outline-[#E2136E] focus:ring-1 focus:ring-[#E2136E]">{{ settings.notice_text }}</textarea>
             </div>
         </div>
 
         <!-- Save Button -->
-        <button type="submit" class="w-full bg-[#0A2540] text-white py-4 rounded-2xl font-bold text-lg mt-6 hover:bg-opacity-90 shadow-xl transition transform active:scale-95 flex items-center justify-center gap-2">
-            <i class="fa-solid fa-floppy-disk"></i> সেটিংস সেভ করুন
+        <button type="submit" class="w-full bg-[#0A2540] text-white py-4 rounded-xl font-bold text-lg mt-6 hover:bg-opacity-90 shadow-lg transition transform active:scale-95">
+            সেভ করুন
         </button>
 
     </form>
