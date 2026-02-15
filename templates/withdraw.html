@@ -2,90 +2,133 @@
 
 {% block content %}
 
-<!-- Header -->
-<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 text-center">
-    <p class="text-gray-500 text-sm">বর্তমান ব্যালেন্স</p>
-    <h2 class="text-3xl font-bold text-[#E2136E]">৳ {{ user.balance }}</h2>
+<!-- Header & Balance -->
+<div class="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50 flex items-center justify-between relative overflow-hidden">
+    <!-- Decor -->
+    <div class="absolute right-0 top-0 w-24 h-24 bg-green-50 rounded-bl-full opacity-50"></div>
+    
+    <div>
+        <p class="text-xs text-gray-500 font-bold mb-1 flex items-center gap-1">
+            <i class="fa-solid fa-wallet text-green-500"></i> বর্তমান ব্যালেন্স
+        </p>
+        <h2 class="text-3xl font-bold text-[#0A2540] font-mono">৳ {{ user.balance }}</h2>
+    </div>
+    <div class="h-12 w-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center text-xl shadow-sm z-10">
+        <i class="fa-solid fa-money-bill-wave"></i>
+    </div>
 </div>
 
 <!-- Conditions Status Card -->
-<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
-    <h3 class="font-bold text-[#0A2540] mb-4 border-b pb-2">উত্তোলনের শর্তসমূহ</h3>
+<div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 mb-8">
+    <h3 class="font-bold text-[#0A2540] mb-5 border-b border-gray-100 pb-3 flex items-center gap-2 text-sm">
+        <i class="fa-solid fa-list-check text-[#E2136E]"></i> উত্তোলনের শর্তসমূহ
+    </h3>
     
     <!-- Condition 1: Referrals -->
-    <div class="mb-4">
-        <div class="flex justify-between text-sm mb-1">
-            <span class="text-gray-600">রেফারেল প্রয়োজন (৩টি)</span>
-            <span class="font-bold {{ 'text-green-600' if ref_count >= 3 else 'text-red-500' }}">
+    <div class="mb-5">
+        <div class="flex justify-between text-sm mb-2">
+            <span class="text-gray-600 font-medium flex items-center gap-2">
+                <i class="fa-solid fa-users text-blue-500"></i> রেফারেল প্রয়োজন (৩টি)
+            </span>
+            <span class="font-bold text-xs px-2 py-0.5 rounded-md {{ 'bg-green-100 text-green-700' if ref_count >= 3 else 'bg-red-50 text-red-500' }}">
                 {{ ref_count }} / 3
             </span>
         </div>
         <!-- Progress Bar -->
-        <div class="w-full bg-gray-200 rounded-full h-2.5">
-            <div class="bg-[#0057FF] h-2.5 rounded-full transition-all duration-500" 
+        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-2.5 rounded-full transition-all duration-700 ease-out shadow-sm" 
                  style="width: {{ (ref_count / 3) * 100 if ref_count < 3 else 100 }}%"></div>
         </div>
         {% if ref_count < 3 %}
-        <p class="text-xs text-red-400 mt-1">আরও {{ 3 - ref_count }} জনকে রেফার করুন।</p>
+        <p class="text-[10px] text-gray-400 mt-1.5 ml-1">
+            <i class="fa-solid fa-circle-info"></i> আরও {{ 3 - ref_count }} জনকে রেফার করতে হবে।
+        </p>
         {% endif %}
     </div>
 
     <!-- Condition 2: Min Balance -->
     <div>
-        <div class="flex justify-between text-sm mb-1">
-            <span class="text-gray-600">মিনিমাম ব্যালেন্স (২৫০ টাকা)</span>
-            <span class="font-bold {{ 'text-green-600' if user.balance >= 250 else 'text-red-500' }}">
-                {{ 'OK' if user.balance >= 250 else 'কম আছে' }}
+        <div class="flex justify-between text-sm mb-2">
+            <span class="text-gray-600 font-medium flex items-center gap-2">
+                <i class="fa-solid fa-coins text-yellow-500"></i> মিনিমাম ব্যালেন্স (২৫০ টাকা)
+            </span>
+            <span class="font-bold text-xs px-2 py-0.5 rounded-md {{ 'bg-green-100 text-green-700' if user.balance >= 250 else 'bg-red-50 text-red-500' }}">
+                {% if user.balance >= 250 %}
+                    <i class="fa-solid fa-check"></i> সম্পন্ন
+                {% else %}
+                    <i class="fa-solid fa-xmark"></i> কম আছে
+                {% endif %}
             </span>
         </div>
     </div>
 </div>
 
 <!-- Withdraw Form -->
-<form method="POST" action="/withdraw" class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+<form method="POST" action="/withdraw" class="bg-white p-6 rounded-3xl shadow-lg shadow-gray-100 border border-gray-50 relative overflow-hidden">
     
-    <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">পেমেন্ট মেথড</label>
-        <div class="grid grid-cols-3 gap-2">
-            <label class="cursor-pointer">
+    <!-- Payment Method -->
+    <div class="mb-6">
+        <label class="block text-xs font-bold text-gray-700 mb-3 ml-1">পেমেন্ট মেথড সিলেক্ট করুন</label>
+        <div class="grid grid-cols-3 gap-3">
+            <!-- bKash -->
+            <label class="cursor-pointer group">
                 <input type="radio" name="method" value="bKash" class="peer sr-only" checked>
-                <div class="p-2 border rounded-lg text-center peer-checked:bg-[#E2136E] peer-checked:text-white peer-checked:border-[#E2136E] transition">
-                    বিকাশ
+                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#E2136E] peer-checked:bg-pink-50 peer-checked:text-[#E2136E] transition hover:border-pink-200">
+                    <div class="font-bold text-sm">bKash</div>
                 </div>
             </label>
-            <label class="cursor-pointer">
+            <!-- Nagad -->
+            <label class="cursor-pointer group">
                 <input type="radio" name="method" value="Nagad" class="peer sr-only">
-                <div class="p-2 border rounded-lg text-center peer-checked:bg-[#F7931A] peer-checked:text-white peer-checked:border-[#F7931A] transition">
-                    নগদ
+                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#F7931A] peer-checked:bg-orange-50 peer-checked:text-[#F7931A] transition hover:border-orange-200">
+                    <div class="font-bold text-sm">Nagad</div>
                 </div>
             </label>
-            <label class="cursor-pointer">
+            <!-- Rocket -->
+            <label class="cursor-pointer group">
                 <input type="radio" name="method" value="Rocket" class="peer sr-only">
-                <div class="p-2 border rounded-lg text-center peer-checked:bg-[#8C3494] peer-checked:text-white peer-checked:border-[#8C3494] transition">
-                    রকেট
+                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#8C3494] peer-checked:bg-purple-50 peer-checked:text-[#8C3494] transition hover:border-purple-200">
+                    <div class="font-bold text-sm">Rocket</div>
                 </div>
             </label>
         </div>
     </div>
 
-    <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700">মোবাইল নাম্বার</label>
-        <input type="number" name="number" required placeholder="017xxxxxxxx" class="w-full p-3 border rounded-lg focus:outline-[#E2136E]">
+    <!-- Number Input -->
+    <div class="mb-5">
+        <label class="block text-xs font-bold text-gray-700 mb-1.5 ml-1">মোবাইল নাম্বার</label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <i class="fa-solid fa-phone text-gray-400"></i>
+            </div>
+            <input type="number" name="number" required placeholder="017xxxxxxxx" 
+                   class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white">
+        </div>
     </div>
 
-    <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700">টাকার পরিমাণ</label>
-        <input type="number" name="amount" min="250" required placeholder="250" class="w-full p-3 border rounded-lg focus:outline-[#E2136E]">
+    <!-- Amount Input -->
+    <div class="mb-8">
+        <label class="block text-xs font-bold text-gray-700 mb-1.5 ml-1">টাকার পরিমাণ</label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <i class="fa-solid fa-bangladeshi-taka-sign text-gray-400"></i>
+            </div>
+            <input type="number" name="amount" min="250" required placeholder="250" 
+                   class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white">
+        </div>
     </div>
 
+    <!-- Submit Button Logic -->
     {% if ref_count >= 3 and user.balance >= 250 %}
-        <button type="submit" class="w-full bg-[#E2136E] text-white py-3 rounded-lg font-bold shadow-lg hover:bg-opacity-90">
-            উত্তোলন করুন
+        <button type="submit" class="w-full bg-[#E2136E] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-pink-200 hover:bg-[#c2105e] active:scale-95 transition flex items-center justify-center gap-2">
+            <span>উত্তোলন করুন</span>
+            <i class="fa-solid fa-paper-plane"></i>
         </button>
     {% else %}
-        <button type="button" disabled class="w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-bold cursor-not-allowed">
-            শর্ত পূরণ হয়নি
+        <button type="button" disabled class="w-full bg-gray-200 text-gray-400 py-3.5 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2">
+            <i class="fa-solid fa-lock"></i> শর্ত পূরণ হয়নি
         </button>
+        <p class="text-center text-[10px] text-gray-400 mt-2">৩টি রেফার এবং ২৫০ টাকা ব্যালেন্স প্রয়োজন</p>
     {% endif %}
 
 </form>
