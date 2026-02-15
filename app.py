@@ -158,7 +158,77 @@ def notice():
 
     return render_template('notice.html', notices=notices, user=g.user)
 
+# --- ADMIN: VIEW WITHDRAWAL REQUESTS ---
+@app.route('/admin/withdrawals')
+@login_required
+@admin_required
+def admin_withdrawals():
+    # ১. পেন্ডিং রিকোয়েস্ট আনা
+    res = supabase.table('withdrawals').select('*').eq('status', 'pending').order('created_at', desc=True).execute()
+    withdrawals = res.data
+    
+    # ২. ইউজার ইমেইল যুক্ত করা
+    final_data = []
+    for item in withdrawals:
+        try:
+            user = supabase.table('profiles').select('email').eq('id', item['user_id']).single().execute().data
+            item['user_email'] = user['email']
+            final_data.append(item)
+        except:
+            continue # ইউজার না পাওয়া গেলে স্কিপ
 
+    return render_template('admin_withdrawals.html', requests=final_data)
+
+
+# --- ADMIN: APPROVE / REJECT WITHDRAWAL ---
+@app.route('/admin/withdraw/<action>/<int:id>')
+@login_required
+@admin_required
+def withdraw_action(action, id):
+    try:
+        # ১. রিকোয়েস্ট ডিটেইলস আনা
+        res = supabase.table('withdrawals').select('*').eq('id', id).single().execute()
+        request_data = res.data
+        
+        if not request_data:
+            flash("রিকোয়েস্ট পাওয়া যায়নি!", "error")
+            return redirect(url_for('admin_withdrawals'))
+
+        # ২. যদি APPROVE করা হয়
+        if action == 'approve':
+            supabase.table('withdrawals').update({
+                'status': 'approved'
+            }).eq('id', id).execute()
+            
+            flash("✅ উইথড্রয়াল অ্যাপ্রুভ করা হয়েছে!", "success")
+
+        # ৩. যদি REJECT করা হয় (টাকা রিফান্ড হবে)
+        elif action == 'reject':
+            # A. ইউজারের বর্তমান ব্যালেন্স আনা
+            user_res = supabase.table('profiles').select('balance').eq('id', request_data['user_id']).single().execute()
+            current_balance = float(user_res.data['balance'])
+            
+            # B. টাকা ফেরত দেওয়া (Refund)
+            refund_amount = float(request_data['amount'])
+            new_balance = current_balance + refund_amount
+            
+            # C. ব্যালেন্স আপডেট
+            supabase.table('profiles').update({
+                'balance': new_balance
+            }).eq('id', request_data['user_id']).execute()
+            
+            # D. স্ট্যাটাস রিজেক্ট করা
+            supabase.table('withdrawals').update({
+                'status': 'rejected'
+            }).eq('id', id).execute()
+            
+            flash(f"❌ রিজেক্ট করা হয়েছে। ৳{refund_amount} রিফান্ড করা হয়েছে।", "warning")
+
+    except Exception as e:
+        flash(f"Error: {str(e)}", "error")
+
+    return redirect(url_for('admin_withdrawals'))
+    
 # --- REFERRAL LIST ROUTE ---
 @app.route('/referrals')
 @login_required
