@@ -9,7 +9,6 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import timedelta
 
-
 # Load environment variables
 load_dotenv()
 
@@ -311,33 +310,27 @@ def submission_action(action, sub_id):
     return redirect(url_for('admin_submissions'))
 
 
-# --- WITHDRAW ROUTE (FIXED COUNTING LOGIC) ---
+# --- WITHDRAW ROUTE (FIXED & RELIABLE COUNT) ---
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
-    # ১. রেফারেল সংখ্যা গণনা (Correct Way)
+    # ১. রেফারেল সংখ্যা গণনা (সবচেয়ে নির্ভরযোগ্য পদ্ধতি)
     try:
-        # আমরা খুঁজছি profiles টেবিলে কতজন ইউজারের 'referred_by' কলামে আমার ID আছে
-        # count='exact', head=True মানে আমরা শুধু সংখ্যাটি চাই, ডাটা নয়
-        count_res = supabase.table('profiles') \
-            .select('id', count='exact', head=True) \
-            .eq('referred_by', session['user_id']) \
-            .execute()
-            
-        # সঠিক সংখ্যা ভেরিয়েবলে রাখা
-        ref_count = count_res.count if count_res.count is not None else 0
+        # সরাসরি আইডিগুলো নিয়ে এসে Python দিয়ে গুনব (এটি ভুল হওয়ার সুযোগ নেই)
+        response = supabase.table('profiles').select('id').eq('referred_by', session['user_id']).execute()
+        ref_count = len(response.data) # ডাটাবেস থেকে আসা লিস্টের দৈর্ঘ্য
         
-        # ডিবাগিং: কনসোলে প্রিন্ট হবে (Vercel Logs এ দেখা যাবে)
-        print(f"User ID: {session['user_id']} | Referral Count: {ref_count}")
-
+        # ডিবাগিং (Vercel Logs এ দেখার জন্য)
+        print(f"User: {session['user_id']} | Real Count: {ref_count}")
+        
     except Exception as e:
-        print(f"Count Error: {e}")
+        print(f"Counting Error: {e}")
         ref_count = 0
 
-    # ২. ব্যালেন্স লোড (g.user থেকে)
+    # ২. ব্যালেন্স লোড
     current_balance = float(g.user.get('balance', 0.0))
 
-    # ৩. ফর্ম সাবমিট হলে (POST)
+    # ৩. ফর্ম সাবমিট হলে (POST Request)
     if request.method == 'POST':
         method = request.form.get('method')
         number = request.form.get('number')
@@ -386,10 +379,9 @@ def withdraw():
         except Exception as e:
             flash(f"Error: {str(e)}", "error")
 
-    # ৪. পেজ দেখানো (GET)
-    # ref_count ভেরিয়েবলটি অবশ্যই টেমপ্লেটে পাঠাতে হবে
+    # ৪. পেজ দেখানো (GET Request)
     return render_template('withdraw.html', user=g.user, ref_count=ref_count)
-# --- USER: SUBMIT TASK (ImgBB Upload) ---
+    # --- USER: SUBMIT TASK (ImgBB Upload) ---
 @app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def submit_task(task_id):
