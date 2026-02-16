@@ -505,14 +505,25 @@ def submit_task(task_id):
 
     return render_template('submit_task.html', task=task, user=g.user)
 
-
-# --- ACCOUNT / MENU PAGE ---
+# --- ACCOUNT PAGE ROUTE (WITH REFERRAL COUNT) ---
 @app.route('/account')
 @login_required
 def account():
-    # রেফারেল লিংক তৈরির জন্য ডোমেইন নেম দরকার, কিন্তু আমরা ফ্রন্টএন্ড JS দিয়ে হ্যান্ডেল করব
-    return render_template('account.html', user=g.user, settings=g.settings)
-    
+    # ১. রেফারেল সংখ্যা গণনা (Fix)
+    try:
+        # ডাটাবেস থেকে চেক করছি কতজন ইউজারের 'referred_by' আমার ID
+        response = supabase.table('profiles').select('id').eq('referred_by', session['user_id']).execute()
+        
+        # লিস্টের দৈর্ঘ্যই হলো মোট রেফারেল সংখ্যা
+        ref_count = len(response.data)
+        
+    except Exception as e:
+        # কোনো এরর হলে ০ দেখাবে
+        print(f"Account Page Error: {e}")
+        ref_count = 0
+
+    # ২. টেমপ্লেট রেন্ডার করা (ref_count পাস করা হলো)
+    return render_template('account.html', user=g.user, settings=g.settings, ref_count=ref_count)
 # --- LOGIN ROUTE (FIXED SESSION) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
