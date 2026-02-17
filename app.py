@@ -328,49 +328,58 @@ def admin_submissions():
 
     return render_template('submissions.html', submissions=final_data, total_pending=total_pending)
 
-
-# --- ADMIN: BULK APPROVE (ALL 20 AT ONCE) ---
+# --- ADMIN: BULK APPROVE (FIXED & STRICT) ---
 @app.route('/admin/submissions/bulk-approve')
 @login_required
 @admin_required
 def bulk_approve():
     try:
-        # ১. উপরের ২০টি পেন্ডিং টাস্ক আনা
+        # ১. ২০টি পেন্ডিং সাবমিশন আনা
         subs_res = supabase.table('submissions').select('*').eq('status', 'pending').limit(20).execute()
         submissions = subs_res.data
         
-        count = 0
+        if not submissions:
+            flash("⚠️ কোনো পেন্ডিং টাস্ক পাওয়া যায়নি।", "warning")
+            return redirect(url_for('admin_submissions'))
+
+        success_count = 0
         
-        # ২. লুপ চালিয়ে সব অ্যাপ্রুভ করা
+        # ২. লুপ চালিয়ে কাজ করা
         for sub in submissions:
             try:
-                # A. টাস্কের রিওওার্ড জানা
+                # A. টাস্কের টাকার পরিমাণ জানা
                 task_res = supabase.table('tasks').select('reward').eq('id', sub['task_id']).single().execute()
+                if not task_res.data: continue # টাস্ক না পেলে স্কিপ
                 reward = float(task_res.data['reward'])
                 
                 # B. ইউজারের বর্তমান ব্যালেন্স জানা
                 user_res = supabase.table('profiles').select('balance').eq('id', sub['user_id']).single().execute()
-                current_balance = float(user_res.data['balance']) if user_res.data['balance'] else 0.0
+                if not user_res.data: continue # ইউজার না পেলে স্কিপ
+                current_balance = float(user_res.data['balance'])
                 
-                # C. নতুন ব্যালেন্স আপডেট
+                # C. নতুন ব্যালেন্স আপডেট করা
                 new_balance = current_balance + reward
                 supabase.table('profiles').update({'balance': new_balance}).eq('id', sub['user_id']).execute()
                 
-                # D. স্ট্যাটাস 'approved' করা
-                supabase.table('submissions').update({'status': 'approved'}).eq('id', sub['id']).execute()
+                # D. সাবমিশন স্ট্যাটাস 'approved' করা (Critial Step)
+                update_res = supabase.table('submissions').update({'status': 'approved'}).eq('id', sub['id']).execute()
                 
-                count += 1
+                # চেক করা: আসলেই আপডেট হয়েছে কিনা?
+                if len(update_res.data) > 0:
+                    success_count += 1
+                    
             except Exception as loop_e:
-                print(f"Skipped one due to error: {loop_e}")
+                print(f"Error for sub {sub['id']}: {loop_e}")
                 continue
 
-        if count > 0:
-            flash(f"✅ একসাথে {count}টি টাস্ক অ্যাপ্রুভ করা হয়েছে!", "success")
+        # ৩. ফলাফল জানানো
+        if success_count > 0:
+            flash(f"✅ সফলভাবে {success_count}টি টাস্ক অ্যাপ্রুভ এবং টাকা যোগ করা হয়েছে!", "success")
         else:
-            flash("⚠️ কোনো পেন্ডিং টাস্ক পাওয়া যায়নি।", "warning")
+            flash("❌ সার্ভার এরর: ডাটাবেস আপডেট হয়নি। ম্যানুয়ালি চেষ্টা করুন।", "error")
 
     except Exception as e:
-        flash(f"Error: {str(e)}", "error")
+        flash(f"System Error: {str(e)}", "error")
 
     return redirect(url_for('admin_submissions'))
 # --- ADMIN: APPROVE / REJECT ACTION (FIXED) ---
