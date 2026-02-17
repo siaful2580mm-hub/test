@@ -261,18 +261,22 @@ def delete_notice(id):
         
     return redirect(url_for('notice'))
 
-# --- ADMIN: ADD TASK (Fb Page Like / Screenshot Task) ---
+# --- ADMIN: ADD TASK & VIEW LIST ---
 @app.route('/adtask', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def add_task():
+    # ১. নতুন টাস্ক যোগ করা (POST)
     if request.method == 'POST':
         title = request.form.get('title')
         description = request.form.get('description')
         link = request.form.get('link')
-        reward = float(request.form.get('reward'))
-        category = request.form.get('category') # Facebook, YouTube
-        task_type = request.form.get('task_type') # 'screenshot' or 'link'
+        try:
+            reward = float(request.form.get('reward'))
+        except:
+            reward = 0.0
+        category = request.form.get('category')
+        task_type = request.form.get('task_type')
         
         try:
             supabase.table('tasks').insert({
@@ -289,10 +293,35 @@ def add_task():
             flash(f"Error: {str(e)}", "error")
             
         return redirect(url_for('add_task'))
+
+    # ২. সব টাস্কের লিস্ট আনা (GET)
+    try:
+        # নতুন টাস্ক আগে দেখাবে
+        res = supabase.table('tasks').select('*').order('id', desc=True).execute()
+        all_tasks = res.data
+    except:
+        all_tasks = []
         
-    return render_template('adtask.html', user=g.user)
+    return render_template('adtask.html', user=g.user, tasks=all_tasks)
 
 
+# --- ADMIN: DELETE TASK ---
+@app.route('/admin/task/delete/<int:id>')
+@login_required
+@admin_required
+def delete_task(id):
+    try:
+        # A. টাস্ক ডিলিট করার আগে এর সাবমিশনগুলো ডিলিট করতে হবে (Foreign Key Error এড়াতে)
+        supabase.table('submissions').delete().eq('task_id', id).execute()
+        
+        # B. মূল টাস্ক ডিলিট করা
+        supabase.table('tasks').delete().eq('id', id).execute()
+        
+        flash("🗑️ টাস্ক এবং এর সাবমিশন মুছে ফেলা হয়েছে।", "success")
+    except Exception as e:
+        flash(f"Delete Error: {str(e)}", "error")
+        
+    return redirect(url_for('add_task'))
 # --- ADMIN: VIEW PENDING SUBMISSIONS (LIMIT 20) ---
 @app.route('/admin/submissions')
 @login_required
