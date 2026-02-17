@@ -556,9 +556,10 @@ def login():
             
     return render_template('login.html')
 # --- REGISTER ROUTE (UNIQUE REFERRAL SYSTEM) ---
+# --- REGISTER ROUTE (BOTH GET BONUS 10 TAKA) ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    # GET: রেফারেল লিংক থেকে আসলে কোড ধরা
+    # GET: লিংক থেকে আসলে কোড ধরা
     if request.method == 'GET':
         ref_code = request.args.get('ref')
         return render_template('register.html', ref_code=ref_code)
@@ -567,49 +568,60 @@ def register():
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        used_ref_code = request.form.get('ref_code') # যে রেফার করেছে তার কোড
+        used_ref_code = request.form.get('ref_code') # হিডেন ইনপুট থেকে কোড
         
         try:
             # ১. সাইন আপ (Supabase Auth)
             res = supabase.auth.sign_up({"email": email, "password": password})
             new_user_id = res.user.id
             
-            # ২. নিজের জন্য ইউনিক কোড তৈরি করা (যেমন: TK4092)
-            my_unique_code = generate_ref_code()
+            # ২. নিজের জন্য ইউনিক কোড তৈরি (TK + Random)
+            chars = string.ascii_uppercase + string.digits
+            my_unique_code = 'TK' + ''.join(random.choices(chars, k=4))
             
-            # ৩. ডাটাবেসে নিজের কোড আপডেট করা
+            # ৩. নিজের প্রোফাইল আপডেট (Referral Code সেট করা)
+            # ডিফল্ট ব্যালেন্স ০ থাকে
             supabase.table('profiles').update({
                 'referral_code': my_unique_code
             }).eq('id', new_user_id).execute()
 
-            # ৪. যদি কারো রেফারে এসে থাকে (Bonus System)
-            if used_ref_code:
+            # ৪. রেফারেল বোনাস লজিক (উভয়ের জন্য ১০ টাকা)
+            if used_ref_code and used_ref_code != '':
                 try:
-                    # রেফারার খুঁজে বের করা
+                    # যার কোড ব্যবহার হয়েছে তাকে খোঁজা
                     referrer_res = supabase.table('profiles').select('*').eq('referral_code', used_ref_code).single().execute()
                     referrer = referrer_res.data
                     
                     if referrer:
-                        # বোনাস দেওয়া (৫ টাকা)
-                        new_balance = float(referrer['balance']) + 5.00
+                        referrer_id = referrer['id']
                         
+                        # A. লিংক করা (Referred By সেট করা)
                         supabase.table('profiles').update({
-                            'balance': new_balance
-                        }).eq('id', referrer['id']).execute()
+                            'referred_by': referrer_id
+                        }).eq('id', new_user_id).execute()
                         
-                        # নতুন ইউজারের 'referred_by' সেট করা
+                        # B. রেফারারকে ১০ টাকা বোনাস দেওয়া
+                        ref_balance = float(referrer['balance']) + 10.00
                         supabase.table('profiles').update({
-                            'referred_by': referrer['id']
+                            'balance': ref_balance
+                        }).eq('id', referrer_id).execute()
+
+                        # C. নতুন ইউজারকে ১০ টাকা বোনাস দেওয়া
+                        # যেহেতু নতুন, তাই সরাসরি ১০ সেট করে দিলেই হবে
+                        supabase.table('profiles').update({
+                            'balance': 10.00
                         }).eq('id', new_user_id).execute()
                         
                 except Exception as e:
-                    print(f"Referral Error: {e}")
+                    print(f"Referral Error: {e}") 
+                    # রেফারেল ফেইল করলেও রেজিস্ট্রেশন আটকাবে না
 
             flash("✅ একাউন্ট তৈরি হয়েছে! লগিন করুন।", "success")
             return redirect(url_for('login'))
             
         except Exception as e:
-            flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে।", "error")
+            flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে। ইমেইলটি হয়তো আগেই ব্যবহৃত।", "error")
+            print(f"Reg Error: {e}")
             return redirect(url_for('register'))
             
     return render_template('register.html')
