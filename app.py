@@ -293,34 +293,86 @@ def add_task():
     return render_template('adtask.html', user=g.user)
 
 
-# --- ADMIN: VIEW PENDING SUBMISSIONS ---
+# --- ADMIN: VIEW PENDING SUBMISSIONS (LIMIT 20) ---
 @app.route('/admin/submissions')
 @login_required
 @admin_required
 def admin_submissions():
-    # ১. শুধুমাত্র 'pending' স্ট্যাটাসের সাবমিশনগুলো আনা
-    subs_res = supabase.table('submissions').select('*').eq('status', 'pending').order('created_at', desc=True).execute()
+    # ১. মাত্র ২০টি পেন্ডিং ডাটা আনা (Performance এর জন্য)
+    # .limit(20) যোগ করা হয়েছে
+    subs_res = supabase.table('submissions').select('*').eq('status', 'pending').order('created_at', desc=True).limit(20).execute()
     submissions = subs_res.data
     
     # ২. ডাটা প্রসেসিং (User Email এবং Task Title বের করা)
     final_data = []
     for sub in submissions:
         try:
-            # ইউজার ইনফো আনা
+            # ইউজার ইনফো
             user = supabase.table('profiles').select('email').eq('id', sub['user_id']).single().execute().data
-            # টাস্ক ইনফো আনা
+            # টাস্ক ইনফো
             task = supabase.table('tasks').select('title, reward').eq('id', sub['task_id']).single().execute().data
             
-            # সব ডাটা একজায়গায করা
             sub['user_email'] = user['email']
             sub['task_title'] = task['title']
             sub['reward'] = task['reward']
             final_data.append(sub)
         except:
-            continue # যদি ইউজার বা টাস্ক ডিলিট হয়ে থাকে, তবে স্কিপ করবে
+            continue 
 
-    return render_template('submissions.html', submissions=final_data)
+    # টোটাল পেন্ডিং কাউন্ট চেক করা (বোঝার জন্য আরও কত বাকি আছে)
+    try:
+        count_res = supabase.table('submissions').select('id', count='exact', head=True).eq('status', 'pending').execute()
+        total_pending = count_res.count
+    except:
+        total_pending = len(final_data)
 
+    return render_template('submissions.html', submissions=final_data, total_pending=total_pending)
+
+
+# --- ADMIN: BULK APPROVE (ALL 20 AT ONCE) ---
+@app.route('/admin/submissions/bulk-approve')
+@login_required
+@admin_required
+def bulk_approve():
+    try:
+        # ১. উপরের ২০টি পেন্ডিং টাস্ক আনা
+        subs_res = supabase.table('submissions').select('*').eq('status', 'pending').limit(20).execute()
+        submissions = subs_res.data
+        
+        count = 0
+        
+        # ২. লুপ চালিয়ে সব অ্যাপ্রুভ করা
+        for sub in submissions:
+            try:
+                # A. টাস্কের রিওওার্ড জানা
+                task_res = supabase.table('tasks').select('reward').eq('id', sub['task_id']).single().execute()
+                reward = float(task_res.data['reward'])
+                
+                # B. ইউজারের বর্তমান ব্যালেন্স জানা
+                user_res = supabase.table('profiles').select('balance').eq('id', sub['user_id']).single().execute()
+                current_balance = float(user_res.data['balance']) if user_res.data['balance'] else 0.0
+                
+                # C. নতুন ব্যালেন্স আপডেট
+                new_balance = current_balance + reward
+                supabase.table('profiles').update({'balance': new_balance}).eq('id', sub['user_id']).execute()
+                
+                # D. স্ট্যাটাস 'approved' করা
+                supabase.table('submissions').update({'status': 'approved'}).eq('id', sub['id']).execute()
+                
+                count += 1
+            except Exception as loop_e:
+                print(f"Skipped one due to error: {loop_e}")
+                continue
+
+        if count > 0:
+            flash(f"✅ একসাথে {count}টি টাস্ক অ্যাপ্রুভ করা হয়েছে!", "success")
+        else:
+            flash("⚠️ কোনো পেন্ডিং টাস্ক পাওয়া যায়নি।", "warning")
+
+    except Exception as e:
+        flash(f"Error: {str(e)}", "error")
+
+    return redirect(url_for('admin_submissions'))
 # --- ADMIN: APPROVE / REJECT ACTION (FIXED) ---
 @app.route('/admin/submission/<action>/<int:sub_id>')
 @login_required
