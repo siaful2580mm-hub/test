@@ -179,7 +179,13 @@ def admin_withdrawals():
 
     return render_template('admin_withdrawals.html', requests=final_data)
 
-
+# --- PUBLIC TUTORIAL PAGE ---
+@app.route('/tutorial')
+def tutorial():
+    # g.user পাস করছি যাতে লগিন থাকলে নেভিগেশন বার ঠিক থাকে
+    # লগিন না থাকলে g.user None থাকবে (before_request হ্যান্ডেল করবে)
+    return render_template('tutorial.html', user=g.user if 'user' in g else None)
+    
 # --- ADMIN: APPROVE / REJECT WITHDRAWAL ---
 @app.route('/admin/withdraw/<action>/<int:id>')
 @login_required
