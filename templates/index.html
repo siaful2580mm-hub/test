@@ -4,7 +4,7 @@
 
 <!-- ১. নোটিশ বোর্ড (Notice Board) -->
 {% if settings.notice_text %}
-<div class="bg-white border-l-4 border-[#0057FF] p-4 mb-6 rounded-r-xl shadow-sm flex items-start gap-4 animate-pulse">
+<a href="/notice"><div class="bg-white border-l-4 border-[#0057FF] p-4 mb-6 rounded-r-xl shadow-sm flex items-start gap-4 animate-pulse">
     <div class="bg-blue-50 text-[#0057FF] h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0">
         <i class="fa-solid fa-bullhorn text-lg"></i>
     </div>
@@ -12,7 +12,7 @@
         <p class="font-bold text-xs text-[#0057FF] uppercase tracking-wider mb-1">Notice</p>
         <p class="text-sm text-gray-700 leading-relaxed">{{ settings.notice_text }}</p>
     </div>
-</div>
+</div></a>
 {% endif %}
 
 <!-- ২. অ্যাক্টিভেশন ওয়ার্নিং (Activation Alert) -->
@@ -87,7 +87,7 @@
         </div>
     </div>
 </div>
-<a href="/tutorial" class="relative group text-gray-800 font-medium transition-colors duration-300">
+<a href="/tutorial" style="text-align: center;" class="relative group text-gray-800 font-medium transition-colors duration-300" >
   কিভাবে কাজ করবেন? ভিডিও দেখুন!
   <span class="absolute left-0 bottom-0 w-0 h-0.5 bg-bkash-pink transition-all duration-300 group-hover:w-full"></span>
 </a><br>
@@ -103,6 +103,13 @@
         </div>
         <span class="text-[#0A2540] font-bold text-sm">টাস্ক</span>
         <span class="text-[10px] text-gray-400 mt-0.5">আয় করুন</span>
+    </a>
+    <a href="/tasks" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center hover:shadow-md transition active:scale-95 group">
+        <div class="h-12 w-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition">
+        <i class="fa-solid fa-bullhorn text-lg"></i>
+        </div>
+        <span class="text-[#0A2540] font-bold text-sm">নোটিস</span>
+        <span class="text-[10px] text-gray-400 mt-0.5">সকল গুরুত্বপূর্ণ নোটিস</span>
     </a>
     
     <!-- Withdraw Button (Active) -->
