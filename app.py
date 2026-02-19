@@ -548,15 +548,26 @@ def withdraw():
     # ৪. পেজ দেখানো (GET Request)
     return render_template('withdraw.html', user=g.user, ref_count=ref_count)
     # --- USER: SUBMIT TASK (ImgBB Upload) ---
+# --- USER: SUBMIT TASK (WITH DUPLICATE CHECK) ---
 @app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def submit_task(task_id):
     # টাস্ক ডিটেইলস আনা
-    task_res = supabase.table('tasks').select('*').eq('id', task_id).single().execute()
-    task = task_res.data
+    try:
+        task_res = supabase.table('tasks').select('*').eq('id', task_id).single().execute()
+        task = task_res.data
+    except:
+        flash("টাস্ক পাওয়া যায়নি।", "error")
+        return redirect(url_for('tasks'))
+
+    # ১. [NEW] চেক করা: ইউজার কি আগেই এই টাস্ক সাবমিট করেছে?
+    existing_sub = supabase.table('submissions').select('id').eq('user_id', session['user_id']).eq('task_id', task_id).execute()
+    
+    if len(existing_sub.data) > 0:
+        flash("⚠️ আপনি ইতিমধ্যে এই কাজটি জমা দিয়েছেন!", "warning")
+        return redirect(url_for('tasks'))
 
     if request.method == 'POST':
-        # ১. ছবি ফাইল ধরা
         if 'screenshot' not in request.files:
             flash("ছবি আপলোড করুন!", "error")
             return redirect(request.url)
@@ -568,7 +579,7 @@ def submit_task(task_id):
 
         try:
             # ২. ImgBB তে আপলোড করা
-            api_key = "f5789c14135a479b4e3893c6b9ccf074" # আপনার দেওয়া কী
+            api_key = "f5789c14135a479b4e3893c6b9ccf074" 
             image_string = base64.b64encode(file.read())
             
             payload = {
@@ -576,14 +587,13 @@ def submit_task(task_id):
                 "image": image_string,
             }
             
-            # ImgBB API কল
             response = requests.post("https://api.imgbb.com/1/upload", data=payload)
             data = response.json()
             
             if data['success']:
                 img_url = data['data']['url']
                 
-                # ৩. ডাটাবেসে লিংক সেভ করা
+                # ৩. ডাটাবেসে সেভ করা
                 supabase.table('submissions').insert({
                     'user_id': session['user_id'],
                     'task_id': task_id,
@@ -591,17 +601,15 @@ def submit_task(task_id):
                     'status': 'pending'
                 }).execute()
                 
-                flash("✅ স্ক্রিনশট জমা হয়েছে! এডমিন চেক করে পেমেন্ট দিবে।", "success")
+                flash("✅ সফলভাবে জমা হয়েছে! এডমিন চেক করে পেমেন্ট দিবে।", "success")
                 return redirect(url_for('tasks'))
             else:
-                flash("❌ ছবি আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।", "error")
+                flash("❌ ছবি আপলোড ব্যর্থ হয়েছে।", "error")
                 
         except Exception as e:
             flash(f"Error: {str(e)}", "error")
 
-    return render_template('submit_task.html', task=task, user=g.user)
-
-# --- ACCOUNT PAGE ROUTE (WITH REFERRAL COUNT) ---
+    return render_template('submit_task.html', task=task, user=g.user)# --- ACCOUNT PAGE ROUTE (WITH REFERRAL COUNT) ---
 @app.route('/account')
 @login_required
 def account():
