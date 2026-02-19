@@ -1,70 +1,81 @@
-{% extends "layout.html" %}
-{% block content %}
-<div class="flex items-center justify-center min-h-[75vh]">
-    <div class="bg-white p-8 rounded-3xl shadow-xl shadow-pink-50 w-full max-w-sm border border-gray-100 relative overflow-hidden">
-        
-        <!-- Decorative Background -->
-        <div class="absolute top-0 right-0 w-24 h-24 bg-[#0057FF] rounded-bl-full opacity-5 -mr-6 -mt-6"></div>
-        <div class="absolute bottom-0 left-0 w-20 h-20 bg-[#E2136E] rounded-tr-full opacity-5 -ml-6 -mb-6"></div>
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Suspended</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        h2 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #555;
+            line-height: 1.6;
+        }
+        .btn-group {
+            margin-top: 25px;
+        }
+        .btn {
+            display: inline-block;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+            margin: 5px;
+        }
+        .login-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        .support-btn {
+            background-color: #0088cc;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .footer-text {
+            font-size: 12px;
+            color: #888;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
 
-        <!-- Header -->
-        <div class="text-center mb-8 relative z-10">
-            <div class="h-16 w-16 bg-pink-50 text-[#E2136E] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm transform -rotate-3">
-                <i class="fa-solid fa-user-plus"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-[#0A2540]">নতুন একাউন্ট</h2>
-            <p class="text-sm text-gray-500 mt-1">TaskKing-এ জয়েন করুন<br>
-            <b>রেজিস্ট্রেশনের সময় অবশ্যই আপনার আসল এই জিমেইলটি দিবেন!  উইথড্রএর সময় আপনার ই-মেইলে একটি লিংক যাবে!</b></p>
-        </div>
+<div class="container">
+    <h2>রেজিস্ট্রেশন বন্ধ</h2>
+    <p>দুঃখিত, বর্তমানে নতুন ইউজার রেজিস্ট্রেশন বন্ধ আছে। দয়া করে পরে আবার চেষ্টা করুন।</p>
+    
+    <div class="btn-group">
+        <a href="/login" class="btn login-btn">Login</a>
+        <a href="https://t.me/securehx" target="_blank" class="btn support-btn">Support</a>
+    </div>
 
-        <!-- Register Form -->
-        <form method="POST" action="/register" class="space-y-5">
-            
-            <!-- Hidden Referral Code (CRITICAL) -->
-            <input type="hidden" name="ref_code" value="{{ ref_code if ref_code else '' }}">
-
-            <!-- Email Input -->
-            <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1.5 ml-1">ইমেইল এড্রেস</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <i class="fa-regular fa-envelope text-gray-400"></i>
-                    </div>
-                    <input type="email" name="email" required 
-                           class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white" 
-                           placeholder="user@example.com">
-                </div>
-            </div>
-            
-            <!-- Password Input -->
-            <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1.5 ml-1">পাসওয়ার্ড</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <i class="fa-solid fa-lock text-gray-400"></i>
-                    </div>
-                    <input type="password" name="password" required 
-                           class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white" 
-                           placeholder="••••••••">
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="w-full bg-[#0A2540] text-white py-3.5 rounded-xl font-bold hover:bg-[#0057FF] active:scale-95 transition shadow-lg shadow-blue-200 flex items-center justify-center gap-2 mt-2">
-                <span>সাইন আপ করুন</span>
-                <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        </form>
-        
-        <!-- Login Link -->
-        <div class="mt-8 text-center">
-            <p class="text-sm text-gray-500">
-                আগেই একাউন্ট আছে? 
-                <a href="/login" class="text-[#E2136E] font-bold hover:underline ml-1">
-                    লগিন করুন
-                </a>
-            </p>
-        </div>
+    <div class="footer-text">
+        যেকোনো সমস্যায় আমাদের টেলিগ্রামে জানান।
     </div>
 </div>
-{% endblock %}
+
+</body>
+</html>
