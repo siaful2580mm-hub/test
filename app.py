@@ -196,7 +196,39 @@ def admin_withdrawals():
             continue # ইউজার না পাওয়া গেলে স্কিপ
 
     return render_template('admin_withdrawals.html', requests=final_data)
+# --- ADMIN: OFFLINE / INACTIVE USERS (CSV) ---
+@app.route('/admin/offline-users')
+@login_required
+@admin_required
+def admin_offline_users():
+    try:
+        # ১. ৭ দিন আগের তারিখ বের করা
+        seven_days_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
+        
+        # ২. কুয়েরি চালানো
+        # শর্ত: balance 15-150, last_login <= 7 days ago, gmail only
+        res = supabase.table('profiles').select('email') \
+            .gte('balance', 15) \
+            .lte('balance', 150) \
+            .ilike('email', '%@gmail.com') \
+            .lte('last_login', seven_days_ago) \
+            .limit(290) \
+            .execute()
+            
+        users = res.data
+        
+        # ৩. CSV ফরম্যাট তৈরি (Comma Separated)
+        email_list = [u['email'] for u in users]
+        csv_data = ", ".join(email_list)
+        count = len(email_list)
+        
+    except Exception as e:
+        print(f"Offline Filter Error: {e}")
+        csv_data = ""
+        count = 0
 
+    return render_template('offline_users.html', csv_data=csv_data, count=count)
+    
 # --- PUBLIC TUTORIAL PAGE ---
 @app.route('/tutorial')
 def tutorial():
