@@ -899,33 +899,20 @@ def ban_user(user_id):
         
     return redirect(url_for('admin_users'))
 
-# --- ADMIN: DELETE USER (FIXED FOREIGN KEY ERROR) ---
-@app.route('/admin/user/delete/<string:user_id>')
+# 3. Delete User Profile
+@app.route('/admin/user/delete/<uuid:user_id>')
 @login_required
 @admin_required
 def delete_user(user_id):
     try:
-        # ১. এই ইউজার যাদের রেফার করেছিল, তাদের 'referred_by' খালি করে দেওয়া
-        # যাতে ডাটাবেস এরর না দেয়
-        supabase.table('profiles').update({
-            'referred_by': None
-        }).eq('referred_by', user_id).execute()
-
-        # ২. এই ইউজারের অন্যান্য সব ডাটা মুছে ফেলা (Clean Up)
-        supabase.table('withdrawals').delete().eq('user_id', user_id).execute()
-        supabase.table('submissions').delete().eq('user_id', user_id).execute()
-        supabase.table('activation_requests').delete().eq('user_id', user_id).execute()
-        
-        # ৩. সবশেষে মেইন প্রোফাইল ডিলিট করা
-        supabase.table('profiles').delete().eq('id', user_id).execute()
-        
-        flash("🗑️ ইউজার এবং তার সকল তথ্য সফলভাবে মুছে ফেলা হয়েছে।", "success")
-        
+        # প্রোফাইল ডিলিট (Auth User থেকে যাবে, কিন্তু ডাটা মুছে যাবে)
+        supabase.table('profiles').delete().eq('id', str(user_id)).execute()
+        flash("🗑️ ইউজার প্রোফাইল ডিলিট করা হয়েছে।", "success")
     except Exception as e:
-        print(f"Delete Error: {e}") # কনসোলে এরর প্রিন্ট করবে
         flash(f"Delete Failed: {str(e)}", "error")
         
     return redirect(url_for('admin_users'))
+
 # 4. Update Balance
 @app.route('/admin/user/balance', methods=['POST'])
 @login_required
