@@ -8,6 +8,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import timedelta
+from datetime import datetime, timedelta
 
 # Load environment variables
 load_dotenv()
@@ -417,7 +418,41 @@ def bulk_approve():
         flash(f"System Error: {str(e)}", "error")
 
     return redirect(url_for('admin_submissions'))
-# --- ADMIN: APPROVE / REJECT ACTION (FIXED) ---
+
+
+
+# --- ADMIN: FILTER NEW USERS (CSV COPY) ---
+@app.route('/admin/user-check')
+@login_required
+@admin_required
+def admin_user_check():
+    try:
+        # ১. গত ২৪ ঘন্টার সময় বের করা (UTC Time)
+        last_24_hours = (datetime.utcnow() - timedelta(hours=24)).isoformat()
+        
+        # ২. কুয়েরি চালানো
+        # শর্ত: balance 10-50, created_at >= 24h, email contains @gmail.com
+        res = supabase.table('profiles').select('email') \
+            .gte('balance', 10) \
+            .lte('balance', 50) \
+            .gte('created_at', last_24_hours) \
+            .ilike('email', '%@gmail.com') \
+            .limit(290) \
+            .execute()
+            
+        users = res.data
+        
+        # ৩. শুধু ইমেইলগুলো কমা (,) দিয়ে আলাদা করে স্ট্রিং বানানো (CSV Format)
+        email_list = [u['email'] for u in users]
+        csv_data = ", ".join(email_list)
+        count = len(email_list)
+        
+    except Exception as e:
+        print(f"Filter Error: {e}")
+        csv_data = ""
+        count = 0
+
+    return render_template('user_check.html', csv_data=csv_data, count=count)# --- ADMIN: APPROVE / REJECT ACTION (FIXED) ---
 @app.route('/admin/submission/<action>/<int:sub_id>')
 @login_required
 @admin_required
