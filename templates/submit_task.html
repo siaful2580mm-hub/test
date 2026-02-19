@@ -5,7 +5,6 @@
 
     <!-- Header / Task Info -->
     <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 text-center mb-6 relative overflow-hidden">
-        <!-- Decor -->
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0057FF] to-[#E2136E]"></div>
         
         <div class="h-16 w-16 bg-blue-50 text-[#0057FF] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm">
@@ -40,7 +39,8 @@
         </div>
 
         <!-- Step 2 -->
-        <form method="POST" enctype="multipart/form-data">
+        <!-- [UPDATED] Added onsubmit event -->
+        <form method="POST" enctype="multipart/form-data" onsubmit="preventDoubleSubmit()">
             <div class="mb-8">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="h-8 w-8 bg-[#E2136E] text-white rounded-full flex items-center justify-center font-bold text-sm">২</div>
@@ -60,13 +60,12 @@
                         <p id="uploadText" class="text-sm font-bold text-gray-500 group-hover:text-[#E2136E]">
                             স্ক্রিনশট আপলোড করতে ট্যাপ করুন
                         </p>
-                        <p class="text-[10px] text-gray-400 mt-1">(Max 5MB)</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="w-full bg-[#0A2540] text-white py-4 rounded-xl font-bold text-lg hover:bg-opacity-90 shadow-xl active:scale-95 transition flex items-center justify-center gap-2">
+            <!-- Submit Button [UPDATED ID] -->
+            <button type="submit" id="submitBtn" class="w-full bg-[#0A2540] text-white py-4 rounded-xl font-bold text-lg hover:bg-opacity-90 shadow-xl active:scale-95 transition flex items-center justify-center gap-2">
                 <span>জমা দিন</span>
                 <i class="fa-solid fa-paper-plane"></i>
             </button>
@@ -75,25 +74,37 @@
     </div>
 </div>
 
-<!-- Script for File Upload Interaction -->
+<!-- Script for Interaction & Prevention -->
 <script>
+    // 1. File Upload UX
     function updateFileName(input) {
         const uploadBox = document.getElementById('uploadBox');
         const uploadIcon = document.getElementById('uploadIcon');
         const uploadText = document.getElementById('uploadText');
 
         if (input.files && input.files[0]) {
-            // Change Style on Select
             uploadBox.classList.remove('border-gray-300', 'group-hover:bg-pink-50');
             uploadBox.classList.add('border-green-500', 'bg-green-50');
-            
-            // Change Icon
             uploadIcon.innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i>';
-            
-            // Show Filename
             uploadText.textContent = input.files[0].name;
             uploadText.classList.add('text-green-700');
         }
+    }
+
+    // 2. Prevent Double Submit Logic
+    function preventDoubleSubmit() {
+        const btn = document.getElementById('submitBtn');
+        
+        // বাটন ডিজেবল করা
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
+        btn.style.cursor = 'not-allowed';
+        
+        // লোডিং টেক্সট এবং স্পিনার দেখানো
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> আপলোড হচ্ছে... অপেক্ষা করুন';
+        
+        // ফর্ম সাবমিট হতে থাকবে...
+        return true;
     }
 </script>
 
