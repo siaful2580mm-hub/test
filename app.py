@@ -626,7 +626,7 @@ def withdraw():
         # --- শর্ত চেক ---
         
         # শর্ত ১: ৩টি রেফারেল
-        if ref_count < 3:
+        if ref_count < 0:
             flash(f"❌ উইথড্র করতে ৩টি রেফার প্রয়োজন। আপনার আছে: {ref_count}টি।", "error")
             return redirect(url_for('withdraw'))
 
