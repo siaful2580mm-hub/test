@@ -4,128 +4,190 @@
 <div class="space-y-6">
 
     <!-- Header & Search -->
-    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
-            <h2 class="text-xl font-bold text-[#0A2540]">👤 সকল ইউজার</h2>
-            <p class="text-xs text-gray-500">Total Users: {{ users|length }}</p>
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 bg-blue-50 text-[#0057FF] rounded-full flex items-center justify-center text-xl shadow-sm">
+                <i class="fa-solid fa-users-gear"></i>
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-[#0A2540]">সকল ইউজার</h2>
+                <p class="text-xs text-gray-500">Total Users: {{ users|length }}</p>
+            </div>
         </div>
         
         <!-- Search Form -->
-        <form method="GET" action="/admin/users" class="w-full md:w-auto flex gap-2">
+        <form method="GET" action="/admin/users" class="w-full md:w-auto flex gap-2 relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
             <input type="text" name="q" placeholder="ইমেইল দিয়ে খুঁজুন..." value="{{ request.args.get('q', '') }}" 
-                   class="w-full p-2 border rounded-lg focus:outline-[#E2136E] text-sm">
-            <button type="submit" class="bg-[#0A2540] text-white px-4 py-2 rounded-lg text-sm font-bold">
+                   class="w-full pl-9 p-2.5 border border-gray-200 rounded-xl focus:outline-[#E2136E] text-sm bg-gray-50 focus:bg-white transition">
+            <button type="submit" class="bg-[#0A2540] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-opacity-90">
                 Search
             </button>
             {% if request.args.get('q') %}
-            <a href="/admin/users" class="bg-gray-200 text-gray-600 px-3 py-2 rounded-lg text-sm">✕</a>
+            <a href="/admin/users" class="bg-red-50 text-red-500 px-3 py-2.5 rounded-xl text-sm hover:bg-red-100 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </a>
             {% endif %}
         </form>
     </div>
 
     <!-- User Table -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-gray-50 text-gray-600 font-bold border-b">
-                <tr>
-                    <th class="p-4">User Email</th>
-                    <th class="p-4">Balance</th>
-                    <th class="p-4">Status</th>
-                    <th class="p-4 text-center">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {% for u in users %}
-                <tr class="hover:bg-gray-50 transition">
-                    
-                    <!-- Email & Role -->
-                    <td class="p-4">
-                        <div class="font-bold text-[#0A2540]">{{ u.email }}</div>
-                        <div class="text-xs text-gray-400">
-                            ID: {{ u.referral_code if u.referral_code else 'N/A' }} | 
-                            <span class="{{ 'text-blue-600' if u.role=='admin' else 'text-gray-500' }}">{{ u.role }}</span>
-                        </div>
-                    </td>
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-50 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-100">
+                    <tr>
+                        <th class="p-5">User Info</th>
+                        <th class="p-5">Balance</th>
+                        <th class="p-5">Status</th>
+                        <th class="p-5 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for u in users %}
+                    <tr class="hover:bg-gray-50 transition group">
+                        
+                        <!-- Email & Role -->
+                        <td class="p-5">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-[#0A2540]">{{ u.email }}</div>
+                                    <div class="text-[10px] text-gray-400 font-mono mt-0.5">
+                                        ID: {{ u.referral_code if u.referral_code else 'N/A' }} 
+                                        {% if u.role=='admin' %}
+                                        <span class="ml-2 bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">ADMIN</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
 
-                    <!-- Balance -->
-                    <td class="p-4 font-bold text-[#E2136E]">
-                        ৳ {{ u.balance }}
-                    </td>
+                        <!-- Balance -->
+                        <td class="p-5">
+                            <span class="font-bold text-[#E2136E] font-mono text-base">
+                                ৳ {{ u.balance }}
+                            </span>
+                        </td>
 
-                    <!-- Status -->
-                    <td class="p-4">
-                        {% if u.is_banned %}
-                            <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">⛔ Banned</span>
-                        {% elif u.is_active %}
-                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">✅ Active</span>
-                        {% else %}
-                            <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">⚠️ Unverified</span>
-                        {% endif %}
-                    </td>
+                        <!-- Status -->
+                        <td class="p-5">
+                            {% if u.is_banned %}
+                                <span class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-bold border border-red-100 flex items-center gap-1 w-fit">
+                                    <i class="fa-solid fa-ban"></i> Banned
+                                </span>
+                            {% elif u.is_active %}
+                                <span class="bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold border border-green-100 flex items-center gap-1 w-fit">
+                                    <i class="fa-solid fa-circle-check"></i> Active
+                                </span>
+                            {% else %}
+                                <span class="bg-yellow-50 text-yellow-600 px-3 py-1 rounded-full text-xs font-bold border border-yellow-100 flex items-center gap-1 w-fit">
+                                    <i class="fa-solid fa-lock"></i> Unpaid
+                                </span>
+                            {% endif %}
+                        </td>
 
-                    <!-- Actions -->
-                    <td class="p-4 flex justify-center gap-2">
-                        <!-- Edit Balance Button -->
-                        <button onclick="openBalanceModal('{{ u.id }}', '{{ u.email }}', '{{ u.balance }}')" 
-                                class="bg-blue-50 text-blue-600 p-2 rounded hover:bg-blue-100" title="Edit Balance">
-                            ✏️
-                        </button>
+                        <!-- Actions -->
+                        <td class="p-5 flex justify-center gap-2">
+                            <!-- Edit Balance -->
+                            <button onclick="openBalanceModal('{{ u.id }}', '{{ u.email }}', '{{ u.balance }}')" 
+                                    class="h-9 w-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-600 hover:text-white transition shadow-sm" 
+                                    title="Edit Balance">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
 
-                        <!-- Ban/Unban -->
-                        <a href="/admin/user/ban/{{ u.id }}" class="p-2 rounded hover:bg-opacity-80 {{ 'bg-green-50 text-green-600' if u.is_banned else 'bg-orange-50 text-orange-600' }}" title="Ban/Unban">
-                            {{ '🔓' if u.is_banned else '🚫' }}
-                        </a>
+                            <!-- Ban/Unban -->
+                            <a href="/admin/user/ban/{{ u.id }}" 
+                               onclick="return confirm('আপনি কি নিশ্চিত?')"
+                               class="h-9 w-9 rounded-lg flex items-center justify-center transition shadow-sm {{ 'bg-green-50 text-green-600 hover:bg-green-600 hover:text-white' if u.is_banned else 'bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white' }}" 
+                               title="{{ 'Unban User' if u.is_banned else 'Ban User' }}">
+                                <i class="fa-solid {{ 'fa-lock-open' if u.is_banned else 'fa-ban' }}"></i>
+                            </a>
 
-                        <!-- Delete -->
-                        <a href="/admin/user/delete/{{ u.id }}" onclick="return confirm('Are you sure? This cannot be undone!')" 
-                           class="bg-red-50 text-red-600 p-2 rounded hover:bg-red-100" title="Delete">
-                            🗑️
-                        </a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="p-8 text-center text-gray-400">কোনো ইউজার পাওয়া যায়নি।</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            <!-- Delete -->
+                            <a href="/admin/user/delete/{{ u.id }}" onclick="return confirm('সতর্কতা: এটি পার্মানেন্টলি ডিলিট হবে! আপনি কি নিশ্চিত?')" 
+                               class="h-9 w-9 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition shadow-sm" 
+                               title="Delete User">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="p-10 text-center text-gray-400">
+                            <i class="fa-solid fa-magnifying-glass text-2xl mb-2"></i>
+                            <p>কোনো ইউজার পাওয়া যায়নি।</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <!-- Balance Edit Modal -->
-<div id="balanceModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl transform transition-all scale-100">
-        <h3 class="text-lg font-bold text-[#0A2540] mb-2">Update Balance</h3>
-        <p class="text-sm text-gray-500 mb-4" id="modalUserEmail">user@example.com</p>
+<div id="balanceModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 backdrop-blur-sm transition-opacity opacity-0">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300" id="modalContent">
+        
+        <div class="text-center mb-6">
+            <div class="h-12 w-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-xl mx-auto mb-3 shadow-sm">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#0A2540]">ব্যালেন্স আপডেট করুন</h3>
+            <p class="text-xs text-gray-500 mt-1" id="modalUserEmail">user@example.com</p>
+        </div>
         
         <form method="POST" action="/admin/user/balance">
             <input type="hidden" name="user_id" id="modalUserId">
             
-            <label class="block text-xs font-bold text-gray-700 mb-1">New Balance</label>
-            <input type="number" step="0.01" name="amount" id="modalAmount" class="w-full p-3 border rounded-lg mb-6 focus:outline-[#E2136E]" required>
+            <label class="block text-xs font-bold text-gray-700 mb-2 ml-1">নতুন ব্যালেন্স</label>
+            <div class="relative mb-6">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <i class="fa-solid fa-bangladeshi-taka-sign"></i>
+                </div>
+                <input type="number" step="0.01" name="amount" id="modalAmount" 
+                       class="w-full pl-9 p-3 border border-gray-200 rounded-xl focus:outline-[#E2136E] focus:ring-1 focus:ring-[#E2136E] font-bold text-[#0A2540]" required>
+            </div>
             
             <div class="flex gap-3">
-                <button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded-lg font-bold">Cancel</button>
-                <button type="submit" class="flex-1 bg-[#0A2540] text-white py-2 rounded-lg font-bold">Save</button>
+                <button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition">বাতিল</button>
+                <button type="submit" class="flex-1 bg-[#0A2540] text-white py-3 rounded-xl font-bold hover:bg-opacity-90 shadow-lg transition">সেভ করুন</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+    const modal = document.getElementById('balanceModal');
+    const modalContent = document.getElementById('modalContent');
+
     function openBalanceModal(id, email, balance) {
         document.getElementById('modalUserId').value = id;
         document.getElementById('modalUserEmail').innerText = email;
         document.getElementById('modalAmount').value = balance;
         
-        document.getElementById('balanceModal').classList.remove('hidden');
-        document.getElementById('balanceModal').classList.add('flex');
+        modal.classList.remove('hidden');
+        // Animation Logic
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+            modalContent.classList.add('scale-100');
+        }, 10);
     }
 
     function closeModal() {
-        document.getElementById('balanceModal').classList.add('hidden');
-        document.getElementById('balanceModal').classList.remove('flex');
+        modal.classList.add('opacity-0');
+        modalContent.classList.remove('scale-100');
+        modalContent.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
     }
 </script>
 {% endblock %}
