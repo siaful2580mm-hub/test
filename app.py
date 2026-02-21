@@ -142,6 +142,81 @@ def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('home.html')
+
+# --- PUBLIC: PROOFS PAGE (VIEW & UPLOAD) ---
+@app.route('/proofs', methods=['GET', 'POST'])
+def proofs():
+    # ১. নতুন প্রুফ আপলোড (ONLY ADMIN)
+    if request.method == 'POST':
+        # সিকিউরিটি চেক
+        if not g.user or g.user.get('role') != 'admin':
+            flash("⚠️ শুধুমাত্র এডমিন আপলোড করতে পারবে।", "error")
+            return redirect(url_for('proofs'))
+
+        if 'image' not in request.files:
+            flash("ছবি দিন!", "error")
+            return redirect(request.url)
+            
+        file = request.files['image']
+        description = request.form.get('description')
+
+        if file.filename == '':
+            flash("কোনো ছবি সিলেক্ট করা হয়নি", "error")
+            return redirect(request.url)
+
+        try:
+            # ImgBB তে আপলোড
+            api_key = "f5789c14135a479b4e3893c6b9ccf074" # আপনার API Key
+            image_string = base64.b64encode(file.read())
+            
+            payload = {
+                "key": api_key,
+                "image": image_string,
+            }
+            
+            response = requests.post("https://api.imgbb.com/1/upload", data=payload)
+            data = response.json()
+            
+            if data['success']:
+                img_url = data['data']['url']
+                
+                # ডাটাবেসে সেভ
+                supabase.table('proofs').insert({
+                    'image_url': img_url,
+                    'description': description
+                }).execute()
+                
+                flash("✅ পেমেন্ট প্রুফ আপলোড করা হয়েছে!", "success")
+            else:
+                flash("❌ ছবি আপলোড ব্যর্থ হয়েছে।", "error")
+                
+        except Exception as e:
+            flash(f"Error: {str(e)}", "error")
+            
+        return redirect(url_for('proofs'))
+
+    # ২. সব প্রুফ লোড করা (সবার জন্য)
+    try:
+        res = supabase.table('proofs').select('*').order('created_at', desc=True).execute()
+        all_proofs = res.data
+    except:
+        all_proofs = []
+
+    return render_template('proofs.html', proofs=all_proofs, user=g.user if 'user' in g else None)
+
+# --- DELETE PROOF (ADMIN ONLY) ---
+@app.route('/proof/delete/<int:id>')
+@login_required
+@admin_required
+def delete_proof(id):
+    try:
+        supabase.table('proofs').delete().eq('id', id).execute()
+        flash("🗑️ প্রুফ ডিলিট করা হয়েছে।", "success")
+    except Exception as e:
+        flash(f"Error: {str(e)}", "error")
+        
+    return redirect(url_for('proofs'))
+    
 # --- NOTICE BOARD ROUTE ---
 @app.route('/notice', methods=['GET', 'POST'])
 @login_required
