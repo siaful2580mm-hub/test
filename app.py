@@ -166,7 +166,7 @@ def proofs():
 
         try:
             # ImgBB তে আপলোড
-            api_key = "f5789c14135a479b4e3893c6b9ccf074" # আপনার API Key
+            api_key = "3506a09bf3d05e6049a83df0b2c5060e" # আপনার API Key
             image_string = base64.b64encode(file.read())
             
             payload = {
