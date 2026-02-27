@@ -116,7 +116,39 @@ def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('home.html')
+# --- ADMIN: BAN / UNBAN USER ---
+@app.route('/admin/user/ban/<string:user_id>')
+@login_required
+@admin_required
+def ban_user(user_id):
+    try:
+        # ১. ডাটাবেস থেকে বর্তমান স্ট্যাটাস জানা
+        user_res = supabase.table('profiles').select('is_banned').eq('id', user_id).single().execute()
+        
+        if not user_res.data:
+            flash("ইউজার খুঁজে পাওয়া যায়নি!", "error")
+            return redirect(url_for('admin_users'))
 
+        # ২. স্ট্যাটাস উল্টে দেওয়া (Toggle: True হলে False, False হলে True)
+        current_status = user_res.data.get('is_banned', False)
+        new_status = not current_status
+        
+        # ৩. ডাটাবেসে আপডেট করা
+        supabase.table('profiles').update({
+            'is_banned': new_status
+        }).eq('id', user_id).execute()
+        
+        # ৪. কনফার্মেশন মেসেজ
+        if new_status:
+            flash("⛔ ইউজারকে সফলভাবে ব্যান করা হয়েছে!", "error") # লাল মেসেজ
+        else:
+            flash("✅ ইউজার আনব্যান (Active) হয়েছে!", "success") # সবুজ মেসেজ
+        
+    except Exception as e:
+        print(f"Ban Error: {e}")
+        flash(f"Action Failed: {str(e)}", "error")
+        
+    return redirect(url_for('admin_users'))
 # --- PUBLIC: PROOFS PAGE (VIEW & UPLOAD) ---
 @app.route('/proofs', methods=['GET', 'POST'])
 def proofs():
