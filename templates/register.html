@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
+
 {% block content %}
-<div class="flex items-center justify-center min-h-[75vh]">
+<div class="flex items-center justify-center min-h-[85vh] py-6">
     <div class="bg-white p-8 rounded-3xl shadow-xl shadow-pink-50 w-full max-w-sm border border-gray-100 relative overflow-hidden">
         
         <!-- Decorative Background -->
@@ -8,19 +9,29 @@
         <div class="absolute bottom-0 left-0 w-20 h-20 bg-[#E2136E] rounded-tr-full opacity-5 -ml-6 -mb-6"></div>
 
         <!-- Header -->
-        <div class="text-center mb-8 relative z-10">
-            <div class="h-16 w-16 bg-pink-50 text-[#E2136E] rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-sm transform -rotate-3">
+        <div class="text-center mb-6 relative z-10">
+            <div class="h-14 w-14 bg-pink-50 text-[#E2136E] rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-sm transform -rotate-3">
                 <i class="fa-solid fa-user-plus"></i>
             </div>
             <h2 class="text-2xl font-bold text-[#0A2540]">নতুন একাউন্ট</h2>
-            <p class="text-sm text-gray-500 mt-1">TaskKing-এ জয়েন করুন<br>
-            <b>রেজিস্ট্রেশনের সময় অবশ্যই আপনার আসল এই জিমেইলটি দিবেন!  উইথড্রএর সময় আপনার ই-মেইলে একটি লিংক যাবে!</b></p>
+            <p class="text-xs text-gray-500 mt-1">TaskKing-এ জয়েন করুন এবং আয় শুরু করুন</p>
+        </div>
+
+        <!-- Important Warning Alert -->
+        <div class="bg-orange-50 border-l-4 border-orange-400 p-3 mb-6 rounded-r-lg relative z-10">
+            <div class="flex gap-2">
+                <i class="fa-solid fa-triangle-exclamation text-orange-500 mt-0.5 text-sm"></i>
+                <div class="text-xs text-orange-800">
+                    <p class="font-bold mb-1">গুরুত্বপূর্ণ নোটিশ:</p>
+                    <p>রেজিস্ট্রেশনের সময় অবশ্যই আপনার <b>আসল জিমেইল</b> ব্যবহার করুন। উইথড্র করার সময় আপনার ইমেইলে ভেরিফিকেশন কোড পাঠানো হবে।</p>
+                </div>
+            </div>
         </div>
 
         <!-- Register Form -->
-        <form method="POST" action="/register" class="space-y-5">
+        <form method="POST" action="/register" class="space-y-4 relative z-10">
             
-            <!-- Hidden Referral Code (CRITICAL) -->
+            <!-- Hidden Referral Code -->
             <input type="hidden" name="ref_code" value="{{ ref_code if ref_code else '' }}">
 
             <!-- Email Input -->
@@ -32,7 +43,7 @@
                     </div>
                     <input type="email" name="email" required 
                            class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white" 
-                           placeholder="user@example.com">
+                           placeholder="real.email@gmail.com">
                 </div>
             </div>
             
@@ -55,9 +66,19 @@
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
         </form>
+
+        <!-- Extra Links (Proof & Tutorial) -->
+        <div class="grid grid-cols-2 gap-3 mt-6 relative z-10">
+            <a href="/proofs" class="flex items-center justify-center gap-2 bg-green-50 text-green-700 py-2.5 rounded-xl text-xs font-bold border border-green-100 hover:bg-green-100 transition">
+                <i class="fa-solid fa-images"></i> পেমেন্ট প্রুফ
+            </a>
+            <a href="/tutorial" class="flex items-center justify-center gap-2 bg-purple-50 text-purple-700 py-2.5 rounded-xl text-xs font-bold border border-purple-100 hover:bg-purple-100 transition">
+                <i class="fa-brands fa-youtube"></i> কাজের ভিডিও
+            </a>
+        </div>
         
         <!-- Login Link -->
-        <div class="mt-8 text-center">
+        <div class="mt-6 text-center border-t border-gray-100 pt-4 relative z-10">
             <p class="text-sm text-gray-500">
                 আগেই একাউন্ট আছে? 
                 <a href="/login" class="text-[#E2136E] font-bold hover:underline ml-1">
