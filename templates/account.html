@@ -1,1 +1,220 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<!-- ১. প্রোফাইল হেডার (User Info) -->
+<div class="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50 flex items-center gap-5 relative overflow-hidden">
+    <!-- Background Design -->
+    <div class="absolute right-0 top-0 bg-blue-50 h-32 w-32 rounded-bl-full opacity-60"></div>
+
+    <div class="h-16 w-16 rounded-full bg-[#0A2540] text-white flex items-center justify-center text-2xl shadow-lg border-4 border-white z-10">
+        <i class="fa-solid fa-user"></i>
+    </div>
+    <div class="flex-grow z-10">
+        <h2 class="text-xl font-bold text-[#0A2540]">{{ user.email.split('@')[0] }}</h2>
+        <div class="flex items-center gap-3 mt-1">
+            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">ID: {{ user.referral_code if user.referral_code else 'GenerateID' }}</span>
+            
+            <!-- Status Badge Logic Update -->
+{% if settings.activation_required %}
+    {% if user.is_active %}
+    <span class="text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 bg-green-100 text-green-700 border border-green-200">
+        <i class="fa-solid fa-circle-check"></i> Verified
+    </span>
+    {% else %}
+    <span class="text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 bg-red-100 text-red-700 border border-red-200">
+        <i class="fa-solid fa-circle-exclamation"></i> Unverified
+    </span>
+    {% endif %}
+{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ২. ব্যালেন্স কার্ড (Mini Stats) -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-50 text-center relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-2 opacity-10 text-[#E2136E] text-4xl"><i class="fa-solid fa-wallet"></i></div>
+        <p class="text-xs text-gray-500 mb-1 font-bold">বর্তমান ব্যালেন্স</p>
+        <p class="text-xl font-bold text-[#E2136E] font-mono">৳ {{ user.balance }}</p>
+    </div>
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-50 text-center relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-2 opacity-10 text-[#0A2540] text-4xl"><i class="fa-solid fa-sack-dollar"></i></div>
+        <p class="text-xs text-gray-500 mb-1 font-bold">মোট রেফার</p>
+        <p class="text-xl font-bold text-[#0A2540] font-mono">{{ ref_count }}</p>
+    </div>
+</div>
+
+<!-- ৩. রেফারেল সেকশন (Unique System) -->
+<div class="bg-gradient-to-r from-[#E2136E] to-[#b00e53] rounded-3xl p-6 text-white shadow-xl shadow-pink-200 mb-8 relative overflow-hidden">
+    <!-- Decor -->
+    <div class="absolute -right-8 -top-8 bg-white/10 h-40 w-40 rounded-full blur-3xl"></div>
+    
+    <div class="relative z-10">
+        <h3 class="font-bold text-lg mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-bullhorn"></i> রেফারেল বোনাস
+        </h3>
+        <p class="text-xs text-white/90 mb-5">লিংক শেয়ার করুন এবং প্রতি রেফারে 10 টাকা বোনাস পান!</p>
+        
+        <div class="bg-black/20 backdrop-blur-md p-2 rounded-xl flex items-center justify-between border border-white/10">
+            <!-- Link Display -->
+            <input type="text" id="refLink" 
+                   value="..." 
+                   class="text-white text-xs px-3 w-full outline-none bg-transparent font-mono tracking-wide" 
+                   readonly>
+            
+            <!-- Copy Button -->
+            <button onclick="copyRef(this)" class="bg-white text-[#E2136E] px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-100 active:scale-95 transition shadow-sm flex items-center gap-2">
+                <i class="fa-regular fa-copy"></i> কপি
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ৪. মেনু নেভিগেশন (Updated Links & Icons) -->
+<h3 class="font-bold text-[#0A2540] mb-3 text-sm px-2">মেনু ও সেটিংস</h3>
+<div class="bg-white rounded-3xl shadow-sm border border-gray-50 mb-8 overflow-hidden">
+    
+    <!-- Withdraw Money (Linked) -->
+    <a href="/withdraw" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition group">
+        <div class="flex items-center gap-4">
+            <div class="bg-green-50 text-green-600 h-10 w-10 rounded-full flex items-center justify-center group-hover:scale-110 transition">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+            </div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">টাকা উত্তোলন</span>
+                <span class="text-[10px] text-gray-400">বিকাশ / নগদ / রকেট</span>
+            </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+    </a>
+
+    <!-- History (Linked) -->
+    <a href="/history" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition group">
+        <div class="flex items-center gap-4">
+            <div class="bg-purple-50 text-purple-600 h-10 w-10 rounded-full flex items-center justify-center group-hover:scale-110 transition">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">লেনদেন হিস্টোরি</span>
+                <span class="text-[10px] text-gray-400">সকল পেমেন্ট প্রুফ</span>
+            </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+    </a>
+
+    <!-- Notice Board (New) -->
+    <a href="/notice" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition group">
+        <div class="flex items-center gap-4">
+            <div class="bg-blue-50 text-blue-600 h-10 w-10 rounded-full flex items-center justify-center group-hover:scale-110 transition">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">নোটিশ বোর্ড</span>
+                <span class="text-[10px] text-gray-400">গুরুত্বপূর্ণ ঘোষণা</span>
+            </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+    </a>
+
+    <!-- Support Group -->
+    <a href="https://t.me/securehx" target="_blank" class="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition group">
+        <div class="flex items-center gap-4">
+            <div class="bg-sky-50 text-sky-500 h-10 w-10 rounded-full flex items-center justify-center group-hover:scale-110 transition">
+                <i class="fa-brands fa-telegram"></i>
+            </div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">সাপোর্ট গ্রুপ</span>
+                <span class="text-[10px] text-gray-400">টেলিগ্রামে জয়েন করুন</span>
+            </div>
+        </div>
+        <i class="fa-solid fa-arrow-up-right-from-square text-gray-300 text-xs"></i>
+    </a>
+
+    <!-- Admin Panel (Only for Admin) -->
+    {% if user.role == 'admin' %}
+    <a href="/admin" class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition border-l-4 border-[#0A2540]">
+        <div class="flex items-center gap-4">
+            <div class="bg-[#0A2540] text-white h-10 w-10 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div>
+                <span class="text-[#0A2540] font-bold text-sm block">এডমিন প্যানেল</span>
+                <span class="text-[10px] text-gray-500">সাইট কন্ট্রোল সেন্টার</span>
+            </div>
+        </div>
+        <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+    </a>
+    {% endif %}
+</div>
+
+<!-- ৫. টিপস এবং গাইডলাইন -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-50 p-5 mb-8">
+    <h3 class="font-bold text-[#0A2540] mb-4 border-b pb-2 flex items-center gap-2">
+        <i class="fa-regular fa-lightbulb text-yellow-500"></i> কাজের নিয়মাবলি
+    </h3>
+    <ul class="space-y-3 text-sm text-gray-600">
+        <li class="flex gap-3 items-start">
+            <i class="fa-solid fa-check text-green-500 mt-1"></i>
+            <span>VPN বয়বহার করা যাবে না!
+</span>
+        </li>
+        <li class="flex gap-3 items-start">
+            <i class="fa-solid fa-check text-green-500 mt-1"></i>
+            <span>প্রতি রেফারলে ১০% লাইফটাইম কমিশন।</span>
+        </li>
+        <li class="flex gap-3 items-start">
+            <i class="fa-solid fa-check text-green-500 mt-1"></i>
+            <span>এক ফোনে একটির বেশি একাউন্ট থাকা যাবে না</span>
+        </li>
+        <li class="flex gap-3 items-start">
+            <i class="fa-solid fa-check text-green-500 mt-1"></i>
+            <span>ফেক রেফার করা যাবে নাহ,
+ভুয়া কাজ করা যাবে নাহ/span>
+        </li>
+    </ul>
+</div>
+
+<!-- JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const domain = window.location.origin;
+        const uniqueCode = "{{ user.referral_code if user.referral_code else 'GenerateID' }}";
+        const fullLink = `${domain}/register?ref=${uniqueCode}`;
+        
+        const inputField = document.getElementById("refLink");
+        if(inputField) {
+            inputField.value = fullLink;
+        }
+    });
+
+    function copyRef(btnElement) {
+        const copyText = document.getElementById("refLink");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); 
+
+        try {
+            navigator.clipboard.writeText(copyText.value).then(() => {
+                showFeedback(btnElement);
+            });
+        } catch (err) {
+            document.execCommand('copy');
+            showFeedback(btnElement);
+        }
+    }
+
+    function showFeedback(btn) {
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> কপি হয়েছে';
+        btn.classList.add("bg-green-500", "text-white");
+        btn.classList.remove("text-[#E2136E]", "bg-white");
+        
+        setTimeout(() => {
+            btn.innerHTML = originalContent;
+            btn.classList.remove("bg-green-500", "text-white");
+            btn.classList.add("text-[#E2136E]", "bg-white");
+        }, 2000);
+    }
+</script>
+
+{% endblock %}
 
