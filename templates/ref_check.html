@@ -8,7 +8,7 @@
         <div class="absolute right-0 top-0 w-32 h-32 bg-blue-50 rounded-bl-full opacity-50"></div>
         
         <h2 class="text-xl font-bold text-[#0A2540] mb-4 flex items-center gap-2 relative z-10">
-            <i class="fa-solid fa-magnifying-glass-chart text-[#E2136E]"></i> ইউজার ইনসাইট (Referral Check)
+            <i class="fa-solid fa-magnifying-glass-chart text-[#E2136E]"></i> রেফার চেক ও ব্যালেন্স
         </h2>
         
         <form method="POST" action="/admin/ref-check" class="flex gap-3 relative z-10">
@@ -56,11 +56,11 @@
             </div>
         </div>
 
-        <!-- Card Stats -->
+        <!-- Card Stats (Main Balance Showcased Here) -->
         <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-x divide-gray-100">
             <div>
                 <p class="text-xs text-gray-500 font-bold uppercase mb-1">বর্তমান ব্যালেন্স</p>
-                <p class="text-2xl font-bold text-[#E2136E]">৳ {{ target_user.balance }}</p>
+                <p class="text-2xl font-bold text-[#E2136E] font-mono">৳ {{ target_user.balance }}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-500 font-bold uppercase mb-1">মোট রেফার</p>
@@ -79,7 +79,7 @@
                 {% endif %}
             </div>
             <div>
-                <p class="text-xs text-gray-500 font-bold uppercase mb-1">ব্যান অবস্থা</p>
+                <p class="text-xs text-gray-500 font-bold uppercase mb-1">একাউন্ট অবস্থা</p>
                 {% if target_user.is_banned %}
                     <span class="text-red-600 font-bold text-sm"><i class="fa-solid fa-ban"></i> BANNED</span>
                 {% else %}
@@ -89,7 +89,7 @@
         </div>
     </div>
 
-    <!-- 3. Referral List Table -->
+    <!-- 3. Referral List Table (With Balance Column) -->
     <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50">
         <div class="flex items-center justify-between mb-5">
             <h3 class="font-bold text-[#0A2540] flex items-center gap-2">
@@ -103,6 +103,7 @@
                 <thead>
                     <tr class="bg-gray-50 text-gray-600 border-b border-gray-200">
                         <th class="p-4 rounded-tl-xl font-bold">User Email</th>
+                        <th class="p-4 font-bold">Balance</th> <!-- New Column -->
                         <th class="p-4 font-bold">Join Date</th>
                         <th class="p-4 font-bold">Last Active</th>
                         <th class="p-4 rounded-tr-xl font-bold text-right">Status</th>
@@ -115,12 +116,17 @@
                             <div class="font-bold text-[#0A2540]">{{ ref.email }}</div>
                             <div class="text-[10px] text-gray-400">ID: {{ ref.referral_code }}</div>
                         </td>
+                        <!-- Referral Balance -->
+                        <td class="p-4">
+                            <span class="font-bold text-[#E2136E] font-mono">৳ {{ ref.balance }}</span>
+                        </td>
                         <td class="p-4 text-gray-500 font-mono">
                             {{ ref.created_at[:10] }}
                         </td>
                         <td class="p-4 text-gray-500 font-mono text-xs">
                             {% if ref.last_login %}
-                                <span class="text-green-600">{{ ref.last_login[:10] }}</span> <span class="text-gray-400">{{ ref.last_login[11:16] }}</span>
+                                <span class="text-green-600">{{ ref.last_login[:10] }}</span> 
+                                <span class="text-gray-400">{{ ref.last_login[11:16] }}</span>
                             {% else %}
                                 <span class="text-gray-300">-</span>
                             {% endif %}
@@ -139,7 +145,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="4" class="p-10 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed">
+                        <td colspan="5" class="p-10 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed">
                             <div class="text-2xl mb-2">🤷‍♂️</div>
                             এই ইউজার এখনো কাউকে রেফার করেনি।
                         </td>
