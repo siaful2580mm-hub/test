@@ -7,119 +7,137 @@
     <div class="inline-block p-3 rounded-full bg-green-50 text-green-600 text-2xl mb-3 shadow-sm animate-pulse">
         <i class="fa-solid fa-money-bill-wave"></i>
     </div>
-    <h1 class="text-2xl md:text-3xl font-bold text-[#0A2540]">পেমেন্ট প্রুফ গ্যালারি</h1>
-    <p class="text-gray-500 mt-2 text-sm">আমাদের সফল পেমেন্ট এবং কাজের প্রমাণসমূহ</p>
+    <h1 class="text-2xl font-bold text-[#0A2540]">পেমেন্ট প্রুফ গ্যালারি</h1>
+    <p class="text-gray-500 mt-1 text-sm">সফল পেমেন্ট এবং কাজের প্রমাণসমূহ</p>
 </div>
 
-<!-- 1. ADMIN UPLOAD FORM (Multi-Select) -->
+<!-- 1. ADMIN UPLOAD FORM -->
 {% if user and user.role == 'admin' %}
-<div class="max-w-xl mx-auto bg-white p-6 rounded-3xl shadow-lg border border-blue-100 mb-10 relative overflow-hidden">
+<div class="max-w-xl mx-auto bg-white p-6 rounded-3xl shadow-lg border border-blue-100 mb-10 relative overflow-hidden group">
     <div class="absolute top-0 left-0 w-1.5 h-full bg-[#0057FF]"></div>
     
     <h3 class="font-bold text-[#0A2540] mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-cloud-arrow-up text-[#0057FF]"></i> একসাথে ৩টি ছবি আপলোড করুন
+        <i class="fa-solid fa-layer-group text-[#0057FF]"></i> নতুন পোস্ট (Multi-Image)
     </h3>
 
     <form method="POST" action="/proofs" enctype="multipart/form-data" class="space-y-4">
         
-        <!-- Image Input (Multiple) -->
-        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition relative group">
-            <!-- 'multiple' attribute added here -->
+        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-blue-50 hover:border-blue-300 transition relative">
             <input type="file" name="images" accept="image/*" multiple max="3" required 
                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                   onchange="previewFiles(this)">
+                   onchange="previewCount(this)">
             
-            <div id="previewArea" class="text-gray-400 group-hover:text-[#0057FF] transition">
-                <i class="fa-regular fa-images text-3xl mb-2"></i>
-                <p class="text-xs font-bold">ছবি সিলেক্ট করতে ট্যাপ করুন</p>
-                <p class="text-[10px] text-gray-400 mt-1">(সর্বোচ্চ ৩টি ছবি)</p>
+            <div class="text-gray-400">
+                <i class="fa-solid fa-images text-3xl mb-2 text-blue-300"></i>
+                <p class="text-xs font-bold text-gray-600">একসাথে ১-৩ টি ছবি সিলেক্ট করুন</p>
+                <p class="text-[10px] text-green-600 mt-2 font-bold hidden" id="fileCountMsg"></p>
             </div>
         </div>
 
-        <!-- Text Input -->
         <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">বিবরণ (সবার জন্য একই হবে)</label>
-            <input type="text" name="description" placeholder="যেমন: আজকের পেমেন্ট দেওয়া হলো..." 
-                   class="w-full p-3 border rounded-xl focus:outline-[#E2136E] text-sm">
+            <input type="text" name="description" placeholder="ক্যাপশন লিখুন..." 
+                   class="w-full p-3 border rounded-xl focus:outline-blue-500 text-sm bg-gray-50">
         </div>
 
-        <button type="submit" class="w-full bg-[#0A2540] text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition shadow-lg flex items-center justify-center gap-2">
-            <span>আপলোড করুন</span>
-            <i class="fa-solid fa-paper-plane"></i>
+        <button type="submit" class="w-full bg-[#0A2540] text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition shadow-lg">
+            পোস্ট করুন
         </button>
     </form>
 </div>
 
 <script>
-    function previewFiles(input) {
-        const previewArea = document.getElementById('previewArea');
+    function previewCount(input) {
+        const msg = document.getElementById('fileCountMsg');
         if (input.files && input.files.length > 0) {
-            let fileCount = input.files.length;
-            if(fileCount > 3) fileCount = 3; // Max 3 logic text
-            
-            let fileNames = "";
-            for (let i = 0; i < fileCount; i++) {
-                fileNames += `<div class="text-xs truncate"><i class="fa-solid fa-check"></i> ${input.files[i].name}</div>`;
-            }
-
-            previewArea.innerHTML = `
-                <div class="text-green-600 font-bold space-y-1 text-left bg-green-50 p-2 rounded-lg">
-                    ${fileNames}
-                    <div class="text-[10px] text-gray-500 mt-1 border-t border-green-200 pt-1 text-center">
-                        ${input.files.length} টি ছবি সিলেক্ট করা হয়েছে
-                    </div>
-                </div>
-            `;
+            msg.innerText = `✅ ${input.files.length} টি ছবি সিলেক্ট করা হয়েছে`;
+            msg.classList.remove('hidden');
         }
     }
 </script>
 {% endif %}
 
-<!-- 2. PROOFS GRID -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- 2. PROOFS FEED (Instagram Style) -->
+<div class="max-w-md mx-auto space-y-8">
     {% for proof in proofs %}
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden group hover:shadow-md transition duration-300">
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative group">
         
-        <!-- Image -->
-        <div class="relative overflow-hidden h-64">
-            <img src="{{ proof.image_url }}" alt="Proof" class="w-full h-full object-cover transition transform group-hover:scale-105 duration-500">
-            
-            <!-- Date Badge -->
-            <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-lg">
-                <i class="fa-regular fa-clock"></i> {{ proof.created_at[:10] }}
+        <!-- Header: Date & Delete -->
+        <div class="p-4 flex justify-between items-center bg-white border-b border-gray-50">
+            <div class="flex items-center gap-2">
+                <div class="h-8 w-8 bg-[#0A2540] rounded-full flex items-center justify-center text-white text-xs">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-[#0A2540]">TaskKing Official</p>
+                    <p class="text-[10px] text-gray-400">{{ proof.created_at[:10] }}</p>
+                </div>
             </div>
-
-            <!-- Delete Button (Admin Only) -->
+            
             {% if user and user.role == 'admin' %}
-            <a href="/proof/delete/{{ proof.id }}" onclick="return confirm('ডিলিট করবেন?')" 
-               class="absolute top-3 right-3 bg-red-500 text-white h-8 w-8 rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg z-20 cursor-pointer">
-                <i class="fa-solid fa-trash-can text-xs"></i>
+            <a href="/proof/delete/{{ proof.id }}" onclick="return confirm('পোস্টটি ডিলিট করবেন?')" 
+               class="text-gray-300 hover:text-red-500 transition">
+                <i class="fa-solid fa-trash-can"></i>
             </a>
             {% endif %}
         </div>
 
-        <!-- Description -->
-        {% if proof.description %}
-        <div class="p-4 bg-gray-50/50">
-            <p class="text-sm text-gray-700 font-medium leading-relaxed">
-                <i class="fa-solid fa-quote-left text-[#E2136E] mr-1 opacity-50"></i>
+        <!-- CAROUSEL / SLIDER -->
+        <div class="relative w-full aspect-square bg-gray-100 overflow-hidden">
+            <div class="flex overflow-x-auto snap-x snap-mandatory w-full h-full scrollbar-hide" style="scroll-behavior: smooth;">
+                {% for img in proof.image_urls %}
+                <div class="snap-center flex-shrink-0 w-full h-full relative">
+                    <img src="{{ img }}" class="w-full h-full object-cover" alt="Proof Image">
+                    <!-- Image Counter Badge -->
+                    <div class="absolute top-3 right-3 bg-black/50 text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm">
+                        {{ loop.index }}/{{ proof.image_urls|length }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Swipe Indicator (If more than 1 image) -->
+            {% if proof.image_urls|length > 1 %}
+            <div class="absolute bottom-3 right-3 bg-white/80 text-gray-800 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm animate-pulse">
+                Swipe <i class="fa-solid fa-arrow-right-long"></i>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Content -->
+        <div class="p-4">
+            <!-- Action Icons (Fake) -->
+            <div class="flex gap-4 text-xl text-gray-600 mb-3">
+                <i class="fa-regular fa-heart hover:text-red-500 transition cursor-pointer"></i>
+                <i class="fa-regular fa-comment hover:text-blue-500 transition cursor-pointer"></i>
+                <i class="fa-regular fa-paper-plane hover:text-green-500 transition cursor-pointer"></i>
+            </div>
+
+            {% if proof.description %}
+            <p class="text-sm text-gray-800">
+                <span class="font-bold text-[#0A2540] mr-1">Admin:</span>
                 {{ proof.description }}
             </p>
+            {% endif %}
         </div>
-        {% endif %}
-
-        <!-- View Fullscreen -->
-        <a href="{{ proof.image_url }}" target="_blank" class="block bg-white text-center py-3 text-xs text-blue-600 font-bold hover:bg-blue-50 transition border-t border-gray-100">
-            ফুল সাইজ দেখুন <i class="fa-solid fa-expand ml-1"></i>
-        </a>
 
     </div>
     {% else %}
-    <div class="col-span-full text-center py-16 bg-white rounded-3xl border border-dashed border-gray-200">
-        <div class="text-4xl mb-3 text-gray-300"><i class="fa-regular fa-images"></i></div>
-        <p class="text-gray-500 text-sm">এখনো কোনো প্রুফ আপলোড করা হয়নি।</p>
+    <div class="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
+        <i class="fa-regular fa-images text-4xl text-gray-300 mb-2"></i>
+        <p class="text-gray-500 text-sm">এখনো কোনো প্রুফ নেই।</p>
     </div>
     {% endfor %}
 </div>
+
+<!-- Hide Scrollbar CSS -->
+<style>
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+</style>
 
 {% endblock %}
