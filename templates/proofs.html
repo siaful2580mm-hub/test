@@ -11,83 +11,78 @@
     <p class="text-gray-500 mt-2 text-sm">আমাদের সফল পেমেন্ট এবং কাজের প্রমাণসমূহ</p>
 </div>
 
-<div class="max-w-md mx-auto bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-100 font-sans">
-    <div class="p-6">
-        <div class="flex items-center mb-4">
-            <div class="p-2 bg-blue-100 rounded-lg">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04customM12 21.355r-1.173-1.083C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
-                </svg>
-            </div>
-            <h2 class="ml-3 text-xl font-bold text-gray-800">নিরাপদ পেমেন্ট সিস্টেম</h2>
-        </div>
-
-        <p class="text-gray-600 leading-relaxed mb-6">
-            আমরা সকল পেমেন্ট <span class="font-bold text-blue-600">২ ঘন্টার মধ্যে</span> AI Robot এর মাধ্যমে একসাথে ৪০০-৫০০ জনের পেমেন্ট সম্পন্ন করি! এটি মূলত সিস্টেমের নিরাপত্তার জন্য করা হয়। স্বচ্ছতার জন্য আমাদের <span class="italic border-b border-gray-400">স্টেটমেন্ট রিভিউ</span> দেখার ব্যবস্থা রয়েছে।
-        </p>
-
-        <div class="bg-gray-50 rounded-xl p-4 border-l-4 border-blue-500">
-            <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide">স্টেটমেন্ট কী?</h3>
-            <p class="text-sm text-gray-500 mt-1">
-                স্টেটমেন্ট হলো আপনার করা প্রতিটি লেনদেনের ডিজিটাল রশিদ বা ইতিহাস। এতে টাকা পাঠানোর সময়, পরিমাণ এবং ট্রানজেকশন আইডি সংরক্ষিত থাকে।
-            </p>
-        </div>
-    </div>
-</div>
-
-<!-- 1. ADMIN UPLOAD FORM (Only Visible to Admin) -->
+<!-- 1. ADMIN UPLOAD FORM (Multi-Select) -->
 {% if user and user.role == 'admin' %}
 <div class="max-w-xl mx-auto bg-white p-6 rounded-3xl shadow-lg border border-blue-100 mb-10 relative overflow-hidden">
     <div class="absolute top-0 left-0 w-1.5 h-full bg-[#0057FF]"></div>
     
     <h3 class="font-bold text-[#0A2540] mb-4 flex items-center gap-2">
-        <i class="fa-solid fa-cloud-arrow-up text-[#0057FF]"></i> নতুন প্রুফ আপলোড করুন
+        <i class="fa-solid fa-cloud-arrow-up text-[#0057FF]"></i> একসাথে ৩টি ছবি আপলোড করুন
     </h3>
 
     <form method="POST" action="/proofs" enctype="multipart/form-data" class="space-y-4">
         
-        <!-- Image Input -->
-        <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:bg-gray-50 transition relative">
-            <input type="file" name="image" accept="image/*" required 
-                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                   onchange="previewFile(this)">
-            <div id="previewText" class="text-gray-400">
-                <i class="fa-regular fa-image text-2xl mb-1"></i>
-                <p class="text-xs">ছবি সিলেক্ট করতে ট্যাপ করুন</p>
+        <!-- Image Input (Multiple) -->
+        <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition relative group">
+            <!-- 'multiple' attribute added here -->
+            <input type="file" name="images" accept="image/*" multiple max="3" required 
+                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                   onchange="previewFiles(this)">
+            
+            <div id="previewArea" class="text-gray-400 group-hover:text-[#0057FF] transition">
+                <i class="fa-regular fa-images text-3xl mb-2"></i>
+                <p class="text-xs font-bold">ছবি সিলেক্ট করতে ট্যাপ করুন</p>
+                <p class="text-[10px] text-gray-400 mt-1">(সর্বোচ্চ ৩টি ছবি)</p>
             </div>
         </div>
 
         <!-- Text Input -->
         <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">বিবরণ (Optional)</label>
-            <input type="text" name="description" placeholder="যেমন: বিকাশে পেমেন্ট দেওয়া হলো..." 
+            <label class="block text-xs font-bold text-gray-700 mb-1">বিবরণ (সবার জন্য একই হবে)</label>
+            <input type="text" name="description" placeholder="যেমন: আজকের পেমেন্ট দেওয়া হলো..." 
                    class="w-full p-3 border rounded-xl focus:outline-[#E2136E] text-sm">
         </div>
 
-        <button type="submit" class="w-full bg-[#0A2540] text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition">
-            আপলোড করুন
+        <button type="submit" class="w-full bg-[#0A2540] text-white py-3 rounded-xl font-bold hover:bg-opacity-90 transition shadow-lg flex items-center justify-center gap-2">
+            <span>আপলোড করুন</span>
+            <i class="fa-solid fa-paper-plane"></i>
         </button>
     </form>
 </div>
 
 <script>
-    function previewFile(input) {
-        if (input.files && input.files[0]) {
-            document.getElementById('previewText').innerHTML = 
-                `<span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> ${input.files[0].name}</span>`;
+    function previewFiles(input) {
+        const previewArea = document.getElementById('previewArea');
+        if (input.files && input.files.length > 0) {
+            let fileCount = input.files.length;
+            if(fileCount > 3) fileCount = 3; // Max 3 logic text
+            
+            let fileNames = "";
+            for (let i = 0; i < fileCount; i++) {
+                fileNames += `<div class="text-xs truncate"><i class="fa-solid fa-check"></i> ${input.files[i].name}</div>`;
+            }
+
+            previewArea.innerHTML = `
+                <div class="text-green-600 font-bold space-y-1 text-left bg-green-50 p-2 rounded-lg">
+                    ${fileNames}
+                    <div class="text-[10px] text-gray-500 mt-1 border-t border-green-200 pt-1 text-center">
+                        ${input.files.length} টি ছবি সিলেক্ট করা হয়েছে
+                    </div>
+                </div>
+            `;
         }
     }
 </script>
 {% endif %}
 
-<!-- 2. PROOFS GRID (Masonry Style) -->
+<!-- 2. PROOFS GRID -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for proof in proofs %}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden group hover:shadow-md transition duration-300">
         
         <!-- Image -->
-        <div class="relative overflow-hidden">
-            <img src="{{ proof.image_url }}" alt="Proof" class="w-full h-auto object-cover transition transform group-hover:scale-105 duration-500">
+        <div class="relative overflow-hidden h-64">
+            <img src="{{ proof.image_url }}" alt="Proof" class="w-full h-full object-cover transition transform group-hover:scale-105 duration-500">
             
             <!-- Date Badge -->
             <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded-lg">
@@ -97,7 +92,7 @@
             <!-- Delete Button (Admin Only) -->
             {% if user and user.role == 'admin' %}
             <a href="/proof/delete/{{ proof.id }}" onclick="return confirm('ডিলিট করবেন?')" 
-               class="absolute top-3 right-3 bg-red-500 text-white h-8 w-8 rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg">
+               class="absolute top-3 right-3 bg-red-500 text-white h-8 w-8 rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg z-20 cursor-pointer">
                 <i class="fa-solid fa-trash-can text-xs"></i>
             </a>
             {% endif %}
@@ -105,7 +100,7 @@
 
         <!-- Description -->
         {% if proof.description %}
-        <div class="p-4">
+        <div class="p-4 bg-gray-50/50">
             <p class="text-sm text-gray-700 font-medium leading-relaxed">
                 <i class="fa-solid fa-quote-left text-[#E2136E] mr-1 opacity-50"></i>
                 {{ proof.description }}
@@ -114,7 +109,7 @@
         {% endif %}
 
         <!-- View Fullscreen -->
-        <a href="{{ proof.image_url }}" target="_blank" class="block bg-gray-50 text-center py-2 text-xs text-blue-500 font-bold hover:bg-blue-50 transition border-t border-gray-100">
+        <a href="{{ proof.image_url }}" target="_blank" class="block bg-white text-center py-3 text-xs text-blue-600 font-bold hover:bg-blue-50 transition border-t border-gray-100">
             ফুল সাইজ দেখুন <i class="fa-solid fa-expand ml-1"></i>
         </a>
 
