@@ -116,7 +116,7 @@ def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('home.html')
-# --- PUBLIC: PROOFS PAGE (VIEW & UPLOAD) ---
+# --- PUBLIC: PROOFS PAGE (MULTI-UPLOAD UP TO 3) ---
 @app.route('/proofs', methods=['GET', 'POST'])
 def proofs():
     # ১. নতুন প্রুফ আপলোড (ONLY ADMIN)
@@ -126,49 +126,56 @@ def proofs():
             flash("⚠️ শুধুমাত্র এডমিন আপলোড করতে পারবে।", "error")
             return redirect(url_for('proofs'))
 
-        if 'image' not in request.files:
-            flash("ছবি দিন!", "error")
-            return redirect(request.url)
-            
-        file = request.files['image']
+        # একাধিক ফাইল ধরা
+        files = request.files.getlist('images')
         description = request.form.get('description')
 
-        if file.filename == '':
+        if not files or files[0].filename == '':
             flash("কোনো ছবি সিলেক্ট করা হয়নি", "error")
             return redirect(request.url)
 
-        try:
-            # ImgBB তে আপলোড
-            api_key = "3506a09bf3d05e6049a83df0b2c5060e" # আপনার API Key
-            image_string = base64.b64encode(file.read())
+        # সর্বোচ্চ ৩টি ফাইল প্রসেস করা হবে
+        success_count = 0
+        
+        for file in files[:3]:  # Limit to 3 files
+            if file.filename == '': continue
             
-            payload = {
-                "key": api_key,
-                "image": image_string,
-            }
-            
-            response = requests.post("https://api.imgbb.com/1/upload", data=payload)
-            data = response.json()
-            
-            if data['success']:
-                img_url = data['data']['url']
+            try:
+                # ImgBB তে আপলোড
+                api_key = "267ae03c170ebbd607e4d0dd4a2acc99" 
+                image_string = base64.b64encode(file.read())
                 
-                # ডাটাবেসে সেভ
-                supabase.table('proofs').insert({
-                    'image_url': img_url,
-                    'description': description
-                }).execute()
+                payload = {
+                    "key": api_key,
+                    "image": image_string,
+                }
                 
-                flash("✅ পেমেন্ট প্রুফ আপলোড করা হয়েছে!", "success")
-            else:
-                flash("❌ ছবি আপলোড ব্যর্থ হয়েছে।", "error")
+                response = requests.post("https://api.imgbb.com/1/upload", data=payload)
+                data = response.json()
                 
-        except Exception as e:
-            flash(f"Error: {str(e)}", "error")
+                if data['success']:
+                    img_url = data['data']['url']
+                    
+                    # ডাটাবেসে সেভ
+                    supabase.table('proofs').insert({
+                        'image_url': img_url,
+                        'description': description
+                    }).execute()
+                    
+                    success_count += 1
+                    
+            except Exception as e:
+                print(f"Upload Error: {e}")
+                continue
+
+        if success_count > 0:
+            flash(f"✅ সফলভাবে {success_count}টি প্রুফ আপলোড হয়েছে!", "success")
+        else:
+            flash("❌ ছবি আপলোড ব্যর্থ হয়েছে।", "error")
             
         return redirect(url_for('proofs'))
 
-    # ২. সব প্রুফ লোড করা (সবার জন্য)
+    # ২. সব প্রুফ লোড করা
     try:
         res = supabase.table('proofs').select('*').order('created_at', desc=True).execute()
         all_proofs = res.data
@@ -176,7 +183,6 @@ def proofs():
         all_proofs = []
 
     return render_template('proofs.html', proofs=all_proofs, user=g.user if 'user' in g else None)
-
 # --- DELETE PROOF (ADMIN ONLY) ---
 @app.route('/proof/delete/<int:id>')
 @login_required
