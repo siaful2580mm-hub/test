@@ -7,7 +7,7 @@
     <div class="inline-block p-3 rounded-full bg-green-50 text-green-600 text-2xl mb-3 shadow-sm animate-pulse">
         <i class="fa-solid fa-money-bill-wave"></i>
     </div>
-    <h1 class="text-2xl font-bold text-[#0A2540]">পেমেন্ট প্রুফ গ্যালারি</h1>
+    <h1 class="text-2xl md:text-3xl font-bold text-[#0A2540]">পেমেন্ট প্রুফ গ্যালারি</h1>
     <p class="text-gray-500 mt-1 text-sm">সফল পেমেন্ট এবং কাজের প্রমাণসমূহ</p>
 </div>
 
@@ -56,8 +56,8 @@
 </script>
 {% endif %}
 
-<!-- 2. PROOFS FEED (Instagram Style) -->
-<div class="max-w-md mx-auto space-y-8" style="height: 680px;">
+<!-- 2. PROOFS FEED (Taller Images) -->
+<div class="max-w-md mx-auto space-y-8">
     {% for proof in proofs %}
     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative group">
         
@@ -81,15 +81,18 @@
             {% endif %}
         </div>
 
-        <!-- CAROUSEL / SLIDER -->
-        <div class="relative w-full aspect-square bg-gray-100 overflow-hidden">
+        <!-- CAROUSEL / SLIDER (HEIGHT INCREASED) -->
+        <!-- h-[550px] : Height সেট করা হয়েছে যাতে ছবি বড় দেখায় -->
+        <div class="relative w-full h-[550px] bg-gray-100 overflow-hidden">
             <div class="flex overflow-x-auto snap-x snap-mandatory w-full h-full scrollbar-hide" style="scroll-behavior: smooth;">
                 {% for img in proof.image_urls %}
                 <div class="snap-center flex-shrink-0 w-full h-full relative">
+                    <!-- object-cover: পুরো বক্স জুড়ে ছবি থাকবে -->
                     <img src="{{ img }}" class="w-full h-full object-cover" alt="Proof Image">
+                    
                     <!-- Image Counter Badge -->
-                    <div class="absolute top-3 right-3 bg-black/50 text-white text-[10px] px-2 py-1 rounded-full backdrop-blur-sm">
-                        {{ loop.index }}/{{ proof.image_urls|length }}
+                    <div class="absolute top-3 right-3 bg-black/60 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-sm font-bold">
+                        {{ loop.index }} / {{ proof.image_urls|length }}
                     </div>
                 </div>
                 {% endfor %}
@@ -97,7 +100,7 @@
             
             <!-- Swipe Indicator (If more than 1 image) -->
             {% if proof.image_urls|length > 1 %}
-            <div class="absolute bottom-3 right-3 bg-white/80 text-gray-800 text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm animate-pulse" style="height: 700px;">
+            <div class="absolute bottom-4 right-4 bg-white/90 text-gray-800 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse flex items-center gap-1">
                 Swipe <i class="fa-solid fa-arrow-right-long"></i>
             </div>
             {% endif %}
@@ -105,7 +108,6 @@
 
         <!-- Content -->
         <div class="p-4">
-            <!-- Action Icons (Fake) -->
             <div class="flex gap-4 text-xl text-gray-600 mb-3">
                 <i class="fa-regular fa-heart hover:text-red-500 transition cursor-pointer"></i>
                 <i class="fa-regular fa-comment hover:text-blue-500 transition cursor-pointer"></i>
