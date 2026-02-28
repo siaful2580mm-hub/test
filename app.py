@@ -116,7 +116,61 @@ def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('home.html')
-    
+    # --- ADMIN: ADVANCED CUSTOM FILTER (DYNAMIC) ---
+@app.route('/admin/custom-filter', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def custom_filter():
+    csv_data = ""
+    count = 0
+    filters = {} # ফর্মের ভ্যালুগুলো মনে রাখার জন্য
+
+    if request.method == 'POST':
+        try:
+            # ১. ফর্ম থেকে ডাটা নেওয়া
+            min_bal = request.form.get('min_balance')
+            max_bal = request.form.get('max_balance')
+            days_offline = request.form.get('days_offline')
+            email_domain = request.form.get('email_domain')
+            limit_num = request.form.get('limit', 290)
+
+            # ডাটা মনে রাখার জন্য ডিকশনারিতে রাখা
+            filters = {
+                'min': min_bal, 'max': max_bal, 
+                'days': days_offline, 'domain': email_domain, 'limit': limit_num
+            }
+
+            # ২. কুয়েরি বিল্ড করা (ধাপে ধাপে)
+            query = supabase.table('profiles').select('email')
+
+            # ব্যালেন্স ফিল্টার
+            if min_bal: query = query.gte('balance', float(min_bal))
+            if max_bal: query = query.lte('balance', float(max_bal))
+
+            # সময় ফিল্টার (Offline Days)
+            if days_offline:
+                target_date = (datetime.utcnow() - timedelta(days=int(days_offline))).isoformat()
+                # lte মানে এই তারিখের আগে (অর্থাৎ এত দিন ধরে অফলাইন)
+                query = query.lte('last_login', target_date)
+
+            # ইমেইল ডোমেইন ফিল্টার
+            if email_domain:
+                query = query.ilike('email', f'%{email_domain}')
+
+            # ৩. এক্সিকিউট করা
+            res = query.limit(int(limit_num)).execute()
+            users = res.data
+
+            # ৪. CSV ফরম্যাট তৈরি
+            email_list = [u['email'] for u in users]
+            csv_data = ", ".join(email_list)
+            count = len(email_list)
+
+        except Exception as e:
+            print(f"Custom Filter Error: {e}")
+            flash(f"Error: {str(e)}", "error")
+
+    return render_template('custom_filter.html', csv_data=csv_data, count=count, f=filters)
 # --- PUBLIC: PROOFS PAGE (MULTI-UPLOAD UP TO 3) ---# --- PUBLIC: PROOFS PAGE (CAROUSEL POST) ---
 @app.route('/proofs', methods=['GET', 'POST'])
 def proofs():
