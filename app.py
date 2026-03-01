@@ -30,7 +30,12 @@ supabase: Client = create_client(url, key)
 # --- MIDDLEWARE (UPDATED FOR BAN SYSTEM) ---
 @app.before_request
 def before_request_checks():
-    
+
+    # 🚀 [NEW] URL REDIRECT LOGIC (Instant Transfer)
+    # যদি কেউ পুরনো লিংকে আসে, তাকে নতুন লিংকে পাঠিয়ে দিবে
+    if request.host == 'taskking.vercel.app':
+        return redirect('https://kaikor.vercel.app/', code=301)
+        
     # ১. সেটিংস লোড
     try:
         response = supabase.table('site_settings').select('*').eq('id', 1).single().execute()
