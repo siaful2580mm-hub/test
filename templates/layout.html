@@ -251,10 +251,13 @@
         </div>
     </div>
     {% endif %}
+<!-- ... উপরের সব কোড একই থাকবে ... -->
 
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
     <script>
+        // --- 1. SIDEBAR TOGGLE ---
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
 
@@ -272,15 +275,21 @@
             }
         }
 
-        setTimeout(function() {
-            const alerts = document.querySelectorAll('.flash-msg');
-            alerts.forEach(function(alert) {
-                alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                alert.style.opacity = '0';
-                alert.style.transform = 'translateY(-10px)';
-                setTimeout(() => alert.remove(), 500);
-            });
-        }, 3500);
+        // --- 2. FLASH MESSAGE AUTO HIDE (FIXED) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.flash-msg');
+                alerts.forEach(alert => {
+                    // এনিমেশন দিয়ে হাইড করা
+                    alert.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+                    alert.style.opacity = "0";
+                    alert.style.transform = "translateY(-20px)";
+                    
+                    // পুরোপুরি রিমুভ করা
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 3000); // ৩০০০ = ৩ সেকেন্ড
+        });
     </script>
 </body>
 </html>
