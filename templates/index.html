@@ -121,59 +121,91 @@
         </a>
     </div>
 
-    <!-- 4. DAILY CHECK-IN (Gamified) -->
+    <!-- 4. DAILY CHECK-IN (Dynamic & Real) -->
     <div class="glass-card p-5 rounded-3xl slide-up delay-300">
         <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
                 <i class="fa-solid fa-calendar-check text-[#4F46E5]"></i> ডেইলি চেক-ইন
             </h3>
-            <span class="text-[10px] text-slate-400">7 Days Streak</span>
+            <span class="text-[10px] text-slate-400 font-bold">
+                Streak: {{ user.streak_count if user.streak_count else 0 }}/7
+            </span>
         </div>
+        
         <div class="flex justify-between gap-1">
-            <!-- 7 Days Loop -->
-            <div class="flex flex-col items-center gap-1 group cursor-pointer" onclick="alert('আজকের বোনাস শীঘ্রই আসছে!')">
-                <span class="text-[9px] font-bold text-slate-400">SAT</span>
-                <div class="h-8 w-8 rounded-full bg-[#4F46E5] text-white flex items-center justify-center text-xs shadow-md shadow-indigo-200">
-                    <i class="fa-solid fa-check"></i>
+            <!-- Day 1 (5 Tk) -->
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-slate-400">Day 1</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 1 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
+                    <span class="font-bold">৳5</span>
+                    {% if user.streak_count >= 1 %}<i class="fa-solid fa-check text-[8px]"></i>{% endif %}
                 </div>
             </div>
-            <!-- Inactive Days -->
-            <div class="flex flex-col items-center gap-1 opacity-50">
-                <span class="text-[9px] font-bold text-slate-400">SUN</span>
-                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
-                    <i class="fa-solid fa-gift"></i>
+
+            <!-- Day 2 (7 Tk) -->
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-slate-400">Day 2</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 2 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
+                    <span class="font-bold">৳7</span>
+                    {% if user.streak_count >= 2 %}<i class="fa-solid fa-check text-[8px]"></i>{% endif %}
                 </div>
             </div>
-            <div class="flex flex-col items-center gap-1 opacity-50">
-                <span class="text-[9px] font-bold text-slate-400">MON</span>
-                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
-                    <i class="fa-solid fa-gift"></i>
+
+            <!-- Day 3 (15 Tk - Highlight) -->
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-[#E2136E]">Day 3</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-[#E2136E] text-white shadow-md scale-110 border-pink-500' if user.streak_count >= 3 else 'bg-pink-50 text-pink-400 border-pink-200' }}">
+                    <span class="font-bold">৳15</span>
+                    {% if user.streak_count >= 3 %}<i class="fa-solid fa-check text-[8px]"></i>{% endif %}
                 </div>
             </div>
-            <div class="flex flex-col items-center gap-1 opacity-50">
-                <span class="text-[9px] font-bold text-slate-400">TUE</span>
-                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
-                    <i class="fa-solid fa-gift"></i>
+
+            <!-- Day 4 -->
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-slate-400">Day 4</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 4 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
+                    <span>৳18</span>
                 </div>
             </div>
-            <div class="flex flex-col items-center gap-1 opacity-50">
-                <span class="text-[9px] font-bold text-slate-400">WED</span>
-                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
-                    <i class="fa-solid fa-gift"></i>
+
+            <!-- Day 5 -->
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-slate-400">Day 5</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 5 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
+                    <span>৳22</span>
                 </div>
             </div>
-            <div class="flex flex-col items-center gap-1 opacity-50">
-                <span class="text-[9px] font-bold text-slate-400">THU</span>
-                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
-                    <i class="fa-solid fa-gift"></i>
+
+            <!-- Day 6 -->
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-slate-400">Day 6</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 6 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
+                    <span>৳25</span>
                 </div>
             </div>
-            <div class="flex flex-col items-center gap-1 opacity-50">
-                <span class="text-[9px] font-bold text-slate-400">FRI</span>
-                <div class="h-8 w-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-[10px] border border-yellow-200">
-                    <i class="fa-solid fa-box-open"></i>
+
+            <!-- Day 7 (Jackpot) -->
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-yellow-600">Day 7</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-yellow-500 text-white shadow-md scale-110 border-yellow-600' if user.streak_count >= 7 else 'bg-yellow-50 text-yellow-600 border-yellow-200' }}">
+                    <i class="fa-solid fa-gift mb-0.5"></i>
+                    <span class="font-bold">৳30</span>
                 </div>
             </div>
+        </div>
+
+        <!-- Claim Button -->
+        <div class="mt-4 text-center">
+            <a href="/daily-checkin" class="w-full block bg-slate-800 text-white py-3 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-900 active:scale-95 transition">
+                বোনাস সংগ্রহ করুন (Claim)
+            </a>
         </div>
     </div>
 
