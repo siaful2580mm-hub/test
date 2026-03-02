@@ -122,6 +122,75 @@ def index():
         return redirect(url_for('dashboard'))
     return render_template('home.html')
     # --- ADMIN: ADVANCED CUSTOM FILTER (DYNAMIC) ---
+
+# --- DAILY CHECK-IN BONUS ---
+@app.route('/daily-checkin')
+@login_required
+def daily_checkin():
+    from datetime import datetime, timedelta
+    
+    try:
+        # ১. বর্তমান তারিখ বের করা (UTC)
+        today = datetime.utcnow().date()
+        
+        # ২. ইউজার ডাটা আনা
+        user_res = supabase.table('profiles').select('last_checkin, streak_count, balance').eq('id', session['user_id']).single().execute()
+        user_data = user_res.data
+        
+        last_checkin_str = user_data.get('last_checkin')
+        current_streak = user_data.get('streak_count', 0)
+        current_balance = float(user_data.get('balance', 0.0))
+        
+        # ৩. তারিখ কনভার্ট করা
+        last_checkin = datetime.strptime(last_checkin_str, '%Y-%m-%d').date() if last_checkin_str else None
+        
+        # --- লজিক চেক ---
+        
+        # ক. যদি আজকেই নিয়ে থাকে
+        if last_checkin == today:
+            flash("⚠️ আপনি আজকের বোনাস ইতিমধ্যে নিয়ে নিয়েছেন!", "warning")
+            return redirect(url_for('dashboard'))
+            
+        # খ. স্ট্রিক ক্যালকুলেশন
+        # যদি গতকাল নিয়ে থাকে, তাহলে স্ট্রিক বাড়বে। না হলে ১ থেকে শুরু হবে।
+        if last_checkin == today - timedelta(days=1):
+            new_streak = current_streak + 1
+        else:
+            new_streak = 1 # মিস করলে রিসেট
+            
+        # ৭ দিনের সাইকেল শেষ হলে আবার ১ থেকে শুরু (অথবা ৩০ টাকায় ফিক্সড রাখতে পারেন)
+        if new_streak > 7:
+            new_streak = 1
+            
+        # গ. রিওওার্ড ম্যাপ (কোন দিন কত টাকা)
+        rewards = {
+            1: 5.00,
+            2: 7.00,
+            3: 15.00,
+            4: 18.00,
+            5: 22.00,
+            6: 25.00,
+            7: 30.00
+        }
+        
+        bonus_amount = rewards.get(new_streak, 5.00)
+        
+        # ৪. ডাটাবেস আপডেট
+        new_balance = current_balance + bonus_amount
+        
+        supabase.table('profiles').update({
+            'balance': new_balance,
+            'streak_count': new_streak,
+            'last_checkin': str(today)
+        }).eq('id', session['user_id']).execute()
+        
+        flash(f"🎉 অভিনন্দন! ডে-{new_streak} এর বোনাস ৳{bonus_amount} যোগ হয়েছে!", "success")
+        
+    except Exception as e:
+        print(f"Checkin Error: {e}")
+        flash("System Error. Try again later.", "error")
+        
+    return redirect(url_for('dashboard'))
 @app.route('/admin/custom-filter', methods=['GET', 'POST'])
 @login_required
 @admin_required
