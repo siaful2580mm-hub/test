@@ -7,68 +7,76 @@
     @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
     
     .glass-card {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
         box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
     }
 
     .hero-card {
-        background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%);
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
         position: relative;
         overflow: hidden;
     }
 
     .scroll-vertical {
-        animation: scrollVert 15s linear infinite;
+        animation: scrollVert 20s linear infinite;
     }
     @keyframes scrollVert { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
 
-    /* Delay classes for staggering animation */
+    /* Delay classes */
     .delay-100 { animation-delay: 0.1s; }
     .delay-200 { animation-delay: 0.2s; }
     .delay-300 { animation-delay: 0.3s; }
 </style>
-<div class="space-y-6 pb-24 fade-up">
 
-    <!-- 1. HEADER & GREETING -->
-    <div class="flex justify-between items-center px-2 pt-2">
-        <div>
-            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider" id="greeting">Welcome</p>
-            <h2 class="text-xl font-bold text-[#0A2540]">
-                {{ user.email.split('@')[0] | title }}
+<div class="space-y-6 pb-32 pt-4">
+
+    <!-- 1. HEADER PROFILE -->
+    <div class="flex justify-between items-center px-2 slide-up">
+        <div class="flex items-center gap-3">
+            <div class="relative">
+                <div class="h-12 w-12 rounded-full bg-indigo-50 flex items-center justify-center text-[#4F46E5] text-xl font-bold border-2 border-white shadow-sm">
+                    {{ user.email[0] | upper }}
+                </div>
+                <div class="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+            </div>
+            <div>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5" id="greeting">HELLO</p>
+                <h2 class="text-lg font-bold text-slate-800 leading-none">
+                    {{ user.email.split('@')[0] | title }}
+                </h2>
                 {% if user.is_active %}
-                    <i class="fa-solid fa-circle-check text-green-500 text-sm ml-1"></i>
+                <span class="inline-flex items-center gap-1 bg-green-50 text-green-600 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1">
+                    <i class="fa-solid fa-check-circle"></i> Verified
+                </span>
+                {% else %}
+                <a href="/activate" class="inline-flex items-center gap-1 bg-red-50 text-red-500 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1 animate-pulse">
+                    <i class="fa-solid fa-lock"></i> Activate Now
+                </a>
                 {% endif %}
-            </h2>
+            </div>
         </div>
-        <a href="/account" class="h-10 w-10 bg-white rounded-full flex items-center justify-center shadow-md text-gray-600 hover:text-[#E2136E] transition">
-            <i class="fa-solid fa-gear"></i>
+        <a href="/notice" class="h-10 w-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm border border-slate-100 relative hover:text-[#4F46E5] transition">
+            <i class="fa-regular fa-bell"></i>
+            {% if settings.notice_text %}
+            <span class="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full animate-ping"></span>
+            <span class="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full"></span>
+            {% endif %}
         </a>
     </div>
 
-    <!-- 2. NOTICE BOARD (Marquee) -->
-    {% if settings.notice_text %}
-    <div class="bg-white rounded-xl shadow-sm border border-blue-100 p-1 flex items-center overflow-hidden">
-        <div class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold flex-shrink-0 mr-2 flex items-center gap-1">
-            <i class="fa-solid fa-bullhorn"></i> NOTICE
-        </div>
-        <marquee class="text-sm text-gray-600 font-medium" scrollamount="4">
-            {{ settings.notice_text }}
-        </marquee>
-    </div>
-    
-    <!-- 2. MASTER CARD (Wallet) -->
+    <!-- 2. HERO WALLET CARD -->
     <div class="hero-card rounded-[32px] p-6 text-white shadow-xl shadow-indigo-500/20 slide-up delay-100 relative group">
         <!-- Abstract Shapes -->
         <div class="absolute top-0 right-0 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-110 transition duration-700"></div>
         <div class="absolute bottom-0 left-0 w-32 h-32 bg-pink-500 opacity-20 rounded-full blur-3xl -ml-10 -mb-10"></div>
-        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
-
+        
         <div class="relative z-10">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-xs text-indigo-100 font-medium tracking-wide">Total Balance</p>
+                    <p class="text-xs text-indigo-100 font-medium tracking-wide uppercase">Total Balance</p>
                     <div class="flex items-center gap-3 mt-1 cursor-pointer" onclick="toggleBalance()">
                         <h1 id="balanceText" class="text-4xl font-bold font-mono tracking-tight blur-md transition-all duration-300">
                             ৳{{ user.balance }}
@@ -83,29 +91,29 @@
                 </div>
             </div>
 
-            <!-- Stats Row (Real Data) -->
-<div class="flex gap-4 mt-6">
-    <div class="flex-1 bg-black/10 backdrop-blur-sm rounded-2xl p-3 border border-white/5 text-center">
-        <p class="text-[10px] text-indigo-100 uppercase tracking-wide">Today's Income</p>
-        <p class="text-sm font-bold mt-0.5 text-yellow-300">৳ {{ today_income }}</p>
-    </div>
-    <div class="flex-1 bg-black/10 backdrop-blur-sm rounded-2xl p-3 border border-white/5 text-center">
-        <p class="text-[10px] text-indigo-100 uppercase tracking-wide">Pending</p>
-        <p class="text-sm font-bold mt-0.5 text-white">৳ {{ pending_income }}</p>
-    </div>
-</div>
+            <!-- Stats Row (Dynamic Data) -->
+            <div class="flex gap-4 mt-6">
+                <div class="flex-1 bg-black/10 backdrop-blur-sm rounded-2xl p-3 border border-white/5">
+                    <p class="text-[10px] text-indigo-100 uppercase tracking-wide">Today's Income</p>
+                    <p class="text-sm font-bold mt-0.5 text-yellow-300">৳ {{ today_income }}</p>
+                </div>
+                <div class="flex-1 bg-black/10 backdrop-blur-sm rounded-2xl p-3 border border-white/5">
+                    <p class="text-[10px] text-indigo-100 uppercase tracking-wide">Pending</p>
+                    <p class="text-sm font-bold mt-0.5 text-white">৳ {{ pending_income }}</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- 3. ACTION BUTTONS (Floating) -->
+    <!-- 3. ACTION BUTTONS -->
     <div class="grid grid-cols-2 gap-4 -mt-4 px-4 relative z-20 slide-up delay-200">
-        <a href="/withdraw" class="bg-white p-3 rounded-2xl shadow-lg shadow-slate-200/50 flex items-center justify-center gap-2 text-sm font-bold text-slate-700 hover:scale-[1.02] transition">
+        <a href="/withdraw" class="bg-white p-3.5 rounded-2xl shadow-lg shadow-slate-200/50 flex items-center justify-center gap-2 text-sm font-bold text-slate-700 hover:scale-[1.02] transition border border-slate-50">
             <div class="h-8 w-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
                 <i class="fa-solid fa-arrow-up"></i>
             </div>
             উইথড্র
         </a>
-        <a href="/tasks" class="bg-white p-3 rounded-2xl shadow-lg shadow-slate-200/50 flex items-center justify-center gap-2 text-sm font-bold text-slate-700 hover:scale-[1.02] transition">
+        <a href="/tasks" class="bg-white p-3.5 rounded-2xl shadow-lg shadow-slate-200/50 flex items-center justify-center gap-2 text-sm font-bold text-slate-700 hover:scale-[1.02] transition border border-slate-50">
             <div class="h-8 w-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm">
                 <i class="fa-solid fa-play"></i>
             </div>
@@ -113,87 +121,40 @@
         </a>
     </div>
 
-    <!-- 4. DAILY CHECK-IN (Dynamic & Real) -->
+    <!-- 4. DAILY CHECK-IN SYSTEM -->
     <div class="glass-card p-5 rounded-3xl slide-up delay-300">
         <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
                 <i class="fa-solid fa-calendar-check text-[#4F46E5]"></i> ডেইলি চেক-ইন
             </h3>
-            <span class="text-[10px] text-slate-400 font-bold">
+            <span class="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded">
                 Streak: {{ user.streak_count if user.streak_count else 0 }}/7
             </span>
         </div>
         
         <div class="flex justify-between gap-1">
-            <!-- Day 1 (5 Tk) -->
+            {% for day, reward in [(1,5), (2,7), (3,15), (4,18), (5,22), (6,25)] %}
             <div class="flex flex-col items-center gap-1">
-                <span class="text-[9px] font-bold text-slate-400">Day 1</span>
+                <span class="text-[9px] font-bold text-slate-400">D{{ day }}</span>
                 <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
-                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 1 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
-                    <span class="font-bold">৳5</span>
-                    {% if user.streak_count >= 1 %}<i class="fa-solid fa-check text-[8px]"></i>{% endif %}
+                    {{ 'bg-[#4F46E5] text-white shadow-md border-indigo-500' if user.streak_count >= day else 'bg-slate-50 text-slate-400 border-slate-200' }}">
+                    <span class="font-bold">৳{{ reward }}</span>
+                    {% if user.streak_count >= day %}<i class="fa-solid fa-check text-[8px]"></i>{% endif %}
                 </div>
             </div>
-
-            <!-- Day 2 (7 Tk) -->
-            <div class="flex flex-col items-center gap-1">
-                <span class="text-[9px] font-bold text-slate-400">Day 2</span>
-                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
-                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 2 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
-                    <span class="font-bold">৳7</span>
-                    {% if user.streak_count >= 2 %}<i class="fa-solid fa-check text-[8px]"></i>{% endif %}
-                </div>
-            </div>
-
-            <!-- Day 3 (15 Tk - Highlight) -->
-            <div class="flex flex-col items-center gap-1">
-                <span class="text-[9px] font-bold text-[#E2136E]">Day 3</span>
-                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
-                    {{ 'bg-[#E2136E] text-white shadow-md scale-110 border-pink-500' if user.streak_count >= 3 else 'bg-pink-50 text-pink-400 border-pink-200' }}">
-                    <span class="font-bold">৳15</span>
-                    {% if user.streak_count >= 3 %}<i class="fa-solid fa-check text-[8px]"></i>{% endif %}
-                </div>
-            </div>
-
-            <!-- Day 4 -->
-            <div class="flex flex-col items-center gap-1">
-                <span class="text-[9px] font-bold text-slate-400">Day 4</span>
-                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
-                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 4 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
-                    <span>৳18</span>
-                </div>
-            </div>
-
-            <!-- Day 5 -->
-            <div class="flex flex-col items-center gap-1">
-                <span class="text-[9px] font-bold text-slate-400">Day 5</span>
-                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
-                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 5 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
-                    <span>৳22</span>
-                </div>
-            </div>
-
-            <!-- Day 6 -->
-            <div class="flex flex-col items-center gap-1">
-                <span class="text-[9px] font-bold text-slate-400">Day 6</span>
-                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
-                    {{ 'bg-[#4F46E5] text-white shadow-md scale-110 border-indigo-500' if user.streak_count >= 6 else 'bg-slate-50 text-slate-400 border-slate-200' }}">
-                    <span>৳25</span>
-                </div>
-            </div>
-
+            {% endfor %}
+            
             <!-- Day 7 (Jackpot) -->
             <div class="flex flex-col items-center gap-1">
-                <span class="text-[9px] font-bold text-yellow-600">Day 7</span>
+                <span class="text-[9px] font-bold text-yellow-600">D7</span>
                 <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
-                    {{ 'bg-yellow-500 text-white shadow-md scale-110 border-yellow-600' if user.streak_count >= 7 else 'bg-yellow-50 text-yellow-600 border-yellow-200' }}">
+                    {{ 'bg-yellow-500 text-white shadow-md border-yellow-600' if user.streak_count >= 7 else 'bg-yellow-50 text-yellow-600 border-yellow-200' }}">
                     <i class="fa-solid fa-gift mb-0.5"></i>
                     <span class="font-bold">৳30</span>
                 </div>
             </div>
         </div>
 
-        <!-- Claim Button -->
         <div class="mt-4 text-center">
             <a href="/daily-checkin" class="w-full block bg-slate-800 text-white py-3 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-900 active:scale-95 transition">
                 বোনাস সংগ্রহ করুন (Claim)
@@ -201,210 +162,209 @@
         </div>
     </div>
 
-    <!-- 5. MAIN MENU GRID -->
+    <!-- 5. NOTICE MARQUEE -->
+    {% if settings.notice_text %}
+    <div class="glass-card p-2 rounded-2xl flex items-center overflow-hidden slide-up delay-300">
+        <div class="bg-orange-100 text-orange-600 px-3 py-1.5 rounded-xl text-[10px] font-bold flex-shrink-0 mr-2 flex items-center gap-1">
+            <i class="fa-solid fa-bullhorn"></i> NOTICE
+        </div>
+        <marquee class="text-xs text-slate-600 font-medium" scrollamount="4">
+            {{ settings.notice_text }}
+        </marquee>
+    </div>
+    {% endif %}
+
+    <!-- 6. MAIN MENU GRID -->
     <div class="slide-up delay-300">
         <h3 class="font-bold text-slate-700 px-2 text-sm mb-3">সার্ভিসসমূহ</h3>
         <div class="grid grid-cols-4 gap-3">
-            
             <a href="/tasks" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg">
-                    <i class="fa-brands fa-youtube"></i>
-                </div>
+                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-brands fa-youtube"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">টাস্ক</span>
             </a>
-
             <a href="/proofs" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-receipt"></i>
-                </div>
+                <div class="h-10 w-10 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-receipt"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">প্রুফ</span>
             </a>
-
             <a href="/history" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </div>
+                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-clock-rotate-left"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">হিস্টোরি</span>
             </a>
-
             <a href="/referrals" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-users"></i>
-                </div>
+                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">রেফার</span>
             </a>
-
             <a href="/notice" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-bell"></i>
-                </div>
+                <div class="h-10 w-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-bell"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">নোটিশ</span>
             </a>
-
             <a href="/tutorial" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-play"></i>
-                </div>
+                <div class="h-10 w-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-play"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">ভিডিও</span>
             </a>
-
             <a href="https://t.me/securehx" target="_blank" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-lg">
-                    <i class="fa-brands fa-telegram"></i>
-                </div>
+                <div class="h-10 w-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-brands fa-telegram"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">হেল্প</span>
             </a>
-
             <a href="/account" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-bars"></i>
-                </div>
+                <div class="h-10 w-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-bars"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">অন্যান্য</span>
             </a>
-
         </div>
     </div>
-    <!-- 4. SITE AGE (Platform Running Time) -->
-    <div class="bg-white rounded-3xl p-5 shadow-lg border border-gray-50 relative overflow-hidden mt-4">
-        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-            <h3 class="font-bold text-[#0A2540] flex items-center gap-2 text-xs">
-                <i class="fa-solid fa-server text-[#E2136E]"></i> সার্ভার স্ট্যাটাস
-            </h3>
-            <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold animate-pulse">
-                ● Live Running
-            </span>
-        </div>
-        
-        <div class="grid grid-cols-4 gap-2 text-center" id="countdown">
-            <div class="bg-gray-50 rounded-xl p-2 border border-gray-100">
-                <span class="block text-lg font-bold text-[#0057FF]" id="days">00</span>
-                <span class="text-[10px] text-gray-400">দিন</span>
-            </div>
-            <div class="bg-gray-50 rounded-xl p-2 border border-gray-100">
-                <span class="block text-lg font-bold text-[#0057FF]" id="hours">00</span>
-                <span class="text-[10px] text-gray-400">ঘণ্টা</span>
-            </div>
-            <div class="bg-gray-50 rounded-xl p-2 border border-gray-100">
-                <span class="block text-lg font-bold text-[#0057FF]" id="minutes">00</span>
-                <span class="text-[10px] text-gray-400">মিনিট</span>
-            </div>
-            <div class="bg-gray-50 rounded-xl p-2 border border-gray-100">
-                <span class="block text-lg font-bold text-[#E2136E]" id="seconds">00</span>
-                <span class="text-[10px] text-gray-400">সেকেন্ড</span>
-            </div>
-        </div>
-        <p class="text-center text-[10px] text-gray-400 mt-3 font-mono">Running Since: Aug 28, 2025</p>
-    </div>
 
-    <!-- 6. LIVE PAYOUTS & LEADERBOARD -->
+    <!-- 7. LIVE PAYOUTS & LEADERBOARD -->
     <div class="grid md:grid-cols-2 gap-4 slide-up delay-300">
         
-        <!-- Payouts -->
-        <div class="glass-card p-5 rounded-3xl overflow-hidden h-48">
+        <!-- Live Payouts -->
+        <div class="glass-card p-5 rounded-3xl overflow-hidden h-52">
             <h3 class="font-bold text-slate-700 text-xs mb-3 flex items-center gap-2">
                 <span class="relative flex h-2 w-2">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                লাইভ পেমেন্ট
+                লাইভ পেমেন্ট (Real-time)
             </h3>
-            <div class="h-32 overflow-hidden relative">
+            <div class="h-40 overflow-hidden relative">
                 <div class="scroll-vertical space-y-3" id="payoutList">
-                    <!-- Javascript will populate -->
+                    <!-- JS will populate -->
                 </div>
             </div>
         </div>
 
-        <!-- Leaderboard (Dynamic 24h) -->
-<div class="glass-card p-5 rounded-3xl">
-    <div class="flex justify-between items-center mb-3">
-        <h3 class="font-bold text-slate-700 text-xs flex items-center gap-2">
-            <i class="fa-solid fa-trophy text-yellow-500"></i> টপ লিডারবোর্ড
-        </h3>
-        <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded">Daily Top 3</span>
-    </div>
-    
-    <div class="space-y-3">
-        {% for winner in leaderboard %}
-        <div class="flex items-center justify-between p-2 rounded-xl {{ 'bg-yellow-50 border border-yellow-100' if loop.index == 1 else 'hover:bg-slate-50' }}">
-            <div class="flex items-center gap-3">
-                <!-- Rank Icon -->
-                <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs
-                    {% if loop.index == 1 %} bg-yellow-500 text-white shadow-md shadow-yellow-200
-                    {% elif loop.index == 2 %} bg-gray-400 text-white
-                    {% else %} bg-orange-400 text-white {% endif %}">
-                    {{ loop.index }}
-                </div>
-                
-                <!-- Name -->
-                <div>
-                    <span class="text-xs font-bold text-slate-700 block">
-                        {{ winner.email.split('@')[0][:3] }}***{{ winner.email.split('@')[0][-2:] }}
-                    </span>
-                    <span class="text-[9px] text-slate-400">Pro Earner</span>
-                </div>
+        <!-- Leaderboard (Dynamic) -->
+        <div class="glass-card p-5 rounded-3xl">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-slate-700 text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-yellow-500"></i> টপ লিডারবোর্ড
+                </h3>
+                <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded">Daily Top 3</span>
             </div>
             
-            <!-- Balance -->
-            <span class="text-xs font-bold font-mono text-[#4F46E5]">৳{{ winner.balance }}</span>
+            <div class="space-y-3">
+                {% for winner in leaderboard %}
+                <div class="flex items-center justify-between p-2 rounded-xl {{ 'bg-yellow-50 border border-yellow-100' if loop.index == 1 else 'hover:bg-slate-50' }}">
+                    <div class="flex items-center gap-3">
+                        <div class="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs
+                            {% if loop.index == 1 %} bg-yellow-500 text-white shadow-md
+                            {% elif loop.index == 2 %} bg-gray-400 text-white
+                            {% else %} bg-orange-400 text-white {% endif %}">
+                            {{ loop.index }}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-700 block">
+                                {{ winner.email.split('@')[0][:3] }}***{{ winner.email.split('@')[0][-2:] }}
+                            </span>
+                            <span class="text-[9px] text-slate-400">Pro Earner</span>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold font-mono text-[#4F46E5]">৳{{ winner.balance }}</span>
+                </div>
+                {% else %}
+                <p class="text-center text-xs text-gray-400 py-4">Data Updating...</p>
+                {% endfor %}
+            </div>
         </div>
-        {% else %}
-        <p class="text-center text-xs text-gray-400 py-4">Data Updating...</p>
-        {% endfor %}
-    </div>
-</div>
-
     </div>
 
+    <!-- 8. SITE AGE -->
+    <div class="glass-card rounded-3xl p-5 relative overflow-hidden text-center slide-up delay-300">
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+            <i class="fa-solid fa-server text-green-500 mr-1"></i> Server Running
+        </p>
+        <div class="flex justify-center gap-2" id="countdown">
+            <div class="bg-slate-50 px-3 py-2 rounded-xl min-w-[50px] border border-slate-100">
+                <span class="block text-lg font-bold text-[#4F46E5]" id="days">00</span>
+                <span class="text-[9px] text-slate-400 font-bold uppercase">Days</span>
+            </div>
+            <div class="bg-slate-50 px-3 py-2 rounded-xl min-w-[50px] border border-slate-100">
+                <span class="block text-lg font-bold text-[#4F46E5]" id="hours">00</span>
+                <span class="text-[9px] text-slate-400 font-bold uppercase">Hrs</span>
+            </div>
+            <div class="bg-slate-50 px-3 py-2 rounded-xl min-w-[50px] border border-slate-100">
+                <span class="block text-lg font-bold text-[#4F46E5]" id="minutes">00</span>
+                <span class="text-[9px] text-slate-400 font-bold uppercase">Min</span>
+            </div>
+            <div class="bg-slate-50 px-3 py-2 rounded-xl min-w-[50px] border border-slate-100">
+                <span class="block text-lg font-bold text-pink-500" id="seconds">00</span>
+                <span class="text-[9px] text-slate-400 font-bold uppercase">Sec</span>
+            </div>
+        </div>
+        <p class="text-[9px] text-slate-400 mt-3 font-mono">Since Aug 28, 2025</p>
+    </div>
+
 </div>
+
 <!-- SCRIPTS -->
 <script>
-    // 1. Balance Reveal
-    function toggleBalance() {
-        const balance = document.getElementById("balanceText");
-        const icon = document.getElementById("eyeIcon");
-        if (balance.classList.contains("blur-md")) {
-            balance.classList.remove("blur-md");
-            icon.classList.remove("fa-eye-slash");
-            icon.classList.add("fa-eye");
-        } else {
-            balance.classList.add("blur-md");
-            icon.classList.remove("fa-eye");
-            icon.classList.add("fa-eye-slash");
+    // 1. Generate Live Payouts
+    function generatePayouts() {
+        const container = document.getElementById('payoutList');
+        const methods = ['bKash', 'Nagad', 'Rocket'];
+        const prefixes = ['017', '019', '018', '016'];
+        let html = '';
+        
+        for(let i=0; i<10; i++) {
+            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+            const lastTwo = Math.floor(Math.random() * 90 + 10);
+            const amount = (Math.floor(Math.random() * 7) + 3) * 100; // 300-900 (ends in 0)
+            const method = methods[Math.floor(Math.random() * methods.length)];
+            
+            html += `
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50/50 border border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <div class="h-6 w-6 bg-white rounded-full flex items-center justify-center text-[10px] shadow-sm"><i class="fa-solid fa-wallet text-slate-400"></i></div>
+                        <div>
+                            <p class="text-[10px] text-slate-700 font-bold font-mono">${prefix}****${lastTwo}</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-bold text-green-600">+৳${amount} (${method})</span>
+                </div>
+            `;
         }
+        container.innerHTML = html + html; 
     }
 
     // 2. Greeting
     const hour = new Date().getHours();
     const greetElement = document.getElementById("greeting");
-    if (hour < 12) greetElement.innerText = "শুভ সকাল ☀️";
-    else if (hour < 18) greetElement.innerText = "শুভ দুপুর 🌤️";
-    else greetElement.innerText = "শুভ সন্ধ্যা 🌙";
+    if (hour < 12) greetElement.innerText = "GOOD MORNING";
+    else if (hour < 18) greetElement.innerText = "GOOD AFTERNOON";
+    else greetElement.innerText = "GOOD EVENING";
 
-    // 3. Site Age Counter Logic
+    // 3. Toggle Balance
+    function toggleBalance() {
+        const balance = document.getElementById("balanceText");
+        const icon = document.getElementById("eyeIcon");
+        if (balance.classList.contains("blur-md")) {
+            balance.classList.remove("blur-md");
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        } else {
+            balance.classList.add("blur-md");
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        }
+    }
+
+    // 4. Site Age
     function updateSiteAge() {
-        // Start Date: August 28, 2025 (YYYY, MM-1, DD)
-        const startDate = new Date(2025, 7, 28).getTime(); // Month is 0-indexed (Aug = 7)
+        const startDate = new Date(2025, 7, 28).getTime(); // Aug 28, 2025
         const now = new Date().getTime();
         const diff = now - startDate;
 
-        // যদি সাইট এখনো শুরু না হয় (ভবিষ্যতের তারিখ), তবে ০ দেখাবে
-        if (diff < 0) {
-             // Handle future date if needed
-             return;
+        if (diff > 0) {
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerText = days;
+            document.getElementById("hours").innerText = hours;
+            document.getElementById("minutes").innerText = minutes;
+            document.getElementById("seconds").innerText = seconds;
         }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-        document.getElementById("days").innerText = days;
-        document.getElementById("hours").innerText = hours;
-        document.getElementById("minutes").innerText = minutes;
-        document.getElementById("seconds").innerText = seconds;
     }
 
+    generatePayouts();
     setInterval(updateSiteAge, 1000);
     updateSiteAge();
 </script>
