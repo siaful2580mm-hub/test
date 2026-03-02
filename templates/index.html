@@ -29,43 +29,35 @@
     .delay-200 { animation-delay: 0.2s; }
     .delay-300 { animation-delay: 0.3s; }
 </style>
+<div class="space-y-6 pb-24 fade-up">
 
-<div class="space-y-6 pb-32 pt-4">
-
-    <!-- 1. HEADER PROFILE (Minimalist) -->
-    <div class="flex justify-between items-center px-2 slide-up">
-        <div class="flex items-center gap-3">
-            <div class="relative">
-                <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl font-bold border-2 border-white shadow-sm">
-                    {{ user.email[0] | upper }}
-                </div>
-                <div class="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 border-2 border-white rounded-full"></div>
-            </div>
-            <div>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5" id="greeting">HELLO</p>
-                <h2 class="text-lg font-bold text-slate-800 leading-none">
-                    {{ user.email.split('@')[0] | title }}
-                </h2>
+    <!-- 1. HEADER & GREETING -->
+    <div class="flex justify-between items-center px-2 pt-2">
+        <div>
+            <p class="text-xs text-gray-500 font-bold uppercase tracking-wider" id="greeting">Welcome</p>
+            <h2 class="text-xl font-bold text-[#0A2540]">
+                {{ user.email.split('@')[0] | title }}
                 {% if user.is_active %}
-                <span class="inline-flex items-center gap-1 bg-green-50 text-green-600 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1">
-                    <i class="fa-solid fa-crown text-yellow-500"></i> Premium User
-                </span>
-                {% else %}
-                <a href="/activate" class="inline-flex items-center gap-1 bg-red-50 text-red-500 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1 animate-pulse">
-                    <i class="fa-solid fa-lock"></i> Activate Now
-                </a>
+                    <i class="fa-solid fa-circle-check text-green-500 text-sm ml-1"></i>
                 {% endif %}
-            </div>
+            </h2>
         </div>
-        <a href="/notice" class="h-10 w-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm border border-slate-100 relative">
-            <i class="fa-regular fa-bell"></i>
-            {% if settings.notice_text %}
-            <span class="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full animate-ping"></span>
-            <span class="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full"></span>
-            {% endif %}
+        <a href="/account" class="h-10 w-10 bg-white rounded-full flex items-center justify-center shadow-md text-gray-600 hover:text-[#E2136E] transition">
+            <i class="fa-solid fa-gear"></i>
         </a>
     </div>
 
+    <!-- 2. NOTICE BOARD (Marquee) -->
+    {% if settings.notice_text %}
+    <div class="bg-white rounded-xl shadow-sm border border-blue-100 p-1 flex items-center overflow-hidden">
+        <div class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold flex-shrink-0 mr-2 flex items-center gap-1">
+            <i class="fa-solid fa-bullhorn"></i> NOTICE
+        </div>
+        <marquee class="text-sm text-gray-600 font-medium" scrollamount="4">
+            {{ settings.notice_text }}
+        </marquee>
+    </div>
+    
     <!-- 2. MASTER CARD (Wallet) -->
     <div class="hero-card rounded-[32px] p-6 text-white shadow-xl shadow-indigo-500/20 slide-up delay-100 relative group">
         <!-- Abstract Shapes -->
@@ -272,6 +264,37 @@
 
         </div>
     </div>
+    <!-- 4. SITE AGE (Platform Running Time) -->
+    <div class="bg-white rounded-3xl p-5 shadow-lg border border-gray-50 relative overflow-hidden mt-4">
+        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+            <h3 class="font-bold text-[#0A2540] flex items-center gap-2 text-xs">
+                <i class="fa-solid fa-server text-[#E2136E]"></i> সার্ভার স্ট্যাটাস
+            </h3>
+            <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold animate-pulse">
+                ● Live Running
+            </span>
+        </div>
+        
+        <div class="grid grid-cols-4 gap-2 text-center" id="countdown">
+            <div class="bg-gray-50 rounded-xl p-2 border border-gray-100">
+                <span class="block text-lg font-bold text-[#0057FF]" id="days">00</span>
+                <span class="text-[10px] text-gray-400">দিন</span>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-2 border border-gray-100">
+                <span class="block text-lg font-bold text-[#0057FF]" id="hours">00</span>
+                <span class="text-[10px] text-gray-400">ঘণ্টা</span>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-2 border border-gray-100">
+                <span class="block text-lg font-bold text-[#0057FF]" id="minutes">00</span>
+                <span class="text-[10px] text-gray-400">মিনিট</span>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-2 border border-gray-100">
+                <span class="block text-lg font-bold text-[#E2136E]" id="seconds">00</span>
+                <span class="text-[10px] text-gray-400">সেকেন্ড</span>
+            </div>
+        </div>
+        <p class="text-center text-[10px] text-gray-400 mt-3 font-mono">Running Since: Aug 28, 2025</p>
+    </div>
 
     <!-- 6. LIVE PAYOUTS & LEADERBOARD -->
     <div class="grid md:grid-cols-2 gap-4 slide-up delay-300">
@@ -334,58 +357,56 @@
     </div>
 
 </div>
-
 <!-- SCRIPTS -->
 <script>
-    // 1. Generate Live Payouts
-    function generatePayouts() {
-        const container = document.getElementById('payoutList');
-        const methods = ['bKash', 'Nagad', 'Rocket'];
-        const prefixes = ['017', '019', '018', '016'];
-        let html = '';
-        
-        for(let i=0; i<10; i++) {
-            const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-            const lastTwo = Math.floor(Math.random() * 90 + 10);
-            const amount = (Math.floor(Math.random() * 7) + 3) * 100; // 300-900
-            const method = methods[Math.floor(Math.random() * methods.length)];
-            
-            html += `
-                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50/50 border border-slate-100">
-                    <div class="flex items-center gap-2">
-                        <div class="h-6 w-6 bg-white rounded-full flex items-center justify-center text-[10px] shadow-sm"><i class="fa-solid fa-wallet text-slate-400"></i></div>
-                        <div>
-                            <p class="text-[10px] text-slate-700 font-bold font-mono">${prefix}****${lastTwo}</p>
-                        </div>
-                    </div>
-                    <span class="text-[10px] font-bold text-green-600">+৳${amount} (${method})</span>
-                </div>
-            `;
-        }
-        container.innerHTML = html + html; 
-    }
-
-    // 2. Greeting
-    const hour = new Date().getHours();
-    const greetElement = document.getElementById("greeting");
-    if (hour < 12) greetElement.innerText = "GOOD MORNING";
-    else if (hour < 18) greetElement.innerText = "GOOD AFTERNOON";
-    else greetElement.innerText = "GOOD EVENING";
-
-    // 3. Toggle Balance
+    // 1. Balance Reveal
     function toggleBalance() {
         const balance = document.getElementById("balanceText");
         const icon = document.getElementById("eyeIcon");
         if (balance.classList.contains("blur-md")) {
             balance.classList.remove("blur-md");
-            icon.classList.replace("fa-eye-slash", "fa-eye");
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
         } else {
             balance.classList.add("blur-md");
-            icon.classList.replace("fa-eye", "fa-eye-slash");
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
         }
     }
 
-    generatePayouts();
+    // 2. Greeting
+    const hour = new Date().getHours();
+    const greetElement = document.getElementById("greeting");
+    if (hour < 12) greetElement.innerText = "শুভ সকাল ☀️";
+    else if (hour < 18) greetElement.innerText = "শুভ দুপুর 🌤️";
+    else greetElement.innerText = "শুভ সন্ধ্যা 🌙";
+
+    // 3. Site Age Counter Logic
+    function updateSiteAge() {
+        // Start Date: August 28, 2025 (YYYY, MM-1, DD)
+        const startDate = new Date(2025, 7, 28).getTime(); // Month is 0-indexed (Aug = 7)
+        const now = new Date().getTime();
+        const diff = now - startDate;
+
+        // যদি সাইট এখনো শুরু না হয় (ভবিষ্যতের তারিখ), তবে ০ দেখাবে
+        if (diff < 0) {
+             // Handle future date if needed
+             return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById("days").innerText = days;
+        document.getElementById("hours").innerText = hours;
+        document.getElementById("minutes").innerText = minutes;
+        document.getElementById("seconds").innerText = seconds;
+    }
+
+    setInterval(updateSiteAge, 1000);
+    updateSiteAge();
 </script>
 
 {% endblock %}
