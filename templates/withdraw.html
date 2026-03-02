@@ -4,9 +4,7 @@
 
 <!-- Header & Balance -->
 <div class="bg-white rounded-3xl p-6 shadow-sm mb-6 border border-gray-50 flex items-center justify-between relative overflow-hidden">
-    <!-- Decor -->
     <div class="absolute right-0 top-0 w-24 h-24 bg-green-50 rounded-bl-full opacity-50"></div>
-    
     <div>
         <p class="text-xs text-gray-500 font-bold mb-1 flex items-center gap-1">
             <i class="fa-solid fa-wallet text-green-500"></i> বর্তমান ব্যালেন্স
@@ -18,42 +16,52 @@
     </div>
 </div>
 
-<!-- Conditions Status Card -->
+<!-- Conditions Status Card (Updated) -->
 <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 mb-8">
     <h3 class="font-bold text-[#0A2540] mb-5 border-b border-gray-100 pb-3 flex items-center gap-2 text-sm">
         <i class="fa-solid fa-list-check text-[#E2136E]"></i> উত্তোলনের শর্তসমূহ
     </h3>
     
-    <!-- Condition 1: Referrals -->
-    <div class="mb-5">
+    <!-- 1. Referrals Check -->
+    <div class="mb-4">
         <div class="flex justify-between text-sm mb-2">
-            <span class="text-gray-600 font-medium flex items-center gap-2">
-                <i class="fa-solid fa-users text-blue-500"></i> রেফারেল প্রয়োজন (৫টি)
+            <span class="text-gray-600 font-medium text-xs">
+                <i class="fa-solid fa-users text-blue-500"></i> ৩টি রেফারেল
             </span>
-            <span class="font-bold text-xs px-2 py-0.5 rounded-md {{ 'bg-green-100 text-green-700' if ref_count >= 3 else 'bg-red-50 text-red-500' }}">
-                {{ ref_count }} / 5
+            <span class="font-bold text-[10px] px-2 py-0.5 rounded-md {{ 'bg-green-100 text-green-700' if ref_count >= 3 else 'bg-red-50 text-red-500' }}">
+                {{ ref_count }} / 3
             </span>
         </div>
-        <!-- Progress Bar -->
-        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-400 to-blue-600 h-2.5 rounded-full transition-all duration-700 ease-out shadow-sm" 
-                 style="width: {{ (ref_count / 5) * 100 if ref_count < 5 else 100 }}%"></div>
+        <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-blue-500 h-1.5 rounded-full transition-all duration-700" 
+                 style="width: {{ (ref_count / 3) * 100 if ref_count < 3 else 100 }}%"></div>
         </div>
-        {% if ref_count < 5 %}
-        <p class="text-[10px] text-gray-400 mt-1.5 ml-1">
-            <i class="fa-solid fa-circle-info"></i> আরও {{ 5 - ref_count }} জনকে রেফার করতে হবে।
-        </p>
-        {% endif %}
     </div>
 
-    <!-- Condition 2: Min Balance -->
-    <div>
+    <!-- 2. Account Age Check (New) -->
+    <div class="mb-4">
         <div class="flex justify-between text-sm mb-2">
-            <span class="text-gray-600 font-medium flex items-center gap-2">
-                <i class="fa-solid fa-coins text-yellow-500"></i> মিনিমাম ব্যালেন্স (২৫০ টাকা)
+            <span class="text-gray-600 font-medium text-xs">
+                <i class="fa-regular fa-calendar-days text-purple-500"></i> একাউন্টের বয়স (১ দিন)
             </span>
-            <span class="font-bold text-xs px-2 py-0.5 rounded-md {{ 'bg-green-100 text-green-700' if user.balance >= 250 else 'bg-red-50 text-red-500' }}">
-                {% if user.balance >= 250 %}
+            <span class="font-bold text-[10px] px-2 py-0.5 rounded-md {{ 'bg-green-100 text-green-700' if account_days >= 1 else 'bg-red-50 text-red-500' }}">
+                {{ account_days }} দিন
+            </span>
+        </div>
+        <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-purple-500 h-1.5 rounded-full transition-all duration-700" 
+                 style="width: {{ '100' if account_days >= 1 else '50' }}%"></div>
+        </div>
+    </div>
+
+    <!-- 3. Min Balance Check -->
+    <div>
+        <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600 font-medium text-xs">
+                <i class="fa-solid fa-coins text-yellow-500"></i> মিনিমাম ৩০০ টাকা
+            </span>
+            <span class="font-bold text-[10px] px-2 py-0.5 rounded-md {{ 'bg-green-100 text-green-700' if user.balance >= 300 else 'bg-red-50 text-red-500' }}">
+                {% if user.balance >= 300 %}
                     <i class="fa-solid fa-check"></i> সম্পন্ন
                 {% else %}
                     <i class="fa-solid fa-xmark"></i> কম আছে
@@ -64,30 +72,27 @@
 </div>
 
 <!-- Withdraw Form -->
-<form method="POST" action="/withdraw" class="bg-white p-6 rounded-3xl shadow-lg shadow-gray-100 border border-gray-50 relative overflow-hidden">
+<form method="POST" action="/withdraw" class="bg-white p-6 rounded-3xl shadow-lg shadow-gray-100 border border-gray-50">
     
     <!-- Payment Method -->
     <div class="mb-6">
-        <label class="block text-xs font-bold text-gray-700 mb-3 ml-1">পেমেন্ট মেথড সিলেক্ট করুন</label>
+        <label class="block text-xs font-bold text-gray-700 mb-3 ml-1">মেথড সিলেক্ট করুন</label>
         <div class="grid grid-cols-3 gap-3">
-            <!-- bKash -->
             <label class="cursor-pointer group">
                 <input type="radio" name="method" value="bKash" class="peer sr-only" checked>
-                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#E2136E] peer-checked:bg-pink-50 peer-checked:text-[#E2136E] transition hover:border-pink-200">
+                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#E2136E] peer-checked:bg-pink-50 peer-checked:text-[#E2136E] transition">
                     <div class="font-bold text-sm">bKash</div>
                 </div>
             </label>
-            <!-- Nagad -->
             <label class="cursor-pointer group">
                 <input type="radio" name="method" value="Nagad" class="peer sr-only">
-                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#F7931A] peer-checked:bg-orange-50 peer-checked:text-[#F7931A] transition hover:border-orange-200">
+                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#F7931A] peer-checked:bg-orange-50 peer-checked:text-[#F7931A] transition">
                     <div class="font-bold text-sm">Nagad</div>
                 </div>
             </label>
-            <!-- Rocket -->
             <label class="cursor-pointer group">
                 <input type="radio" name="method" value="Rocket" class="peer sr-only">
-                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#8C3494] peer-checked:bg-purple-50 peer-checked:text-[#8C3494] transition hover:border-purple-200">
+                <div class="py-3 border-2 border-gray-100 rounded-xl text-center peer-checked:border-[#8C3494] peer-checked:bg-purple-50 peer-checked:text-[#8C3494] transition">
                     <div class="font-bold text-sm">Rocket</div>
                 </div>
             </label>
@@ -102,24 +107,24 @@
                 <i class="fa-solid fa-phone text-gray-400"></i>
             </div>
             <input type="number" name="number" required placeholder="017xxxxxxxx" 
-                   class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white">
+                   class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] bg-gray-50 focus:bg-white text-sm">
         </div>
     </div>
 
     <!-- Amount Input -->
     <div class="mb-8">
-        <label class="block text-xs font-bold text-gray-700 mb-1.5 ml-1">টাকার পরিমাণ</label>
+        <label class="block text-xs font-bold text-gray-700 mb-1.5 ml-1">টাকার পরিমাণ (Min 300)</label>
         <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                 <i class="fa-solid fa-bangladeshi-taka-sign text-gray-400"></i>
             </div>
-            <input type="number" name="amount" min="250" required placeholder="250" 
-                   class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm bg-gray-50 focus:bg-white">
+            <input type="number" name="amount" min="300" required placeholder="300" 
+                   class="w-full pl-10 p-3.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] bg-gray-50 focus:bg-white text-sm">
         </div>
     </div>
 
     <!-- Submit Button Logic -->
-    {% if ref_count >= 5 and user.balance >= 250 %}
+    {% if ref_count >= 3 and user.balance >= 300 and account_days >= 1 %}
         <button type="submit" class="w-full bg-[#E2136E] text-white py-3.5 rounded-xl font-bold shadow-lg shadow-pink-200 hover:bg-[#c2105e] active:scale-95 transition flex items-center justify-center gap-2">
             <span>উত্তোলন করুন</span>
             <i class="fa-solid fa-paper-plane"></i>
@@ -128,7 +133,7 @@
         <button type="button" disabled class="w-full bg-gray-200 text-gray-400 py-3.5 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2">
             <i class="fa-solid fa-lock"></i> শর্ত পূরণ হয়নি
         </button>
-        <p class="text-center text-[10px] text-gray-400 mt-2">5টি রেফার এবং ২৫০ টাকা ব্যালেন্স প্রয়োজন</p>
+        <p class="text-center text-[10px] text-gray-400 mt-2">সবুজ শর্তগুলো পূরণ করতে হবে</p>
     {% endif %}
 
 </form>
