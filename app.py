@@ -122,7 +122,98 @@ def index():
         return redirect(url_for('dashboard'))
     return render_template('home.html')
     # --- ADMIN: ADVANCED CUSTOM FILTER (DYNAMIC) ---
+# --- ADMIN: MANAGE DRIVE PACKS ---
+@app.route('/admin/drive/manage', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_drive_manage():
+    # প্যাক অ্যাড করা
+    if request.method == 'POST':
+        operator = request.form.get('operator')
+        title = request.form.get('title')
+        category = request.form.get('category')
+        regular_price = request.form.get('regular_price')
+        offer_price = request.form.get('offer_price')
+        validity = request.form.get('validity')
+        
+        # Commission Calculation (Optional display)
+        diff = float(regular_price) - float(offer_price)
+        commission = f"{int((diff / float(regular_price)) * 100)}%"
 
+        supabase.table('drive_packs').insert({
+            'operator': operator,
+            'title': title,
+            'category': category,
+            'regular_price': regular_price,
+            'offer_price': offer_price,
+            'commission': commission,
+            'validity': validity
+        }).execute()
+        flash("✅ নতুন ড্রাইভ প্যাক যুক্ত হয়েছে!", "success")
+        return redirect(url_for('admin_drive_manage'))
+
+    # প্যাক লিস্ট এবং অর্ডার লিস্ট দেখানো
+    packs = supabase.table('drive_packs').select('*').order('id', desc=True).execute().data
+    orders = supabase.table('drive_orders').select('*').order('created_at', desc=True).execute().data
+    
+    # অর্ডারের সাথে প্যাক ডিটেইলস মার্জ করা (Display purpose)
+    final_orders = []
+    for o in orders:
+        try:
+            pack = supabase.table('drive_packs').select('title, operator').eq('id', o['pack_id']).single().execute().data
+            o['pack_title'] = pack['title']
+            o['operator'] = pack['operator']
+            final_orders.append(o)
+        except: continue
+
+    return render_template('admin_drive.html', packs=packs, orders=final_orders)
+
+# --- ADMIN: APPROVE DRIVE ORDER ---
+@app.route('/admin/drive/action/<action>/<int:id>')
+@login_required
+@admin_required
+def drive_action(action, id):
+    status = 'success' if action == 'approve' else 'canceled'
+    supabase.table('drive_orders').update({'status': status}).eq('id', id).execute()
+    flash(f"অর্ডার স্ট্যাটাস: {status}", "info")
+    return redirect(url_for('admin_drive_manage'))
+
+# --- USER: DRIVE STORE (VIEW PACKS) ---
+@app.route('/drive')
+@login_required
+def drive_store():
+    # সব অ্যাক্টিভ প্যাক আনা
+    packs = supabase.table('drive_packs').select('*').eq('is_active', True).order('id', desc=True).execute().data
+    return render_template('drive.html', packs=packs)
+
+# --- USER: BUY PACK (CHECKOUT) ---
+@app.route('/drive/buy/<int:id>', methods=['GET', 'POST'])
+@login_required
+def drive_buy(id):
+    # প্যাক ডিটেইলস
+    pack = supabase.table('drive_packs').select('*').eq('id', id).single().execute().data
+    
+    if request.method == 'POST':
+        mobile = request.form.get('mobile')
+        method = request.form.get('method')
+        sender = request.form.get('sender')
+        trx_id = request.form.get('trx_id')
+        
+        supabase.table('drive_orders').insert({
+            'user_id': session['user_id'],
+            'pack_id': id,
+            'mobile_number': mobile,
+            'payment_method': method,
+            'sender_number': sender,
+            'trx_id': trx_id,
+            'status': 'pending'
+        }).execute()
+        
+        flash("✅ অর্ডার সফল! এডমিন চেক করে অফারটি চালু করে দিবেন।", "success")
+        return redirect(url_for('drive_store'))
+        
+    return render_template('drive_checkout.html', pack=pack)
+    
 # --- DAILY CHECK-IN BONUS ---
 @app.route('/daily-checkin')
 @login_required
