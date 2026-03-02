@@ -2,290 +2,348 @@
 {% block content %}
 
 <style>
-    /* Custom Animations */
-    .fade-up { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    /* Premium Animations */
+    .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+    @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
     
-    .glass-panel {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
     }
 
-    /* Payout Scroll Animation */
-    .scrolling-wrapper {
-        height: 160px; /* Height increased for better visibility */
-        overflow: hidden;
+    .hero-card {
+        background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%);
         position: relative;
+        overflow: hidden;
     }
-    .scrolling-content {
-        animation: scrollUp 20s linear infinite; /* Slower speed for readability */
+
+    .scroll-vertical {
+        animation: scrollVert 15s linear infinite;
     }
-    @keyframes scrollUp {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-50%); }
-    }
+    @keyframes scrollVert { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+
+    /* Delay classes for staggering animation */
+    .delay-100 { animation-delay: 0.1s; }
+    .delay-200 { animation-delay: 0.2s; }
+    .delay-300 { animation-delay: 0.3s; }
 </style>
 
-<div class="space-y-5 pb-28 pt-2 fade-up">
+<div class="space-y-6 pb-32 pt-4">
 
-    <!-- 1. HEADER & GREETING -->
-    <div class="flex justify-between items-center px-1">
+    <!-- 1. HEADER PROFILE (Minimalist) -->
+    <div class="flex justify-between items-center px-2 slide-up">
         <div class="flex items-center gap-3">
-            <div class="h-11 w-11 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100 text-[#4F46E5] text-lg font-bold shadow-sm">
-                {{ user.email[0] | upper }}
+            <div class="relative">
+                <div class="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl font-bold border-2 border-white shadow-sm">
+                    {{ user.email[0] | upper }}
+                </div>
+                <div class="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
             <div>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider" id="greeting">Hello</p>
-                <h2 class="text-lg font-bold text-slate-800 leading-tight">
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5" id="greeting">HELLO</p>
+                <h2 class="text-lg font-bold text-slate-800 leading-none">
                     {{ user.email.split('@')[0] | title }}
-                    {% if user.is_active %}
-                        <i class="fa-solid fa-circle-check text-blue-500 text-xs ml-1"></i>
-                    {% endif %}
                 </h2>
-            </div>
-        </div>
-        <div class="flex gap-2">
-            <a href="/notice" class="h-10 w-10 glass-panel rounded-full flex items-center justify-center text-slate-600 hover:text-[#4F46E5] transition relative">
-                <i class="fa-regular fa-bell"></i>
-                {% if settings.notice_text %}
-                <span class="absolute top-2.5 right-3 h-2 w-2 bg-red-500 rounded-full animate-ping"></span>
-                <span class="absolute top-2.5 right-3 h-2 w-2 bg-red-500 rounded-full"></span>
+                {% if user.is_active %}
+                <span class="inline-flex items-center gap-1 bg-green-50 text-green-600 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1">
+                    <i class="fa-solid fa-crown text-yellow-500"></i> Premium User
+                </span>
+                {% else %}
+                <a href="/activate" class="inline-flex items-center gap-1 bg-red-50 text-red-500 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1 animate-pulse">
+                    <i class="fa-solid fa-lock"></i> Activate Now
+                </a>
                 {% endif %}
-            </a>
-        </div>
-    </div>
-
-    <!-- ⚠️ ACTIVATION ALERT -->
-    {% if settings.activation_required and not user.is_active %}
-    <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-100 p-4 rounded-3xl relative overflow-hidden shadow-sm">
-        <div class="flex items-center justify-between relative z-10">
-            <div class="flex items-center gap-3">
-                <div class="h-10 w-10 bg-white text-red-500 rounded-full flex items-center justify-center shadow-sm text-lg">
-                    <i class="fa-solid fa-lock"></i>
-                </div>
-                <div>
-                    <h3 class="font-bold text-red-600 text-sm">একাউন্ট লকড</h3>
-                    <p class="text-[10px] text-red-400">টাস্ক শুরু করতে ভেরিফাই করুন</p>
-                </div>
             </div>
-            <a href="/activate" class="bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-200 hover:bg-red-600 transition">
-                ভেরিফাই
-            </a>
         </div>
+        <a href="/notice" class="h-10 w-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm border border-slate-100 relative">
+            <i class="fa-regular fa-bell"></i>
+            {% if settings.notice_text %}
+            <span class="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full animate-ping"></span>
+            <span class="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full"></span>
+            {% endif %}
+        </a>
     </div>
-    {% endif %}
 
-    <!-- 2. NEW BALANCE CARD (Premium Digital Card Style) -->
-    <div class="relative h-56 rounded-[32px] overflow-hidden shadow-2xl shadow-indigo-200 transition-transform hover:scale-[1.01] duration-300">
-        <!-- Background -->
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-[#1e1b4b] to-indigo-900"></div>
-        
-        <!-- Texture/Noise -->
-        <div class="absolute inset-0 opacity-10" style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');"></div>
-        
-        <!-- Blobs -->
-        <div class="absolute -top-10 -right-10 w-48 h-48 bg-purple-500 rounded-full mix-blend-overlay filter blur-3xl opacity-30"></div>
-        <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-blue-500 rounded-full mix-blend-overlay filter blur-3xl opacity-30"></div>
+    <!-- 2. MASTER CARD (Wallet) -->
+    <div class="hero-card rounded-[32px] p-6 text-white shadow-xl shadow-indigo-500/20 slide-up delay-100 relative group">
+        <!-- Abstract Shapes -->
+        <div class="absolute top-0 right-0 w-48 h-48 bg-white opacity-10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-110 transition duration-700"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-pink-500 opacity-20 rounded-full blur-3xl -ml-10 -mb-10"></div>
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
 
-        <div class="relative z-10 p-6 flex flex-col justify-between h-full text-white">
-            <!-- Card Top -->
+        <div class="relative z-10">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-[10px] text-indigo-200 font-bold tracking-widest uppercase">Available Balance</p>
-                    <div class="flex items-center gap-3 mt-1 cursor-pointer group" onclick="toggleBalance()">
-                        <h1 id="balanceText" class="text-4xl font-bold font-mono tracking-tight blur-md group-hover:scale-105 transition-all duration-300">
+                    <p class="text-xs text-indigo-100 font-medium tracking-wide">Total Balance</p>
+                    <div class="flex items-center gap-3 mt-1 cursor-pointer" onclick="toggleBalance()">
+                        <h1 id="balanceText" class="text-4xl font-bold font-mono tracking-tight blur-md transition-all duration-300">
                             ৳{{ user.balance }}
                         </h1>
-                        <div class="h-6 w-6 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm">
-                            <i id="eyeIcon" class="fa-regular fa-eye-slash text-xs text-indigo-200"></i>
+                        <div class="h-6 w-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
+                            <i id="eyeIcon" class="fa-regular fa-eye-slash text-[10px]"></i>
                         </div>
                     </div>
                 </div>
-                <!-- Chip Icon -->
-                <div class="h-10 w-14 bg-gradient-to-br from-yellow-200 to-yellow-500 rounded-lg opacity-80 flex items-center justify-center shadow-inner">
-                    <div class="w-full h-[1px] bg-yellow-600/50"></div>
+                <div class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-bold border border-white/10">
+                    UID: {{ user.referral_code }}
                 </div>
             </div>
 
-            <!-- Card Bottom -->
-            <div class="flex items-end justify-between">
-                <div class="space-y-1">
-                    <p class="text-[9px] text-indigo-300 uppercase">User ID</p>
-                    <p class="font-mono text-sm tracking-wider text-indigo-50">{{ user.referral_code or 'PAY-R-USER' }}</p>
+            <!-- Stats Row -->
+            <div class="flex gap-4 mt-6">
+                <div class="flex-1 bg-black/10 backdrop-blur-sm rounded-2xl p-3 border border-white/5">
+                    <p class="text-[10px] text-indigo-100">Today's Income</p>
+                    <p class="text-sm font-bold mt-0.5">৳ 0.00</p>
                 </div>
-                
-                <div class="flex gap-2">
-                    <a href="/withdraw" class="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-white hover:text-indigo-900 transition flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-up"></i> উইথড্র
-                    </a>
-                    <a href="/tasks" class="bg-white text-indigo-900 px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-black/10 hover:bg-indigo-50 transition flex items-center gap-1">
-                        <i class="fa-solid fa-play"></i> কাজ
-                    </a>
+                <div class="flex-1 bg-black/10 backdrop-blur-sm rounded-2xl p-3 border border-white/5">
+                    <p class="text-[10px] text-indigo-100">Pending</p>
+                    <p class="text-sm font-bold mt-0.5">৳ 0.00</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. NOTICE TICKET -->
-    {% if settings.notice_text %}
-    <div class="glass-panel p-2 rounded-2xl flex items-center overflow-hidden">
-        <div class="bg-indigo-50 text-[#4F46E5] px-3 py-1.5 rounded-xl text-[10px] font-bold flex-shrink-0 mr-2 flex items-center gap-1">
-            <i class="fa-solid fa-bolt"></i> Notice
-        </div>
-        <marquee class="text-xs text-slate-600 font-medium" scrollamount="4">
-            {{ settings.notice_text }}
-        </marquee>
+    <!-- 3. ACTION BUTTONS (Floating) -->
+    <div class="grid grid-cols-2 gap-4 -mt-4 px-4 relative z-20 slide-up delay-200">
+        <a href="/withdraw" class="bg-white p-3 rounded-2xl shadow-lg shadow-slate-200/50 flex items-center justify-center gap-2 text-sm font-bold text-slate-700 hover:scale-[1.02] transition">
+            <div class="h-8 w-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm">
+                <i class="fa-solid fa-arrow-up"></i>
+            </div>
+            উইথড্র
+        </a>
+        <a href="/tasks" class="bg-white p-3 rounded-2xl shadow-lg shadow-slate-200/50 flex items-center justify-center gap-2 text-sm font-bold text-slate-700 hover:scale-[1.02] transition">
+            <div class="h-8 w-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm">
+                <i class="fa-solid fa-play"></i>
+            </div>
+            কাজ করুন
+        </a>
     </div>
-    {% endif %}
 
-    <!-- 4. LIVE PAYOUTS (UPDATED LOGIC) -->
-    <div class="glass-panel p-5 rounded-3xl overflow-hidden">
+    <!-- 4. DAILY CHECK-IN (Gamified) -->
+    <div class="glass-card p-5 rounded-3xl slide-up delay-300">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-slate-700 text-xs flex items-center gap-2">
+            <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-[#4F46E5]"></i> ডেইলি চেক-ইন
+            </h3>
+            <span class="text-[10px] text-slate-400">7 Days Streak</span>
+        </div>
+        <div class="flex justify-between gap-1">
+            <!-- 7 Days Loop -->
+            <div class="flex flex-col items-center gap-1 group cursor-pointer" onclick="alert('আজকের বোনাস শীঘ্রই আসছে!')">
+                <span class="text-[9px] font-bold text-slate-400">SAT</span>
+                <div class="h-8 w-8 rounded-full bg-[#4F46E5] text-white flex items-center justify-center text-xs shadow-md shadow-indigo-200">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+            </div>
+            <!-- Inactive Days -->
+            <div class="flex flex-col items-center gap-1 opacity-50">
+                <span class="text-[9px] font-bold text-slate-400">SUN</span>
+                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-1 opacity-50">
+                <span class="text-[9px] font-bold text-slate-400">MON</span>
+                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-1 opacity-50">
+                <span class="text-[9px] font-bold text-slate-400">TUE</span>
+                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-1 opacity-50">
+                <span class="text-[9px] font-bold text-slate-400">WED</span>
+                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-1 opacity-50">
+                <span class="text-[9px] font-bold text-slate-400">THU</span>
+                <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-1 opacity-50">
+                <span class="text-[9px] font-bold text-slate-400">FRI</span>
+                <div class="h-8 w-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center text-[10px] border border-yellow-200">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. MAIN MENU GRID -->
+    <div class="slide-up delay-300">
+        <h3 class="font-bold text-slate-700 px-2 text-sm mb-3">সার্ভিসসমূহ</h3>
+        <div class="grid grid-cols-4 gap-3">
+            
+            <a href="/tasks" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+                <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-brands fa-youtube"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">টাস্ক</span>
+            </a>
+
+            <a href="/proofs" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+                <div class="h-10 w-10 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">প্রুফ</span>
+            </a>
+
+            <a href="/history" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">হিস্টোরি</span>
+            </a>
+
+            <a href="/referrals" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">রেফার</span>
+            </a>
+
+            <a href="/notice" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+                <div class="h-10 w-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">নোটিশ</span>
+            </a>
+
+            <a href="/tutorial" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+                <div class="h-10 w-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-play"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">ভিডিও</span>
+            </a>
+
+            <a href="https://t.me/securehx" target="_blank" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+                <div class="h-10 w-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-brands fa-telegram"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">হেল্প</span>
+            </a>
+
+            <a href="/account" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+                <div class="h-10 w-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-bars"></i>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">অন্যান্য</span>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- 6. LIVE PAYOUTS & LEADERBOARD -->
+    <div class="grid md:grid-cols-2 gap-4 slide-up delay-300">
+        
+        <!-- Payouts -->
+        <div class="glass-card p-5 rounded-3xl overflow-hidden h-48">
+            <h3 class="font-bold text-slate-700 text-xs mb-3 flex items-center gap-2">
                 <span class="relative flex h-2 w-2">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                 </span>
-                লাইভ পেমেন্ট (Real-time)
+                লাইভ পেমেন্ট
             </h3>
-            <span class="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded font-bold">500+ Paid Today</span>
-        </div>
-        
-        <div class="scrolling-wrapper">
-            <div class="scrolling-content space-y-3" id="payoutList">
-                <!-- Javascript will populate this -->
+            <div class="h-32 overflow-hidden relative">
+                <div class="scroll-vertical space-y-3" id="payoutList">
+                    <!-- Javascript will populate -->
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- 5. EXPLORE MENU -->
-    <div class="grid grid-cols-3 gap-3">
-        <!-- Tasks -->
-        <a href="/tasks" class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white transition group">
-            <div class="h-10 w-10 bg-indigo-50 text-[#4F46E5] rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
-                <i class="fa-brands fa-youtube"></i>
+        <!-- Leaderboard (Top Earners) -->
+        <div class="glass-card p-5 rounded-3xl">
+            <h3 class="font-bold text-slate-700 text-xs mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-yellow-500"></i> আজকের টপ আর্নার
+            </h3>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="h-8 w-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center font-bold text-xs">1</div>
+                        <span class="text-xs font-bold text-slate-600">Akash***</span>
+                    </div>
+                    <span class="text-xs font-bold text-[#4F46E5]">৳১২৫০</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="h-8 w-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center font-bold text-xs">2</div>
+                        <span class="text-xs font-bold text-slate-600">Rahim***</span>
+                    </div>
+                    <span class="text-xs font-bold text-[#4F46E5]">৳৯৮০</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="h-8 w-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center font-bold text-xs">3</div>
+                        <span class="text-xs font-bold text-slate-600">Sumon***</span>
+                    </div>
+                    <span class="text-xs font-bold text-[#4F46E5]">৳৮৫০</span>
+                </div>
             </div>
-            <span class="font-bold text-[10px] text-slate-600">টাস্ক</span>
-        </a>
-        
-        <!-- Proofs -->
-        <a href="/proofs" class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white transition group">
-            <div class="h-10 w-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
-                <i class="fa-solid fa-receipt"></i>
-            </div>
-            <span class="font-bold text-[10px] text-slate-600">প্রুফ</span>
-        </a>
+        </div>
 
-        <!-- History -->
-        <a href="/history" class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white transition group">
-            <div class="h-10 w-10 bg-purple-50 text-purple-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-            </div>
-            <span class="font-bold text-[10px] text-slate-600">হিস্টোরি</span>
-        </a>
-
-        <!-- Referrals -->
-        <a href="/referrals" class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white transition group">
-            <div class="h-10 w-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
-                <i class="fa-solid fa-users"></i>
-            </div>
-            <span class="font-bold text-[10px] text-slate-600">রেফার</span>
-        </a>
-
-        <!-- Notice -->
-        <a href="/notice" class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white transition group">
-            <div class="h-10 w-10 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
-                <i class="fa-solid fa-bell"></i>
-            </div>
-            <span class="font-bold text-[10px] text-slate-600">নোটিশ</span>
-        </a>
-
-        <!-- Support -->
-        <a href="https://t.me/securehx" target="_blank" class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white transition group">
-            <div class="h-10 w-10 bg-sky-50 text-sky-500 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">
-                <i class="fa-brands fa-telegram"></i>
-            </div>
-            <span class="font-bold text-[10px] text-slate-600">সাপোর্ট</span>
-        </a>
     </div>
 
 </div>
 
 <!-- SCRIPTS -->
 <script>
-    // 1. GENERATE FAKE LIVE PAYOUTS
+    // 1. Generate Live Payouts
     function generatePayouts() {
         const container = document.getElementById('payoutList');
         const methods = ['bKash', 'Nagad', 'Rocket'];
-        const prefixes = ['017', '019', '018', '016', '013', '015'];
-        
+        const prefixes = ['017', '019', '018', '016'];
         let html = '';
         
-        // Generate 15 fake items
-        for(let i=0; i<15; i++) {
-            // Random Number: 017****XX
+        for(let i=0; i<10; i++) {
             const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
             const lastTwo = Math.floor(Math.random() * 90 + 10);
-            const number = `${prefix}****${lastTwo}`;
-            
-            // Random Amount: 250 - 900 (Ending in 0)
-            // Logic: Random between 25 and 90, multiply by 10
-            const randomMultiplier = Math.floor(Math.random() * (90 - 25 + 1)) + 25; 
-            const amount = randomMultiplier * 10; 
-            
-            // Method
+            const amount = (Math.floor(Math.random() * 7) + 3) * 100; // 300-900
             const method = methods[Math.floor(Math.random() * methods.length)];
             
-            // Icon Color Logic
-            let iconClass = 'bg-pink-50 text-pink-600';
-            if(method === 'Nagad') iconClass = 'bg-orange-50 text-orange-600';
-            if(method === 'Rocket') iconClass = 'bg-purple-50 text-purple-600';
-
             html += `
-                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 transition">
-                    <div class="flex items-center gap-3">
-                        <div class="h-8 w-8 ${iconClass} rounded-full flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-wallet"></i>
-                        </div>
+                <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50/50 border border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <div class="h-6 w-6 bg-white rounded-full flex items-center justify-center text-[10px] shadow-sm"><i class="fa-solid fa-wallet text-slate-400"></i></div>
                         <div>
-                            <p class="text-xs text-slate-700 font-bold font-mono">${number}</p>
-                            <p class="text-[9px] text-slate-400">${method}</p>
+                            <p class="text-[10px] text-slate-700 font-bold font-mono">${prefix}****${lastTwo}</p>
                         </div>
                     </div>
-                    <span class="text-xs font-bold text-green-600 font-mono">+৳${amount}</span>
+                    <span class="text-[10px] font-bold text-green-600">+৳${amount} (${method})</span>
                 </div>
             `;
         }
-        
-        container.innerHTML = html + html; // Duplicate for smooth loop
+        container.innerHTML = html + html; 
     }
 
-    // 2. Balance Reveal
+    // 2. Greeting
+    const hour = new Date().getHours();
+    const greetElement = document.getElementById("greeting");
+    if (hour < 12) greetElement.innerText = "GOOD MORNING";
+    else if (hour < 18) greetElement.innerText = "GOOD AFTERNOON";
+    else greetElement.innerText = "GOOD EVENING";
+
+    // 3. Toggle Balance
     function toggleBalance() {
         const balance = document.getElementById("balanceText");
         const icon = document.getElementById("eyeIcon");
-        
         if (balance.classList.contains("blur-md")) {
             balance.classList.remove("blur-md");
-            icon.classList.remove("fa-eye-slash");
-            icon.classList.add("fa-eye");
+            icon.classList.replace("fa-eye-slash", "fa-eye");
         } else {
             balance.classList.add("blur-md");
-            icon.classList.remove("fa-eye");
-            icon.classList.add("fa-eye-slash");
+            icon.classList.replace("fa-eye", "fa-eye-slash");
         }
     }
 
-    // 3. Greeting
-    const hour = new Date().getHours();
-    const greetElement = document.getElementById("greeting");
-    if (hour < 12) greetElement.innerText = "শুভ সকাল";
-    else if (hour < 18) greetElement.innerText = "শুভ দুপুর";
-    else greetElement.innerText = "শুভ সন্ধ্যা";
-
-    // Run Function
     generatePayouts();
 </script>
 
