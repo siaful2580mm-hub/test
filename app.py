@@ -615,7 +615,7 @@ def admin_ref_check():
                 flash(f"System Error: {str(e)}", "error")
 
     return render_template('ref_check.html', target_user=target_user, referrals=referrals, count=ref_count, search_email=search_email)
-# --- REFERRALS PAGE (CAMPAIGN & LEADERBOARD) ---
+# --- REFERRALS PAGE (LOGIC UPDATED) ---
 @app.route('/referrals')
 @login_required
 def referrals():
@@ -625,29 +625,23 @@ def referrals():
         my_refs = res.data
         
         total_count = len(my_refs)
-        # ২. কতজন Active (Paid) তা বের করা (ক্যাম্পেইনের জন্য)
-        active_count = sum(1 for user in my_refs if user.get('is_active') == True)
         
-        # ৩. লিডারবোর্ড তৈরি (সবচেয়ে বেশি রেফার কার)
-        # (প্রোডাকশনে এটি স্লো হতে পারে, তবে এখনকার জন্য ঠিক আছে)
-        all_users = supabase.table('profiles').select('id, email, referral_code').execute().data
-        leaderboard = []
+        # ২. Active Count লজিক (Settings অনুযায়ী)
+        if g.settings.get('activation_required'):
+            # যদি অ্যাক্টিভেশন অন থাকে, তবে শুধু Paid ইউজার গুনবে
+            active_count = sum(1 for user in my_refs if user.get('is_active') == True)
+        else:
+            # যদি অ্যাক্টিভেশন অফ থাকে, তবে সবাইকেই Active হিসেবে গুনবে (Campaign এর জন্য)
+            active_count = total_count
         
-        # র‍্যান্ডম ৫ জন টপ ইউজার দেখানো (ডেমো লজিক যাতে সাইট ফাস্ট থাকে)
-        # রিয়েল সিস্টেমে ডাটাবেসে 'ref_count' কলাম থাকা ভালো
-        import random
-        for _ in range(5):
-            if all_users:
-                u = random.choice(all_users)
-                # ফেইক কাউন্ট জেনারেট করা হচ্ছে ডেমোর জন্য (৫০-৫০০ এর মধ্যে)
-                # আপনি চাইলে রিয়েল কাউন্ট কুয়েরি করতে পারেন
-                leaderboard.append({
-                    'email': u['email'],
-                    'count': random.randint(50, 500)
-                })
-        
-        # বেশি থেকে কম সাজানো
-        leaderboard.sort(key=lambda x: x['count'], reverse=True)
+        # ৩. লিডারবোর্ড (Demo Logic)
+        leaderboard = [
+            {'email': 'top1@gmail.com', 'count': 450},
+            {'email': 'king@yahoo.com', 'count': 320},
+            {'email': 'user99@gmail.com', 'count': 150},
+            {'email': 'pro_earner@gmail.com', 'count': 85},
+            {'email': 'newbie@gmail.com', 'count': 40}
+        ]
 
     except Exception as e:
         print(f"Ref Error: {e}")
@@ -661,8 +655,8 @@ def referrals():
                            total_count=total_count, 
                            active_count=active_count, 
                            leaderboard=leaderboard,
-                           user=g.user)
-# --- DELETE NOTICE (ADMIN ONLY) ---
+                           user=g.user,
+                           settings=g.settings)# --- DELETE NOTICE (ADMIN ONLY) ---
 @app.route('/notice/delete/<int:id>')
 @login_required
 @admin_required
