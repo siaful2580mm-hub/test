@@ -911,28 +911,46 @@ def submission_action(action, sub_id):
 
     return redirect(url_for('admin_submissions'))
 
-
-# --- WITHDRAW ROUTE (FIXED & RELIABLE COUNT) ---
+# --- WITHDRAW ROUTE (UPDATED CONDITIONS) ---
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
-    # ১. রেফারেল সংখ্যা গণনা (সবচেয়ে নির্ভরযোগ্য পদ্ধতি)
+    
+    # ১. এক্টিভেশন চেক
+    if g.settings.get('activation_required'):
+        if not g.user.get('is_active') and g.user.get('role') != 'admin':
+            flash("⚠️ টাকা উত্তোলনের জন্য আগে একাউন্ট ভেরিফাই করুন!", "error")
+            return redirect(url_for('activate_account'))
+
+    # ২. রেফারেল কাউন্ট (নির্ভুল পদ্ধতি)
     try:
-        # সরাসরি আইডিগুলো নিয়ে এসে Python দিয়ে গুনব (এটি ভুল হওয়ার সুযোগ নেই)
         response = supabase.table('profiles').select('id').eq('referred_by', session['user_id']).execute()
-        ref_count = len(response.data) # ডাটাবেস থেকে আসা লিস্টের দৈর্ঘ্য
-        
-        # ডিবাগিং (Vercel Logs এ দেখার জন্য)
-        print(f"User: {session['user_id']} | Real Count: {ref_count}")
-        
-    except Exception as e:
-        print(f"Counting Error: {e}")
+        ref_count = len(response.data)
+    except:
         ref_count = 0
 
-    # ২. ব্যালেন্স লোড
+    # ৩. একাউন্টের বয়স চেক (Account Age Logic)
+    try:
+        from datetime import datetime, timezone
+        # ডাটাবেস থেকে জয়েনিং ডেট আনা (String format)
+        join_str = g.user.get('created_at') 
+        
+        # স্ট্রিং থেকে তারিখ অবজেক্টে রূপান্তর
+        # Supabase সাধারণত ISO ফরম্যাট দেয় (e.g. 2025-01-01T10:00:00+00:00)
+        join_date = datetime.fromisoformat(join_str.replace('Z', '+00:00'))
+        current_time = datetime.now(timezone.utc)
+        
+        # পার্থক্য বের করা
+        age_delta = current_time - join_date
+        account_days = age_delta.days
+    except Exception as e:
+        print(f"Date Error: {e}")
+        account_days = 0 # এরর হলে ০ ধরবে
+
+    # ৪. ব্যালেন্স লোড
     current_balance = float(g.user.get('balance', 0.0))
 
-    # ৩. ফর্ম সাবমিট হলে (POST Request)
+    # ৫. ফর্ম সাবমিট (POST Request)
     if request.method == 'POST':
         method = request.form.get('method')
         number = request.form.get('number')
@@ -941,26 +959,30 @@ def withdraw():
         except:
             amount = 0
 
-        # --- শর্ত চেক ---
+        # --- শর্ত চেক শুরু ---
         
-        # শর্ত ১: ৩টি রেফারেল
-        if ref_count < 5:
-            flash(f"❌ উইথড্র করতে ৫টি রেফার প্রয়োজন। আপনার আছে: {ref_count}টি।", "error")
+        # শর্ত ১: একাউন্টের বয়স ১ দিন হতে হবে
+        if account_days < 1:
+            flash(f"❌ একাউন্টের বয়স ১ দিন হতে হবে। (আপনার বয়স: {account_days} দিন)", "error")
             return redirect(url_for('withdraw'))
 
-        # শর্ত ২: মিনিমাম ২৫০ টাকা
-        if amount < 250:
-            flash("❌ সর্বনিম্ন উইথড্রয়াল ২৫০ টাকা।", "error")
+        # শর্ত ২: ৩টি রেফারেল
+        if ref_count < 3:
+            flash(f"❌ উইথড্র করতে ৩টি রেফার প্রয়োজন। আপনার আছে: {ref_count}টি।", "error")
             return redirect(url_for('withdraw'))
 
-        # শর্ত ৩: পর্যাপ্ত ব্যালেন্স
+        # শর্ত ৩: মিনিমাম ৩০০ টাকা
+        if amount < 300:
+            flash("❌ সর্বনিম্ন উইথড্রয়াল ৩০০ টাকা।", "error")
+            return redirect(url_for('withdraw'))
+
+        # শর্ত ৪: পর্যাপ্ত ব্যালেন্স
         if amount > current_balance:
             flash("❌ আপনার একাউন্টে পর্যাপ্ত টাকা নেই।", "error")
             return redirect(url_for('withdraw'))
 
-        # --- সব ঠিক থাকলে রিকোয়েস্ট জমা ---
+        # --- সব ঠিক থাকলে সাবমিট ---
         try:
-            # A. রিকোয়েস্ট সেভ
             supabase.table('withdrawals').insert({
                 'user_id': session['user_id'],
                 'method': method,
@@ -969,23 +991,18 @@ def withdraw():
                 'status': 'pending'
             }).execute()
 
-            # B. ব্যালেন্স থেকে টাকা কাটা
             new_balance = current_balance - amount
-            supabase.table('profiles').update({
-                'balance': new_balance
-            }).eq('id', session['user_id']).execute()
+            supabase.table('profiles').update({'balance': new_balance}).eq('id', session['user_id']).execute()
 
             flash("✅ সফল! আপনার উইথড্র রিকোয়েস্ট জমা হয়েছে।", "success")
             return redirect(url_for('history'))
 
         except Exception as e:
-            flash(f"Error: {str(e)}", "error")
+            flash(f"System Error: {str(e)}", "error")
 
-    # ৪. পেজ দেখানো (GET Request)
-    return render_template('withdraw.html', user=g.user, ref_count=ref_count)
-    # --- USER: SUBMIT TASK (ImgBB Upload) ---
-# --- USER: SUBMIT TASK (WITH DUPLICATE CHECK) ---
-@app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
+    # ৬. টেমপ্লেটে ডাটা পাঠানো
+    return render_template('withdraw.html', user=g.user, ref_count=ref_count, account_days=account_days)
+    @app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def submit_task(task_id):
     # টাস্ক ডিটেইলস আনা
