@@ -3,81 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TaskKing</title>
+    <meta name="theme-color" content="#4F46E5">
+    <title>Pay-R | Earn & Withdraw</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FontAwesome Icons (Pro Look) -->
+    <!-- FontAwesome Pro Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Fonts (Bangla Support) -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom Styles -->
     <style>
-        body { font-family: 'Hind Siliguri', sans-serif; background-color: #F8FAFC; -webkit-tap-highlight-color: transparent; }
-        
-        /* bKash Color Palette */
-        .bg-bkash-navy { background-color: #0A2540; }
-        .bg-bkash-pink { background-color: #E2136E; }
-        .text-bkash-pink { color: #E2136E; }
-        .text-bkash-navy { color: #0A2540; }
-        
-        /* Animation */
-        .fade-in { animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
-        /* Support Widget Pulse */
-        .pulse-ring {
-            box-shadow: 0 0 0 0 rgba(0, 87, 255, 0.7);
-            animation: pulse-blue 2s infinite;
+        body { 
+            font-family: 'Hind Siliguri', sans-serif; 
+            background-color: #F1F5F9; 
+            -webkit-tap-highlight-color: transparent; 
         }
-        @keyframes pulse-blue {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 87, 255, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 87, 255, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 87, 255, 0); }
+        
+        /* Pay-R Brand Colors */
+        .bg-payr-main { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); }
+        .text-payr-main { color: #4F46E5; }
+        
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Sidebar Transition */
+        #sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar-open { transform: translateX(0) !important; }
+        .sidebar-closed { transform: translateX(-100%); }
+        #overlay { transition: opacity 0.3s ease; }
+
+        /* Glassmorphism Bottom Nav */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
-<body class="flex flex-col min-h-screen text-gray-800 bg-gray-50">
+<body class="flex flex-col min-h-screen text-slate-800">
 
-    <!-- 1. TOP NAVBAR -->
-    <nav class="bg-bkash-navy text-white shadow-xl sticky top-0 z-50">
+    <!-- ================= 1. TOP NAVBAR ================= -->
+    <nav class="bg-payr-main text-white shadow-lg sticky top-0 z-40">
         <div class="container mx-auto px-4 h-16 flex justify-between items-center">
-            <!-- Logo -->
-            <a href="/" class="flex items-center gap-3 group">
-                <div class="bg-white/10 h-10 w-10 flex items-center justify-center rounded-xl group-hover:bg-white/20 transition duration-300">
-                    <i class="fa-solid fa-rocket text-lg"></i>
+            
+            <!-- Hamburger Toggle (Left) -->
+            <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-white/10 active:scale-95 transition">
+                <i class="fa-solid fa-bars-staggered text-xl"></i>
+            </button>
+
+            <!-- Logo (Center) -->
+            <a href="/" class="flex items-center gap-2 group absolute left-1/2 transform -translate-x-1/2">
+                <div class="bg-white text-[#4F46E5] h-8 w-8 flex items-center justify-center rounded-lg shadow-sm">
+                    <i class="fa-solid fa-wallet"></i>
                 </div>
-                <div>
-                    <span class="text-xl font-bold tracking-wide block leading-none">TaskKing</span>
-                    <span class="text-[10px] text-gray-300 tracking-wider">EARN MONEY</span>
-                </div>
+                <span class="text-xl font-bold tracking-wider font-mono">Pay-R</span>
             </a>
 
-            <!-- Logout Button -->
-            {% if session.get('user_id') %}
-            <div>
-                <a href="/logout" class="flex items-center gap-2 text-xs font-bold bg-white/10 px-4 py-2 rounded-full hover:bg-bkash-pink transition border border-white/10 hover:border-white/30 backdrop-blur-sm">
-                    <span>LOGOUT</span>
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </a>
-            </div>
-            {% endif %}
+            <!-- Notification / Support (Right) -->
+            <a href="https://t.me/securehx" target="_blank" class="p-2 rounded-lg hover:bg-white/10 active:scale-95 transition relative">
+                <i class="fa-regular fa-bell text-xl"></i>
+                <span class="absolute top-2 right-2 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-[#4F46E5]"></span>
+            </a>
         </div>
     </nav>
 
-    <!-- 2. FLASH MESSAGES -->
-    <div class="container mx-auto px-4 mt-4">
+    <!-- ================= 2. SIDEBAR MENU (Hidden by default) ================= -->
+    <!-- Overlay -->
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-50 hidden opacity-0"></div>
+    
+    <!-- Sidebar Content -->
+    <div id="sidebar" class="fixed top-0 left-0 h-full w-[280px] bg-white z-[60] shadow-2xl sidebar-closed flex flex-col">
+        
+        <!-- Sidebar Header -->
+        <div class="h-40 bg-payr-main p-6 flex flex-col justify-end relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            
+            {% if session.get('user_id') %}
+                <!-- User Profile -->
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="h-12 w-12 bg-white rounded-full flex items-center justify-center text-[#4F46E5] text-xl font-bold shadow-md">
+                        {{ session.get('email', 'U')[0] | upper }}
+                    </div>
+                    <div>
+                        <p class="text-sm text-blue-100">Welcome Back,</p>
+                        <p class="text-white font-bold truncate w-32">{{ session.get('email', 'User').split('@')[0] }}</p>
+                    </div>
+                </div>
+            {% else %}
+                <h2 class="text-2xl font-bold text-white">Pay-R Menu</h2>
+                <p class="text-blue-100 text-sm">Join to earn money</p>
+            {% endif %}
+        </div>
+
+        <!-- Menu Links -->
+        <div class="flex-grow overflow-y-auto p-4 space-y-2">
+            <a href="/dashboard" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 text-gray-700 hover:text-[#4F46E5] transition">
+                <i class="fa-solid fa-house w-6"></i> ড্যাশবোর্ড
+            </a>
+            <a href="/account" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 text-gray-700 hover:text-[#4F46E5] transition">
+                <i class="fa-solid fa-user w-6"></i> প্রোফাইল
+            </a>
+            <a href="/proofs" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 text-gray-700 hover:text-[#4F46E5] transition">
+                <i class="fa-solid fa-receipt w-6"></i> পেমেন্ট প্রুফ
+            </a>
+            <a href="/tutorial" class="flex items-center gap-4 p-3 rounded-xl hover:bg-indigo-50 text-gray-700 hover:text-[#4F46E5] transition">
+                <i class="fa-brands fa-youtube w-6"></i> টিউটোরিয়াল
+            </a>
+            <hr class="border-gray-100 my-2">
+            <a href="https://t.me/securehx" target="_blank" class="flex items-center gap-4 p-3 rounded-xl hover:bg-sky-50 text-gray-700 hover:text-sky-600 transition">
+                <i class="fa-brands fa-telegram w-6"></i> সাপোর্ট
+            </a>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-gray-100">
+            {% if session.get('user_id') %}
+            <a href="/logout" class="flex items-center justify-center gap-2 w-full bg-red-50 text-red-600 py-3 rounded-xl font-bold hover:bg-red-100 transition">
+                <i class="fa-solid fa-right-from-bracket"></i> লগ আউট
+            </a>
+            {% else %}
+            <a href="/login" class="flex items-center justify-center gap-2 w-full bg-[#4F46E5] text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
+                <i class="fa-solid fa-right-to-bracket"></i> লগ ইন
+            </a>
+            {% endif %}
+            <p class="text-center text-[10px] text-gray-400 mt-3">Version 2.0 | Pay-R</p>
+        </div>
+    </div>
+
+    <!-- ================= 3. FLASH MESSAGES ================= -->
+    <div class="container mx-auto px-4 mt-4 relative z-30">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div class="flash-msg p-4 mb-3 rounded-xl shadow-sm border-l-4 fade-in flex items-center gap-3 bg-white 
-                {{ 'border-red-500' if category == 'error' else 'border-green-500' }}">
-                <div class="h-8 w-8 rounded-full flex items-center justify-center {{ 'bg-red-100 text-red-600' if category == 'error' else 'bg-green-100 text-green-600' }}">
-                    <i class="fa-solid {{ 'fa-triangle-exclamation' if category == 'error' else 'fa-check' }}"></i>
-                </div>
+              <div class="flash-msg p-4 mb-3 rounded-2xl shadow-sm border-l-4 fade-in flex items-center gap-3 bg-white 
+                {{ 'border-red-500 text-red-600' if category == 'error' else 'border-green-500 text-green-600' }}">
+                <i class="fa-solid {{ 'fa-circle-exclamation' if category == 'error' else 'fa-circle-check' }} text-xl"></i>
                 <span class="font-medium text-sm text-gray-700">{{ message }}</span>
               </div>
             {% endfor %}
@@ -85,80 +152,78 @@
         {% endwith %}
     </div>
 
-    <!-- 3. MAIN CONTENT -->
+    <!-- ================= 4. MAIN CONTENT ================= -->
     <main class="flex-grow container mx-auto px-4 pb-28 pt-2">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- 4. FLOATING SUPPORT WIDGET (New!) -->
-    <a href="https://t.me/securehx" target="_blank" class="fixed bottom-24 right-5 md:bottom-10 md:right-10 z-40 group">
-        <div class="relative">
-            <!-- Tooltip -->
-            <div class="absolute right-14 top-2 bg-gray-800 text-white text-xs px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap">
-                Need Help?
-            </div>
-            <!-- Icon -->
-            <div class="h-14 w-14 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl shadow-lg shadow-blue-500/40 pulse-ring transition transform hover:scale-110">
-                <i class="fa-brands fa-telegram"></i>
-            </div>
-        </div>
-    </a>
-
-    <!-- 5. BOTTOM NAVIGATION (Mobile App Style) -->
+    <!-- ================= 5. BOTTOM NAVIGATION (Improved) ================= -->
     {% if session.get('user_id') %}
-    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] md:hidden z-50 rounded-t-2xl">
-        <div class="flex justify-around items-center h-[70px] px-2">
+    <div class="fixed bottom-0 left-0 w-full glass-nav z-40 pb-safe">
+        <div class="flex justify-between items-center px-6 h-[70px]">
             
             <!-- Home -->
-            <a href="/dashboard" class="flex flex-col items-center justify-center w-full h-full space-y-1 group">
-                <i class="fa-solid fa-house text-xl transition-colors duration-300 
-                   {{ 'text-bkash-pink' if request.endpoint == 'dashboard' else 'text-gray-400 group-hover:text-bkash-navy' }}"></i>
-                <span class="text-[10px] font-bold transition-colors duration-300
-                   {{ 'text-bkash-pink' if request.endpoint == 'dashboard' else 'text-gray-400 group-hover:text-bkash-navy' }}">হোম</span>
+            <a href="/dashboard" class="flex flex-col items-center justify-center space-y-1 w-12 group">
+                <i class="fa-solid fa-house text-xl transition-all duration-300 
+                   {{ 'text-[#4F46E5] -translate-y-1' if request.endpoint == 'dashboard' else 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                <span class="text-[10px] font-bold {{ 'text-[#4F46E5]' if request.endpoint == 'dashboard' else 'text-gray-400' }}">হোম</span>
             </a>
 
-            <!-- Tasks (Floating Center Button) -->
-            <a href="/tasks" class="relative w-full flex justify-center group">
-                <div class="absolute -top-10 bg-white p-1.5 rounded-full border-t border-gray-100 shadow-sm">
-                    <div class="h-14 w-14 rounded-full flex items-center justify-center shadow-lg transition-transform duration-300 group-active:scale-95
-                        {{ 'bg-bkash-pink text-white shadow-pink-500/30' if request.endpoint == 'tasks' else 'bg-bkash-navy text-white shadow-blue-900/30' }}">
-                        <i class="fa-solid fa-list-check text-2xl"></i>
-                    </div>
-                </div>
-                <div class="mt-8 text-center">
-                    <span class="text-[10px] font-bold transition-colors duration-300
-                       {{ 'text-bkash-pink' if request.endpoint == 'tasks' else 'text-gray-400 group-hover:text-bkash-navy' }}">টাস্ক</span>
-                </div>
+            <!-- History -->
+            <a href="/history" class="flex flex-col items-center justify-center space-y-1 w-12 group">
+                <i class="fa-solid fa-clock-rotate-left text-xl transition-all duration-300
+                   {{ 'text-[#4F46E5] -translate-y-1' if request.endpoint == 'history' else 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                <span class="text-[10px] font-bold {{ 'text-[#4F46E5]' if request.endpoint == 'history' else 'text-gray-400' }}">হিস্টোরি</span>
             </a>
 
-            <!-- Account -->
-            <a href="/account" class="flex flex-col items-center justify-center w-full h-full space-y-1 group">
-                <i class="fa-solid fa-user-gear text-xl transition-colors duration-300
-                   {{ 'text-bkash-pink' if request.endpoint == 'account' else 'text-gray-400 group-hover:text-bkash-navy' }}"></i>
-                <span class="text-[10px] font-bold transition-colors duration-300
-                   {{ 'text-bkash-pink' if request.endpoint == 'account' else 'text-gray-400 group-hover:text-bkash-navy' }}">একাউন্ট</span>
+            <!-- Main Task Button (Floating) -->
+            <div class="relative -top-6">
+                <a href="/tasks" class="h-16 w-16 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] flex items-center justify-center text-white shadow-lg shadow-indigo-300 hover:scale-105 active:scale-95 transition border-4 border-[#F1F5F9]">
+                    <i class="fa-solid fa-layer-group text-2xl"></i>
+                </a>
+            </div>
+
+            <!-- Wallet -->
+            <a href="/withdraw" class="flex flex-col items-center justify-center space-y-1 w-12 group">
+                <i class="fa-solid fa-wallet text-xl transition-all duration-300
+                   {{ 'text-[#4F46E5] -translate-y-1' if request.endpoint == 'withdraw' else 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                <span class="text-[10px] font-bold {{ 'text-[#4F46E5]' if request.endpoint == 'withdraw' else 'text-gray-400' }}">ওয়ালেট</span>
             </a>
+
+            <!-- Menu/Profile -->
+            <button onclick="toggleSidebar()" class="flex flex-col items-center justify-center space-y-1 w-12 group">
+                <i class="fa-solid fa-bars text-xl text-gray-400 group-hover:text-[#4F46E5] transition-colors"></i>
+                <span class="text-[10px] font-bold text-gray-400">মেনু</span>
+            </button>
 
         </div>
     </div>
     {% endif %}
 
-    <!-- Footer (Desktop Only) -->
-    <footer class="hidden md:block bg-white border-t mt-auto py-8">
-        <div class="container mx-auto px-4 text-center">
-            <div class="flex justify-center gap-6 mb-4 text-gray-400">
-                <a href="#" class="hover:text-bkash-pink transition"><i class="fa-brands fa-facebook text-xl"></i></a>
-                <a href="#" class="hover:text-bkash-pink transition"><i class="fa-brands fa-telegram text-xl"></i></a>
-                <a href="#" class="hover:text-bkash-pink transition"><i class="fa-brands fa-youtube text-xl"></i></a>
-            </div>
-            <p class="text-gray-500 text-sm">© 2024 TaskKing. All rights reserved.</p>
-        </div>
-    </footer>
-
     <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
-        // Auto-hide flash messages
+        // Toggle Sidebar Logic
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+
+        function toggleSidebar() {
+            if (sidebar.classList.contains('sidebar-closed')) {
+                // Open
+                sidebar.classList.remove('sidebar-closed');
+                sidebar.classList.add('sidebar-open');
+                overlay.classList.remove('hidden');
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            } else {
+                // Close
+                sidebar.classList.remove('sidebar-open');
+                sidebar.classList.add('sidebar-closed');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        // Auto Hide Flash Message
         setTimeout(function() {
             const alerts = document.querySelectorAll('.flash-msg');
             alerts.forEach(function(alert) {
