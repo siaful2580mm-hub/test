@@ -120,16 +120,26 @@
                         <p class="text-[9px] text-slate-400 font-mono">{{ ref.created_at[:10] }}</p>
                     </div>
                 </div>
-                
-                {% if ref.is_active %}
-                    <span class="text-[10px] font-bold bg-green-50 text-green-600 px-2 py-1 rounded-lg border border-green-100">
-                        Active
-                    </span>
-                {% else %}
-                    <span class="text-[10px] font-bold bg-red-50 text-red-500 px-2 py-1 rounded-lg border border-red-100">
-                        Unpaid
-                    </span>
-                {% endif %}
+                <!-- Status Badge Logic Update -->
+<div class="text-right">
+    {% if settings.activation_required %}
+        <!-- যদি অ্যাক্টিভেশন সিস্টেম চালু থাকে -->
+        {% if ref.is_active %}
+            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-green-50 text-green-600 border border-green-100">
+                Active
+            </span>
+        {% else %}
+            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-red-50 text-red-500 border border-red-100">
+                Unpaid
+            </span>
+        {% endif %}
+    {% else %}
+        <!-- যদি অ্যাক্টিভেশন সিস্টেম বন্ধ থাকে -->
+        <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+            Joined
+        </span>
+    {% endif %}
+</div>
             </div>
             {% else %}
             <div class="text-center py-10">
