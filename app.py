@@ -1002,7 +1002,8 @@ def withdraw():
 
     # ৬. টেমপ্লেটে ডাটা পাঠানো
     return render_template('withdraw.html', user=g.user, ref_count=ref_count, account_days=account_days)
-    @app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
+    
+@app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def submit_task(task_id):
     # টাস্ক ডিটেইলস আনা
