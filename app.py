@@ -168,6 +168,37 @@ def admin_drive_manage():
 
     return render_template('admin_drive.html', packs=packs, orders=final_orders)
 
+# --- USER: DRIVE ORDER HISTORY ---
+@app.route('/drive/history')
+@login_required
+def drive_history():
+    try:
+        # ১. ইউজারের অর্ডার লিস্ট আনা (নতুন আগে)
+        orders = supabase.table('drive_orders').select('*').eq('user_id', session['user_id']).order('created_at', desc=True).execute().data
+        
+        # ২. প্যাকের ডিটেইলস (নাম, দাম) যুক্ত করা
+        final_orders = []
+        for order in orders:
+            try:
+                # প্যাক আইডি দিয়ে প্যাকের তথ্য আনা
+                pack = supabase.table('drive_packs').select('title, operator, offer_price').eq('id', order['pack_id']).single().execute().data
+                
+                order['pack_title'] = pack['title']
+                order['operator'] = pack['operator']
+                order['price'] = pack['offer_price']
+                final_orders.append(order)
+            except:
+                # যদি এডমিন প্যাক ডিলিট করে দেয়
+                order['pack_title'] = "Unknown Pack"
+                order['operator'] = "N/A"
+                order['price'] = "0"
+                final_orders.append(order)
+                
+    except Exception as e:
+        print(f"History Error: {e}")
+        final_orders = []
+
+    return render_template('drive_history.html', orders=final_orders)
 # --- ADMIN: APPROVE DRIVE ORDER ---
 @app.route('/admin/drive/action/<action>/<int:id>')
 @login_required
