@@ -59,6 +59,17 @@
         .bg-gradient-primary {
             background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
         }
+
+        /* WhatsApp Pulse Animation */
+        .whatsapp-pulse {
+            box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -93,27 +104,24 @@
 
     <div class="h-16"></div> <!-- Spacer -->
 
-    <!-- ================= 2. SIDEBAR MENU (Updated) ================= -->
+    <!-- ================= 2. SIDEBAR MENU ================= -->
     <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300"></div>
     
     <div id="sidebar" class="fixed top-0 left-0 h-full w-[280px] bg-white z-[60] sidebar-closed flex flex-col shadow-2xl">
         
-        <!-- Sidebar Header (User Info) -->
+        <!-- Sidebar Header -->
         <div class="h-44 bg-gradient-primary p-6 flex flex-col justify-end relative overflow-hidden">
             <div class="absolute top-[-20px] right-[-20px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
             
             {% if session.get('user_id') %}
                 <div class="relative z-10 flex items-center gap-3">
-                    <!-- Avatar -->
                     <div class="h-12 w-12 bg-white rounded-full flex items-center justify-center text-[#4F46E5] text-xl font-bold shadow-lg border-2 border-indigo-200">
                         {{ session.get('email', 'U')[0] | upper }}
                     </div>
-                    <!-- Name & ID -->
                     <div class="text-white">
                         <p class="font-bold text-base leading-tight truncate w-32">
                             {{ session.get('email', 'User').split('@')[0] | title }}
                         </p>
-                        <!-- User ID Logic (Assuming user object is passed, or handling generic) -->
                         <p class="text-xs text-indigo-200 bg-white/10 px-2 py-0.5 rounded inline-block mt-1 font-mono border border-white/20">
                             ID: {{ user.referral_code if user and user.referral_code else 'MY-ID' }}
                         </p>
@@ -137,7 +145,7 @@
                 <i class="fa-brands fa-youtube w-5 text-center"></i> <span class="font-medium text-sm">টাস্ক</span>
             </a>
             <a href="/drive" class="flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 text-slate-600 hover:text-[#4F46E5] transition {{ 'bg-indigo-50 text-indigo-600' if request.endpoint == 'drive_store' }}">
-                <i class="fa-solid fa-wifi w-5 text-center"></i> <span class="font-medium text-sm">ড্রাইভ অফার <span class="text-[9px] bg-red-500 text-white px-1.5 rounded ml-1">HOT</span></span>
+                <i class="fa-solid fa-wifi w-5 text-center"></i> <span class="font-medium text-sm">ড্রাইভ অফার</span>
             </a>
 
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-1 mt-4">Records</p>
@@ -159,6 +167,11 @@
             </a>
             <a href="/tutorial" class="flex items-center gap-3 p-3 rounded-xl hover:bg-indigo-50 text-slate-600 hover:text-[#4F46E5] transition {{ 'bg-indigo-50 text-indigo-600' if request.endpoint == 'tutorial' }}">
                 <i class="fa-solid fa-play w-5 text-center"></i> <span class="font-medium text-sm">টিউটোরিয়াল</span>
+            </a>
+            
+            <!-- Sidebar WhatsApp Support -->
+            <a href="https://wa.me/8801894577178" target="_blank" class="flex items-center gap-3 p-3 rounded-xl hover:bg-green-50 text-slate-600 hover:text-green-600 transition">
+                <i class="fa-brands fa-whatsapp w-5 text-center text-lg"></i> <span class="font-medium text-sm">সাপোর্ট</span>
             </a>
             
             {% if session.get('user_id') %}
@@ -189,7 +202,26 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- ================= 5. BOTTOM NAVIGATION ================= -->
+    <!-- ================= 5. FLOATING WHATSAPP WIDGET ================= -->
+    <div class="fixed bottom-24 right-5 md:bottom-10 md:right-10 z-40 group">
+        <a href="https://wa.me/8801894577178" target="_blank" class="relative block">
+            <!-- Tooltip -->
+            <div class="absolute right-16 top-3 bg-gray-900 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition duration-300 whitespace-nowrap shadow-lg flex items-center gap-1">
+                <span>হেল্প লাগবে?</span>
+                <i class="fa-solid fa-headset"></i>
+            </div>
+            
+            <!-- Pulse Circle -->
+            <div class="h-14 w-14 bg-[#25D366] rounded-full flex items-center justify-center text-white text-3xl shadow-lg shadow-green-500/40 whatsapp-pulse transition transform hover:scale-110 hover:rotate-12 border-2 border-white">
+                <i class="fa-brands fa-whatsapp"></i>
+            </div>
+            
+            <!-- Online Dot -->
+            <div class="absolute bottom-1 right-0 h-4 w-4 bg-red-500 rounded-full border-2 border-white shadow-sm"></div>
+        </a>
+    </div>
+
+    <!-- ================= 6. BOTTOM NAVIGATION ================= -->
     {% if session.get('user_id') %}
     <div class="fixed bottom-0 left-0 w-full glass-nav z-40 pb-safe rounded-t-[25px]">
         <div class="flex justify-between items-center px-6 h-[75px]">
@@ -247,7 +279,7 @@
         }
 
         setTimeout(function() {
-            const alerts = document.querySelectorAll('.flash-msg'); // Fixed selector
+            const alerts = document.querySelectorAll('.flash-msg');
             alerts.forEach(function(alert) {
                 alert.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
                 alert.style.opacity = '0';
