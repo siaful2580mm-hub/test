@@ -1105,76 +1105,77 @@ def login():
             print(f"Login Error: {e}") # ডিবাগিং এর জন্য
             
     return render_template('login.html')
-# --- REGISTER ROUTE (UNIQUE REFERRAL SYSTEM) ---
-# --- REGISTER ROUTE (BOTH GET BONUS 10 TAKA) ---
+
+# --- REGISTER ROUTE (WITH NAME & PHONE) ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    # GET: লিংক থেকে আসলে কোড ধরা
+    # GET: লিংক থেকে রেফার কোড ধরা
     if request.method == 'GET':
         ref_code = request.args.get('ref')
         return render_template('register.html', ref_code=ref_code)
 
     # POST: ফরম সাবমিট
     if request.method == 'POST':
+        full_name = request.form.get('name')      # নতুন ফিল্ড
+        mobile_number = request.form.get('phone') # নতুন ফিল্ড
         email = request.form.get('email')
         password = request.form.get('password')
-        used_ref_code = request.form.get('ref_code') # হিডেন ইনপুট থেকে কোড
+        used_ref_code = request.form.get('ref_code')
         
         try:
             # ১. সাইন আপ (Supabase Auth)
-            res = supabase.auth.sign_up({"email": email, "password": password})
+            res = supabase.auth.sign_up({
+                "email": email, 
+                "password": password,
+                "options": {
+                    "email_redirect_to": "https://taskking.vercel.app/login"
+                }
+            })
             new_user_id = res.user.id
             
-            # ২. নিজের জন্য ইউনিক কোড তৈরি (TK + Random)
+            # ২. ইউনিক রেফার কোড তৈরি
+            import random, string
             chars = string.ascii_uppercase + string.digits
             my_unique_code = 'TK' + ''.join(random.choices(chars, k=4))
             
-            # ৩. নিজের প্রোফাইল আপডেট (Referral Code সেট করা)
-            # ডিফল্ট ব্যালেন্স ০ থাকে
+            # ৩. প্রোফাইল আপডেট (নাম ও নম্বর সহ)
             supabase.table('profiles').update({
-                'referral_code': my_unique_code
+                'full_name': full_name,        # নাম সেভ
+                'mobile_number': mobile_number, # নম্বর সেভ
+                'referral_code': my_unique_code,
+                'balance': 0.00 # ডিফল্ট ব্যালেন্স
             }).eq('id', new_user_id).execute()
 
             # ৪. রেফারেল বোনাস লজিক (উভয়ের জন্য ১০ টাকা)
-            if used_ref_code and used_ref_code != '':
+            if used_ref_code:
                 try:
-                    # যার কোড ব্যবহার হয়েছে তাকে খোঁজা
                     referrer_res = supabase.table('profiles').select('*').eq('referral_code', used_ref_code).single().execute()
                     referrer = referrer_res.data
                     
                     if referrer:
-                        referrer_id = referrer['id']
+                        # Link User
+                        supabase.table('profiles').update({'referred_by': referrer['id']}).eq('id', new_user_id).execute()
                         
-                        # A. লিংক করা (Referred By সেট করা)
-                        supabase.table('profiles').update({
-                            'referred_by': referrer_id
-                        }).eq('id', new_user_id).execute()
-                        
-                        # B. রেফারারকে ১০ টাকা বোনাস দেওয়া
-                        ref_balance = float(referrer['balance']) + 10.00
-                        supabase.table('profiles').update({
-                            'balance': ref_balance
-                        }).eq('id', referrer_id).execute()
+                        # Bonus to Referrer
+                        new_bal_ref = float(referrer['balance']) + 10.00
+                        supabase.table('profiles').update({'balance': new_bal_ref}).eq('id', referrer['id']).execute()
 
-                        # C. নতুন ইউজারকে ১০ টাকা বোনাস দেওয়া
-                        # যেহেতু নতুন, তাই সরাসরি ১০ সেট করে দিলেই হবে
-                        supabase.table('profiles').update({
-                            'balance': 10.00
-                        }).eq('id', new_user_id).execute()
-                        
+                        # Bonus to New User
+                        supabase.table('profiles').update({'balance': 10.00}).eq('id', new_user_id).execute()
                 except Exception as e:
-                    print(f"Referral Error: {e}") 
-                    # রেফারেল ফেইল করলেও রেজিস্ট্রেশন আটকাবে না
+                    print(f"Ref Bonus Error: {e}")
 
-            flash("✅ একাউন্ট তৈরি হয়েছে! লগিন করুন।", "success")
+            flash("✅ একাউন্ট তৈরি হয়েছে! ইমেইল ভেরিফাই করে লগিন করুন।", "success")
             return redirect(url_for('login'))
             
         except Exception as e:
+            print(f"Register Error: {e}")
             flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে। ইমেইলটি হয়তো আগেই ব্যবহৃত।", "error")
-            print(f"Reg Error: {e}")
             return redirect(url_for('register'))
             
     return render_template('register.html')
+
+
 @app.route('/logout')
 def logout():
     session.clear()
