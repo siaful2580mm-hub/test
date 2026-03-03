@@ -1,122 +1,104 @@
 {% extends "layout.html" %}
-
 {% block content %}
 
-<div class="max-w-3xl mx-auto">
+<style>
+    .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
 
-    <!-- 1. MODERN HEADER -->
-    <div class="relative bg-gradient-to-r from-[#0A2540] to-[#1E3A8A] rounded-3xl p-8 mb-8 text-white shadow-xl overflow-hidden">
-        <!-- Decor -->
-        <div class="absolute top-0 right-0 w-40 h-40 bg-white opacity-5 rounded-full blur-3xl -mr-10 -mt-10"></div>
-        <div class="absolute bottom-0 left-0 w-32 h-32 bg-[#E2136E] opacity-10 rounded-full blur-3xl -ml-10 -mb-10"></div>
+<div class="max-w-2xl mx-auto space-y-6 fade-up pb-32 pt-4">
 
+    <!-- 1. HEADER -->
+    <div class="bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] rounded-[24px] p-6 text-white shadow-xl shadow-indigo-200 relative overflow-hidden">
+        <div class="absolute right-0 top-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-6 -mt-6"></div>
         <div class="relative z-10 flex items-center justify-between">
             <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="bg-[#E2136E] text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">LIVE UPDATES</span>
-                </div>
-                <h2 class="text-3xl font-bold">নোটিশ বোর্ড</h2>
-                <p class="text-blue-200 text-sm mt-1">অফিসিয়াল ঘোষণা এবং আপডেটসমূহ</p>
+                <h2 class="text-2xl font-bold">নোটিশ বোর্ড</h2>
+                <p class="text-indigo-100 text-xs mt-1">সকল আপডেট এবং ঘোষণা</p>
             </div>
-            <div class="h-14 w-14 bg-white/10 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/10 shadow-lg">
-                <i class="fa-solid fa-bullhorn"></i>
+            <div class="h-12 w-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+                <i class="fa-solid fa-bullhorn text-xl"></i>
             </div>
         </div>
     </div>
 
-    <!-- 2. ADMIN POST FORM (Only Visible to Admin) -->
+    <!-- 2. ADMIN POST FORM -->
     {% if user.role == 'admin' %}
-    <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100 mb-10 relative overflow-hidden group">
-        <div class="absolute top-0 left-0 w-1.5 h-full bg-[#E2136E]"></div>
-        
-        <div class="flex items-center gap-3 mb-5">
-            <div class="h-10 w-10 bg-pink-50 text-[#E2136E] rounded-full flex items-center justify-center">
-                <i class="fa-solid fa-pen-nib"></i>
-            </div>
-            <h3 class="font-bold text-[#0A2540]">নতুন ঘোষণা দিন</h3>
+    <div class="bg-white p-5 rounded-[24px] shadow-sm border border-slate-100">
+        <div class="flex items-center gap-2 mb-4 text-[#0A2540]">
+            <i class="fa-solid fa-pen-to-square text-[#4F46E5]"></i>
+            <h3 class="font-bold text-sm">নতুন নোটিশ লিখুন</h3>
         </div>
 
-        <form method="POST" action="/notice" class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">শিরোনাম</label>
-                <input type="text" name="title" required placeholder="নোটিশের বিষয়..." 
-                       class="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm font-bold text-[#0A2540]">
-            </div>
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">বিস্তারিত</label>
-                <textarea name="content" required rows="4" placeholder="কি জানাতে চান..." 
-                          class="w-full p-3 border border-gray-200 rounded-xl focus:outline-none focus:border-[#E2136E] focus:ring-1 focus:ring-[#E2136E] transition text-sm"></textarea>
-            </div>
-            <div class="flex justify-end">
-                <button type="submit" class="bg-[#0A2540] text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-opacity-90 transition shadow-lg flex items-center gap-2">
-                    <span>পাবলিশ করুন</span>
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
+        <form method="POST" action="/notice" class="space-y-3">
+            <input type="text" name="title" required placeholder="নোটিশের শিরোনাম" 
+                   class="w-full p-3 border border-slate-200 rounded-xl focus:outline-[#4F46E5] text-sm bg-slate-50 focus:bg-white transition font-bold">
+            
+            <textarea name="content" required rows="3" placeholder="বিস্তারিত লিখুন..." 
+                      class="w-full p-3 border border-slate-200 rounded-xl focus:outline-[#4F46E5] text-sm bg-slate-50 focus:bg-white transition"></textarea>
+            
+            <button type="submit" class="w-full bg-[#0A2540] text-white py-3 rounded-xl text-xs font-bold hover:bg-[#4F46E5] transition shadow-md">
+                পাবলিশ করুন <i class="fa-solid fa-paper-plane ml-1"></i>
+            </button>
         </form>
     </div>
     {% endif %}
 
-    <!-- 3. TIMELINE NOTICE LIST -->
-    <div class="relative pl-4 space-y-8">
-        <!-- Timeline Line -->
-        <div class="absolute left-4 top-2 bottom-0 w-0.5 bg-gray-200"></div>
+    <!-- 3. NOTICE TIMELINE -->
+    <div class="space-y-6 relative pl-4">
+        <!-- Vertical Line -->
+        <div class="absolute left-4 top-4 bottom-0 w-0.5 bg-slate-200"></div>
 
         {% for notice in notices %}
         <div class="relative pl-8 group">
             
             <!-- Timeline Dot -->
-            <div class="absolute left-[11px] top-6 h-4 w-4 bg-white border-4 border-[#0057FF] rounded-full z-10 group-hover:border-[#E2136E] transition-colors duration-300"></div>
+            <div class="absolute left-[11px] top-5 h-4 w-4 bg-white border-4 border-[#4F46E5] rounded-full z-10 group-hover:scale-125 transition duration-300"></div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-50 hover:shadow-lg hover:border-blue-100 transition duration-300 relative">
+            <div class="bg-white p-5 rounded-[24px] shadow-sm border border-slate-50 hover:shadow-lg transition duration-300 relative overflow-hidden">
                 
                 <!-- Date Badge -->
-                <div class="flex justify-between items-start mb-4">
-                    <div class="flex items-center gap-2 text-xs font-bold text-gray-400 bg-gray-50 px-3 py-1.5 rounded-lg">
-                        <i class="fa-regular fa-calendar-days"></i> {{ notice.created_at[:10] }}
-                    </div>
+                <div class="flex justify-between items-start mb-3">
+                    <span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-lg flex items-center gap-1">
+                        <i class="fa-regular fa-clock"></i> {{ notice.created_at[:10] }}
+                    </span>
 
-                    <!-- Actions (Admin Delete) -->
                     {% if user.role == 'admin' %}
-                    <a href="/notice/delete/{{ notice.id }}" onclick="return confirm('আপনি কি নিশ্চিত যে এই নোটিশটি ডিলিট করবেন?')" 
-                       class="text-gray-300 hover:text-red-500 transition px-2" title="Delete">
+                    <a href="/notice/delete/{{ notice.id }}" onclick="return confirm('ডিলিট করবেন?')" 
+                       class="text-slate-300 hover:text-red-500 transition px-2">
                         <i class="fa-solid fa-trash-can"></i>
                     </a>
                     {% endif %}
                 </div>
 
-                <!-- Content -->
-                <h3 class="text-xl font-bold text-[#0A2540] mb-3 leading-tight">
+                <!-- Title & Content -->
+                <h3 class="text-lg font-bold text-[#0A2540] mb-2 leading-tight">
                     {{ notice.title }}
                 </h3>
                 
-                <div class="text-sm text-gray-600 leading-relaxed whitespace-pre-line bg-gray-50 p-4 rounded-2xl border border-gray-100 font-medium" id="notice-text-{{ loop.index }}">
+                <div class="text-xs text-slate-600 leading-relaxed whitespace-pre-line bg-slate-50/50 p-3 rounded-xl border border-slate-100/50" id="notice-{{ loop.index }}">
 {{ notice.content }}
                 </div>
 
-                <!-- Footer Actions (Copy/Share) -->
-                <div class="mt-4 flex gap-3 pt-3 border-t border-gray-100">
-                    <button onclick="copyNotice('notice-text-{{ loop.index }}', this)" 
-                            class="text-xs font-bold text-gray-500 hover:text-[#0057FF] flex items-center gap-1 transition px-2 py-1 rounded hover:bg-blue-50">
-                        <i class="fa-regular fa-copy"></i> কপি করুন
+                <!-- Action Footer -->
+                <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
+                    <button onclick="copyText('notice-{{ loop.index }}', this)" 
+                            class="text-[10px] font-bold text-slate-500 hover:text-[#4F46E5] flex items-center gap-1 transition bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:border-[#4F46E5]">
+                        <i class="fa-regular fa-copy"></i> কপি টেক্সট
                     </button>
-                    <!-- WhatsApp Share Link (Optional Fun Feature) -->
-                    <a href="whatsapp://send?text={{ notice.title }} - {{ notice.content }}" 
-                       class="text-xs font-bold text-gray-500 hover:text-green-600 flex items-center gap-1 transition px-2 py-1 rounded hover:bg-green-50">
-                        <i class="fa-brands fa-whatsapp"></i> শেয়ার
-                    </a>
+                    <div class="flex gap-2">
+                        <div class="h-2 w-2 rounded-full bg-red-400"></div>
+                        <div class="h-2 w-2 rounded-full bg-yellow-400"></div>
+                        <div class="h-2 w-2 rounded-full bg-green-400"></div>
+                    </div>
                 </div>
 
             </div>
         </div>
         {% else %}
-        <!-- Empty State -->
-        <div class="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200 shadow-sm ml-8">
-            <div class="h-20 w-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl text-blue-300">
-                <i class="fa-regular fa-bell-slash"></i>
-            </div>
-            <h3 class="text-lg font-bold text-[#0A2540]">কোনো নোটিশ নেই</h3>
-            <p class="text-gray-400 text-sm mt-1">বর্তমানে কোনো নতুন ঘোষণা নেই।</p>
+        <div class="text-center py-16 ml-6">
+            <i class="fa-regular fa-folder-open text-3xl text-slate-300 mb-2"></i>
+            <p class="text-xs text-slate-400">কোনো নোটিশ নেই</p>
         </div>
         {% endfor %}
     </div>
@@ -125,25 +107,16 @@
 
 <!-- Copy Script -->
 <script>
-    function copyNotice(elementId, btn) {
-        // Get the text
+    function copyText(elementId, btn) {
         const text = document.getElementById(elementId).innerText;
-        
-        // Copy to clipboard
         navigator.clipboard.writeText(text).then(() => {
-            // Change Button Look temporarily
             const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> কপি হয়েছে!';
-            btn.classList.add('text-green-600');
-            btn.classList.remove('text-gray-500');
-            
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> কপিড!';
+            btn.classList.add('text-green-600', 'border-green-600');
             setTimeout(() => {
                 btn.innerHTML = originalHTML;
-                btn.classList.remove('text-green-600');
-                btn.classList.add('text-gray-500');
+                btn.classList.remove('text-green-600', 'border-green-600');
             }, 2000);
-        }).catch(err => {
-            console.error('Failed to copy', err);
         });
     }
 </script>
