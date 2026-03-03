@@ -12,7 +12,7 @@
     }
 </style>
 
-<div class="max-w-lg mx-auto space-y-6 fade-up pb-32 pt-4">
+<div class="max-w-lg mx-auto space-y-6 fade-up pb-40 pt-4"> <!-- pb-40 added for scroll space -->
 
     <!-- 1. TASK HEADER CARD -->
     <div class="relative bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] rounded-[32px] p-8 text-white shadow-xl shadow-indigo-200 overflow-hidden text-center">
@@ -83,8 +83,9 @@
             </div>
         </div>
 
-        <!-- 4. SUBMIT BUTTON (Sticky Bottom) -->
-        <div class="fixed bottom-6 left-0 w-full px-6 z-30">
+        <!-- 4. SUBMIT BUTTON (UPDATED POSITION) -->
+        <!-- bottom-24 দেওয়া হয়েছে যাতে Nav Bar এর উপরে থাকে -->
+        <div class="fixed bottom-24 left-0 w-full px-6 z-30">
             <button type="submit" id="submitBtn" class="w-full bg-[#0A2540] text-white py-4 rounded-2xl font-bold text-lg shadow-2xl shadow-slate-400 hover:bg-slate-900 active:scale-95 transition flex items-center justify-center gap-3">
                 <span>জমা দিন</span>
                 <i class="fa-solid fa-paper-plane"></i>
@@ -96,28 +97,21 @@
 
 <!-- Scripts -->
 <script>
-    // 1. File Upload UX
     function updateFileName(input) {
         const uploadBox = document.getElementById('uploadBox');
         const uploadIcon = document.getElementById('uploadIcon');
         const uploadText = document.getElementById('uploadText');
 
         if (input.files && input.files[0]) {
-            // Success State
             uploadBox.classList.remove('border-indigo-200', 'bg-indigo-50/50');
             uploadBox.classList.add('border-green-500', 'bg-green-50');
-            
-            // Change Icon
             uploadIcon.className = "h-12 w-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl mx-auto mb-3 shadow-sm";
             uploadIcon.innerHTML = '<i class="fa-solid fa-check"></i>';
-            
-            // Show Filename
             uploadText.textContent = input.files[0].name;
             uploadText.classList.add('text-green-700');
         }
     }
 
-    // 2. Prevent Double Click
     function preventDoubleSubmit() {
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
