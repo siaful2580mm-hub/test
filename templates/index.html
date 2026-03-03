@@ -43,15 +43,29 @@
                 <h2 class="text-lg font-bold text-slate-800 leading-none">
                     {{ user.email.split('@')[0] | title }}
                 </h2>
-                {% if user.is_active %}
-                <span class="inline-flex items-center gap-1 bg-green-50 text-green-600 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1">
-                    <i class="fa-solid fa-check-circle"></i> Verified
-                </span>
-                {% else %}
-                <a href="/activate" class="inline-flex items-center gap-1 bg-red-50 text-red-500 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1 animate-pulse">
-                    <i class="fa-solid fa-lock"></i> Activate Now
-                </a>
-                {% endif %}
+                <!-- ⚠️ ACTIVATION ALERT (CONDITIONAL SHOW) -->
+    <!-- লজিক: settings.activation_required যদি সত্যি (True) হয় এবং ইউজার যদি Active না হয়, তবেই দেখাবে -->
+    
+    {% if settings.activation_required and not user.is_active %}
+    <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-100 p-4 rounded-3xl relative overflow-hidden shadow-sm fade-up">
+        <div class="flex items-center justify-between relative z-10">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-white text-red-500 rounded-full flex items-center justify-center shadow-sm text-lg animate-pulse">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-red-600 text-sm">একাউন্ট লকড</h3>
+                    <p class="text-[10px] text-red-400">টাস্ক শুরু করতে ভেরিফাই করুন</p>
+                </div>
+            </div>
+            <a href="/activate" class="bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-red-200 hover:bg-red-600 transition">
+                ভেরিফাই
+            </a>
+        </div>
+        <!-- Background Icon -->
+        <i class="fa-solid fa-user-lock absolute -right-2 -bottom-2 text-6xl text-red-100 opacity-50 transform rotate-12"></i>
+    </div>
+    {% endif %}
             </div>
         </div>
         <a href="/notice" class="h-10 w-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm border border-slate-100 relative hover:text-[#4F46E5] transition">
