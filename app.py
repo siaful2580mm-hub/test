@@ -911,46 +911,40 @@ def submission_action(action, sub_id):
 
     return redirect(url_for('admin_submissions'))
 
-# --- WITHDRAW ROUTE (UPDATED CONDITIONS) ---
+# --- WITHDRAW ROUTE (FIXED SETTINGS ERROR) ---
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
     
-    # ১. এক্টিভেশন চেক
+    # ১. সিকিউরিটি চেক
     if g.settings.get('activation_required'):
         if not g.user.get('is_active') and g.user.get('role') != 'admin':
             flash("⚠️ টাকা উত্তোলনের জন্য আগে একাউন্ট ভেরিফাই করুন!", "error")
             return redirect(url_for('activate_account'))
 
-    # ২. রেফারেল কাউন্ট (নির্ভুল পদ্ধতি)
+    # ২. রেফারেল সংখ্যা গণনা
     try:
         response = supabase.table('profiles').select('id').eq('referred_by', session['user_id']).execute()
         ref_count = len(response.data)
     except:
         ref_count = 0
 
-    # ৩. একাউন্টের বয়স চেক (Account Age Logic)
+    # ৩. একাউন্টের বয়স চেক
     try:
         from datetime import datetime, timezone
-        # ডাটাবেস থেকে জয়েনিং ডেট আনা (String format)
-        join_str = g.user.get('created_at') 
-        
-        # স্ট্রিং থেকে তারিখ অবজেক্টে রূপান্তর
-        # Supabase সাধারণত ISO ফরম্যাট দেয় (e.g. 2025-01-01T10:00:00+00:00)
+        join_str = g.user.get('created_at')
+        # Supabase ISO format fix
         join_date = datetime.fromisoformat(join_str.replace('Z', '+00:00'))
         current_time = datetime.now(timezone.utc)
-        
-        # পার্থক্য বের করা
         age_delta = current_time - join_date
         account_days = age_delta.days
     except Exception as e:
-        print(f"Date Error: {e}")
-        account_days = 0 # এরর হলে ০ ধরবে
+        account_days = 0
 
     # ৪. ব্যালেন্স লোড
     current_balance = float(g.user.get('balance', 0.0))
 
-    # ৫. ফর্ম সাবমিট (POST Request)
+    # ৫. ফর্ম সাবমিট
     if request.method == 'POST':
         method = request.form.get('method')
         number = request.form.get('number')
@@ -959,29 +953,23 @@ def withdraw():
         except:
             amount = 0
 
-        # --- শর্ত চেক শুরু ---
-        
-        # শর্ত ১: একাউন্টের বয়স ১ দিন হতে হবে
+        # শর্ত চেক
         if account_days < 1:
-            flash(f"❌ একাউন্টের বয়স ১ দিন হতে হবে। (আপনার বয়স: {account_days} দিন)", "error")
+            flash(f"❌ একাউন্টের বয়স ১ দিন হতে হবে।", "error")
             return redirect(url_for('withdraw'))
 
-        # শর্ত ২: ৩টি রেফারেল
         if ref_count < 3:
-            flash(f"❌ উইথড্র করতে ৩টি রেফার প্রয়োজন। আপনার আছে: {ref_count}টি।", "error")
+            flash(f"❌ উইথড্র করতে ৩টি রেফার প্রয়োজন।", "error")
             return redirect(url_for('withdraw'))
 
-        # শর্ত ৩: মিনিমাম ৩০০ টাকা
         if amount < 300:
             flash("❌ সর্বনিম্ন উইথড্রয়াল ৩০০ টাকা।", "error")
             return redirect(url_for('withdraw'))
 
-        # শর্ত ৪: পর্যাপ্ত ব্যালেন্স
         if amount > current_balance:
-            flash("❌ আপনার একাউন্টে পর্যাপ্ত টাকা নেই।", "error")
+            flash("❌ পর্যাপ্ত টাকা নেই।", "error")
             return redirect(url_for('withdraw'))
 
-        # --- সব ঠিক থাকলে সাবমিট ---
         try:
             supabase.table('withdrawals').insert({
                 'user_id': session['user_id'],
@@ -994,15 +982,18 @@ def withdraw():
             new_balance = current_balance - amount
             supabase.table('profiles').update({'balance': new_balance}).eq('id', session['user_id']).execute()
 
-            flash("✅ সফল! আপনার উইথড্র রিকোয়েস্ট জমা হয়েছে।", "success")
+            flash("✅ সফল! রিকোয়েস্ট জমা হয়েছে।", "success")
             return redirect(url_for('history'))
 
         except Exception as e:
             flash(f"System Error: {str(e)}", "error")
 
-    # ৬. টেমপ্লেটে ডাটা পাঠানো
-    return render_template('withdraw.html', user=g.user, ref_count=ref_count, account_days=account_days)
-    
+    # ৬. পেজ রেন্ডার (এখানে settings=g.settings যোগ করা হয়েছে)
+    return render_template('withdraw.html', 
+                           user=g.user, 
+                           ref_count=ref_count, 
+                           account_days=account_days, 
+                           settings=g.settings)  # <--- [FIXED HERE]
 @app.route('/task/submit/<int:task_id>', methods=['GET', 'POST'])
 @login_required
 def submit_task(task_id):
