@@ -1333,24 +1333,28 @@ def update_user_balance():
         flash("Update Failed", "error")
         
     return redirect(url_for('admin_users'))
-# --- USER DASHBOARD (REAL DATA & DAILY LEADERBOARD) ---
+# --- USER DASHBOARD ROUTE (FULL LOGIC) ---
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # ১. আজকের তারিখ বের করা (UTC)
     from datetime import datetime
+    import random
+
+    # ১. আজকের তারিখ বের করা (UTC)
+    # এটি Daily Check-in বাটন Disable করার জন্য এবং Today's Income বের করতে লাগবে
     today_date = datetime.utcnow().strftime('%Y-%m-%d')
     
     today_income = 0.0
     pending_income = 0.0
+    leaderboard = []
     
+    # ২. ইনকাম স্ট্যাটাস ক্যালকুলেশন (Real-time)
     try:
-        # ২. ইউজারের সব সাবমিশন এবং টাস্ক ডাটা আনা
-        # (Join করা জটিল তাই আমরা পাইথনে ক্যালকুলেট করব)
+        # ইউজারের সব সাবমিশন এবং টাস্ক ডাটা আনা
         subs = supabase.table('submissions').select('*').eq('user_id', session['user_id']).execute().data
         all_tasks = supabase.table('tasks').select('id, reward').execute().data
         
-        # টাস্কের রিওওার্ড ম্যাপ করা {task_id: reward}
+        # টাস্কের রিওওার্ড ম্যাপ করা {task_id: reward} - ফাস্ট প্রসেসিং এর জন্য
         task_map = {t['id']: float(t['reward']) for t in all_tasks}
         
         for sub in subs:
@@ -1360,40 +1364,44 @@ def dashboard():
             if sub['status'] == 'pending':
                 pending_income += reward
             
-            # Today's Income হিসাব (Approved & Today)
-            # created_at স্ট্রিং থেকে তারিখ আলাদা করা
-            sub_date = sub['created_at'].split('T')[0]
-            if sub['status'] == 'approved' and sub_date == today_date:
+            # Today's Income হিসাব (Approved হতে হবে এবং আজকের তারিখের হতে হবে)
+            # Supabase timestamp example: '2025-01-01T12:00:00+00:00' -> split('T')[0] gives date
+            sub_date_str = sub['created_at'].split('T')[0]
+            
+            if sub['status'] == 'approved' and sub_date_str == today_date:
                 today_income += reward
                 
     except Exception as e:
-        print(f"Stats Error: {e}")
+        print(f"Dashboard Stats Error: {e}")
 
-    # ৩. টপ আর্নার লজিক (২৪ ঘণ্টা পর পর চেঞ্জ হবে)
-    leaderboard = []
+    # ৩. টপ আর্নার লিডারবোর্ড (প্রতিদিন চেঞ্জ হবে)
     try:
-        # সেরা ১০ জন ইউজারকে আনা
-        top_users = supabase.table('profiles').select('email, balance').order('balance', desc=True).limit(10).execute().data
+        # ডাটাবেস থেকে সবচেয়ে বেশি ব্যালেন্স ওয়ালা ২০ জন ইউজারকে আনা
+        top_users = supabase.table('profiles').select('email, balance').order('balance', desc=True).limit(20).execute().data
         
         if top_users:
             # আজকের তারিখ অনুযায়ী র‍্যান্ডম সিড সেট করা
-            # এর ফলে আজ সারাদিন একই ৩ জন থাকবে, কালকে আবার চেঞ্জ হবে
+            # এর ফলে আজ সারাদিন একই ৩ জন টপ লিস্টে থাকবে
             random.seed(today_date)
+            
+            # টপ ২০ জন থেকে র‍্যান্ডম ৩ জনকে বেছে নেওয়া
             leaderboard = random.sample(top_users, k=min(3, len(top_users)))
             
-            # র‍্যান্ডম আবার রিসেট করা (যাতে অন্য ফাংশনে সমস্যা না হয়)
+            # র‍্যান্ডম আবার নরমাল করা (যাতে অন্য ফাংশনে প্রভাব না পড়ে)
             random.seed()
             
     except Exception as e:
         print(f"Leaderboard Error: {e}")
 
+    # ৪. টেমপ্লেটে ডাটা পাঠানো
     return render_template('index.html', 
                            user=g.user, 
                            settings=g.settings, 
                            today_income=round(today_income, 2),
                            pending_income=round(pending_income, 2),
-                           leaderboard=leaderboard)
-# --- 1. UPDATED TASKS ROUTE (Hide Completed Tasks) ---
+                           leaderboard=leaderboard,
+                           today_date=today_date)
+    # --- 1. UPDATED TASKS ROUTE (Hide Completed Tasks) ---
 @app.route('/tasks')
 @login_required
 def tasks():
