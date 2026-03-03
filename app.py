@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from datetime import datetime, timedelta
 
+
 # Load environment variables
 load_dotenv()
 
@@ -1181,28 +1182,76 @@ def logout():
 
 
 # --- ADMIN: USER MANAGEMENT ---
-
-# 1. User List & Search
+# --- ADMIN: ADVANCED USER MANAGEMENT ---
 @app.route('/admin/users')
 @login_required
 @admin_required
 def admin_users():
-    search_query = request.args.get('q')
-    
-    # বেসিক কুয়েরি
-    query = supabase.table('profiles').select('*').order('created_at', desc=True)
-    
-    # যদি সার্চ করা হয়
-    if search_query:
-        query = query.ilike('email', f'%{search_query}%')
-        
+    # ফিল্টার প্যারামিটার
+    search = request.args.get('q')
+    sort_by = request.args.get('sort', 'newest') # default newest
+    filter_status = request.args.get('status', 'all')
+
+    # ১. বেসিক কুয়েরি
+    query = supabase.table('profiles').select('*')
+
+    # ২. সার্চ লজিক
+    if search:
+        query = query.ilike('email', f'%{search}%')
+
+    # ৩. স্ট্যাটাস ফিল্টার
+    if filter_status == 'banned':
+        query = query.eq('is_banned', True)
+    elif filter_status == 'active':
+        query = query.eq('is_active', True)
+    elif filter_status == 'unpaid':
+        query = query.eq('is_active', False)
+
+    # ৪. সর্টিং লজিক
+    if sort_by == 'balance_high':
+        query = query.order('balance', desc=True)
+    elif sort_by == 'balance_low':
+        query = query.order('balance', desc=False)
+    elif sort_by == 'oldest':
+        query = query.order('created_at', desc=False)
+    else: # newest
+        query = query.order('created_at', desc=True)
+
     try:
         users = query.execute().data
-    except Exception as e:
-        users = []
-        flash(f"Error fetching users: {str(e)}", "error")
+        
+        # ৫. স্ট্যাটাস কাউন্ট (Dashboard Stats)
+        total_users = len(users)
+        total_balance = sum(float(u['balance']) for u in users)
+        banned_users = sum(1 for u in users if u.get('is_banned'))
+        active_users = sum(1 for u in users if u.get('is_active'))
 
-    return render_template('users.html', users=users)
+        # ৬. রেফারেল কাউন্ট যুক্ত করা
+        for u in users:
+            try:
+                count_res = supabase.table('profiles').select('id', count='exact', head=True).eq('referred_by', u['id']).execute()
+                u['ref_count'] = count_res.count
+            except:
+                u['ref_count'] = 0
+                
+    except Exception as e:
+        print(f"User Fetch Error: {e}")
+        users = []
+        total_users = 0
+        total_balance = 0
+        banned_users = 0
+        active_users = 0
+
+    return render_template('users.html', 
+                           users=users, 
+                           stats={
+                               'total': total_users,
+                               'balance': round(total_balance, 2),
+                               'banned': banned_users,
+                               'active': active_users
+                           },
+                           filters={'q': search, 'sort': sort_by, 'status': filter_status})
+    
 # --- ADMIN: BAN / UNBAN USER ---
 @app.route('/admin/user/ban/<string:user_id>')
 @login_required
