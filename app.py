@@ -100,7 +100,7 @@ def login_required(f):
 def generate_ref_code():
     # TK + 4 Random Digits/Letters (Example: TK4A2B)
     chars = string.ascii_uppercase + string.digits
-    code = 'TK' + ''.join(random.choices(chars, k=4))
+    code = 'PR' + ''.join(random.choices(chars, k=4))
     return code
     
 def admin_required(f):
