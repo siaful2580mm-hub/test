@@ -963,7 +963,7 @@ def withdraw():
         # --- শর্ত চেক ---
         
         # শর্ত ১: একাউন্ট বয়স
-        if account_days < 1:
+        if account_days < 0:
             flash(f"❌ একাউন্টের বয়স ১ দিন হতে হবে। (আপনার বয়স: {account_days} দিন)", "error")
             return redirect(url_for('withdraw'))
 
