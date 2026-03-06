@@ -4,7 +4,7 @@ import string
 import requests
 import base64
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session, flash, g
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g, make_response
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from datetime import timedelta
@@ -1112,10 +1112,10 @@ def account():
 
     # ২. টেমপ্লেট রেন্ডার করা (ref_count পাস করা হলো)
     return render_template('account.html', user=g.user, settings=g.settings, ref_count=ref_count)
-# --- LOGIN ROUTE (FIXED SESSION) ---
+# --- LOGIN ROUTE (SET PERMANENT COOKIE) ---
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # যদি ইউজার ইতিমধ্যে লগিন থাকে, তবে ড্যাশবোর্ডে পাঠাও
+    # যদি সেশন থাকে তবে ড্যাশবোর্ডে পাঠাও
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
 
@@ -1124,104 +1124,102 @@ def login():
         password = request.form.get('password')
         
         try:
-            # ১. Supabase দিয়ে লগিন চেক করা
+            # ১. লগিন চেক
             res = supabase.auth.sign_in_with_password({"email": email, "password": password})
             
-            # ২. সেশন স্থায়ী করা (যাতে লগআউট না হয়)
-            session.permanent = True  # <--- এই লাইনটি খুবই গুরুত্বপূর্ণ
-            
-            # ৩. সেশনে ডাটা রাখা
+            session.permanent = True
             session['user_id'] = res.user.id
             session['access_token'] = res.session.access_token
             
-            flash("✅ স্বাগতম! আপনি সফলভাবে লগিন করেছেন।", "success")
-            return redirect(url_for('dashboard'))
+            # ২. লাস্ট লগিন আপডেট
+            try:
+                from datetime import datetime
+                supabase.table('profiles').update({'last_login': datetime.now().isoformat()}).eq('id', res.user.id).execute()
+            except: pass
+            
+            flash("✅ স্বাগতম!", "success")
+            
+            # ৩. [NEW] রেসপন্স তৈরি করে কুকি সেট করা (১ বছরের জন্য)
+            response = make_response(redirect(url_for('dashboard')))
+            # কুকির নাম 'saved_email', ভ্যালু 'email', মেয়াদ ১ বছর (31536000 সেকেন্ড)
+            response.set_cookie('saved_email', email, max_age=31536000)
+            
+            return response
             
         except Exception as e:
-            # পাসওয়ার্ড ভুল হলে
-            flash("❌ ইমেইল বা পাসওয়ার্ড ভুল হয়েছে। আবার চেষ্টা করুন।", "error")
-            print(f"Login Error: {e}") # ডিবাগিং এর জন্য
+            if "Email not confirmed" in str(e):
+                flash("⚠️ আপনার ইমেইল ভেরিফাই করা হয়নি।", "warning")
+            else:
+                flash("❌ ইমেইল বা পাসওয়ার্ড ভুল হয়েছে।", "error")
             
     return render_template('login.html')
-
-# --- REGISTER ROUTE (WITH NAME & PHONE) ---
+    # --- REGISTER ROUTE (BLOCK IF COOKIE EXISTS) ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    # GET: লিংক থেকে রেফার কোড ধরা
+    # ১. [NEW] চেক করা ব্রাউজারে আগে কোনো একাউন্ট লগিন ছিল কিনা
+    existing_email = request.cookies.get('saved_email')
+    
+    if existing_email:
+        flash(f"⚠️ এই ডিভাইসে ইতিমধ্যে একটি একাউন্ট আছে: ({existing_email})। দয়া করে লগিন করুন।", "warning")
+        return redirect(url_for('login'))
+
+    # বাকি কোড আগের মতোই...
     if request.method == 'GET':
         ref_code = request.args.get('ref')
         return render_template('register.html', ref_code=ref_code)
 
-    # POST: ফরম সাবমিট
     if request.method == 'POST':
-        full_name = request.form.get('name')      # নতুন ফিল্ড
-        mobile_number = request.form.get('phone') # নতুন ফিল্ড
+        full_name = request.form.get('name')
+        mobile_number = request.form.get('phone')
         email = request.form.get('email')
         password = request.form.get('password')
         used_ref_code = request.form.get('ref_code')
         
         try:
-            # ১. সাইন আপ (Supabase Auth)
             res = supabase.auth.sign_up({
-                "email": email, 
-                "password": password,
-                "options": {
-                    "email_redirect_to": "https://taskking.vercel.app/login"
-                }
+                "email": email, "password": password,
+                "options": {"email_redirect_to": "https://taskking.vercel.app/login"}
             })
             new_user_id = res.user.id
             
-            # ২. ইউনিক রেফার কোড তৈরি
+            # Generate Unique Code
             import random, string
             chars = string.ascii_uppercase + string.digits
             my_unique_code = 'TK' + ''.join(random.choices(chars, k=4))
             
-            # ৩. প্রোফাইল আপডেট (নাম ও নম্বর সহ)
             supabase.table('profiles').update({
-                'full_name': full_name,        # নাম সেভ
-                'mobile_number': mobile_number, # নম্বর সেভ
+                'full_name': full_name,
+                'mobile_number': mobile_number,
                 'referral_code': my_unique_code,
-                'balance': 0.00 # ডিফল্ট ব্যালেন্স
+                'balance': 0.00
             }).eq('id', new_user_id).execute()
 
-            # ৪. রেফারেল বোনাস লজিক (উভয়ের জন্য ১০ টাকা)
+            # Referral Bonus Logic
             if used_ref_code:
                 try:
                     referrer_res = supabase.table('profiles').select('*').eq('referral_code', used_ref_code).single().execute()
                     referrer = referrer_res.data
-                    
                     if referrer:
-                        # Link User
                         supabase.table('profiles').update({'referred_by': referrer['id']}).eq('id', new_user_id).execute()
-                        
-                        # Bonus to Referrer
-                        new_bal_ref = float(referrer['balance']) + 10.00
-                        supabase.table('profiles').update({'balance': new_bal_ref}).eq('id', referrer['id']).execute()
-
-                        # Bonus to New User
+                        # Bonus
+                        supabase.table('profiles').update({'balance': float(referrer['balance']) + 10.00}).eq('id', referrer['id']).execute()
                         supabase.table('profiles').update({'balance': 10.00}).eq('id', new_user_id).execute()
-                except Exception as e:
-                    print(f"Ref Bonus Error: {e}")
+                except: pass
 
-            flash("✅ একাউন্ট তৈরি হয়েছে! ইমেইল ভেরিফাই করে লগিন করুন।", "success")
+            flash("✅ একাউন্ট তৈরি হয়েছে! ইমেইল ভেরিফাই করে লগিন করুন।", "info")
             return redirect(url_for('login'))
             
         except Exception as e:
-            print(f"Register Error: {e}")
-            flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে। ইমেইলটি হয়তো আগেই ব্যবহৃত।", "error")
+            flash("❌ রেজিস্ট্রেশন ব্যর্থ হয়েছে।", "error")
             return redirect(url_for('register'))
             
     return render_template('register.html')
 
-
 @app.route('/logout')
 def logout():
-    session.clear()
+    session.clear() # শুধু লগআউট হবে, কিন্তু কুকি থেকে যাবে
     return redirect(url_for('login'))
 
-
-# --- ADMIN: USER MANAGEMENT ---
-# --- ADMIN: ADVANCED USER MANAGEMENT ---
 @app.route('/admin/users')
 @login_required
 @admin_required
