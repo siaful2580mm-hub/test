@@ -963,7 +963,7 @@ def withdraw():
         # --- শর্ত চেক ---
         
         # শর্ত ১: একাউন্ট বয়স
-        if account_days < 0:
+        if account_days < 1:
             flash(f"❌ একাউন্টের বয়স ১ দিন হতে হবে। (আপনার বয়স: {account_days} দিন)", "error")
             return redirect(url_for('withdraw'))
 
@@ -1010,6 +1010,74 @@ def withdraw():
                            account_days=account_days,
                            settings=g.settings)
 
+
+# --- ADMIN: USERX (ULTIMATE FILTER) ---
+@app.route('/admin/userx', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_userx():
+    users = []
+    csv_data = ""
+    filters = {} # ফর্মের ভ্যালু ধরে রাখার জন্য
+    stats = {'count': 0, 'total_balance': 0}
+
+    if request.method == 'POST':
+        try:
+            # ১. ইনপুট নেওয়া
+            status = request.form.get('status') # all, active, inactive, banned
+            min_bal = request.form.get('min_balance')
+            max_bal = request.form.get('max_balance')
+            offline_days = request.form.get('offline_days')
+            join_start = request.form.get('join_start')
+            join_end = request.form.get('join_end')
+
+            # ভ্যালুগুলো সেভ রাখা (HTML এ দেখানোর জন্য)
+            filters = {
+                'status': status, 'min_bal': min_bal, 'max_bal': max_bal,
+                'offline_days': offline_days, 'join_start': join_start, 'join_end': join_end
+            }
+
+            # ২. কুয়েরি তৈরি করা
+            query = supabase.table('profiles').select('*')
+
+            # Status Filter
+            if status == 'active': query = query.eq('is_active', True)
+            elif status == 'inactive': query = query.eq('is_active', False)
+            elif status == 'banned': query = query.eq('is_banned', True)
+
+            # Balance Filter
+            if min_bal: query = query.gte('balance', float(min_bal))
+            if max_bal: query = query.lte('balance', float(max_bal))
+
+            # Offline Filter (Last Login <= N days ago)
+            if offline_days:
+                from datetime import datetime, timedelta
+                target_date = (datetime.utcnow() - timedelta(days=int(offline_days))).isoformat()
+                query = query.lte('last_login', target_date)
+
+            # Join Date Filter
+            if join_start: query = query.gte('created_at', join_start)
+            if join_end: 
+                # শেষ তারিখের রাত পর্যন্ত ধরার জন্য
+                query = query.lte('created_at', f"{join_end}T23:59:59")
+
+            # ৩. এক্সিকিউট (Max 1000 data)
+            res = query.limit(1000).execute()
+            users = res.data
+
+            # ৪. স্ট্যাটস এবং CSV তৈরি
+            if users:
+                stats['count'] = len(users)
+                stats['total_balance'] = sum(float(u['balance']) for u in users)
+                
+                email_list = [u['email'] for u in users]
+                csv_data = ", ".join(email_list)
+
+        except Exception as e:
+            print(f"UserX Error: {e}")
+            flash(f"Error: {str(e)}", "error")
+
+    return render_template('userx.html', users=users, csv_data=csv_data, f=filters, stats=stats)
 # --- USER: PAYMENT SETTINGS (ADM) ---
 @app.route('/adm', methods=['GET', 'POST'])
 @login_required
