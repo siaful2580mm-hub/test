@@ -1131,7 +1131,7 @@ def submit_task(task_id):
 
         try:
             # ২. ImgBB তে আপলোড করা
-            api_key = "8186efbf88a4c5403805a51012073fd9" 
+            api_key = "268c981497486b178babae03a5e79a40" 
             image_string = base64.b64encode(file.read())
             
             payload = {
