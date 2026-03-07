@@ -27,6 +27,16 @@ if not url or not key:
 
 supabase: Client = create_client(url, key)
 
+
+SPECIAL_TASK_INFO = {
+    'title': ' Telegram Bot Join & Reffral Link দিন,
+    'reward': 25.00, 
+    'link': 'https://t.me/TelasterBot?start=23212',
+    'tutorial': 'https'//payr.site/sp', # যদি ভিডিও থাকে
+    'description': 'নিচের লিংকে ক্লিক করে টেলিগ্রাম বটটি Start করুন। বট আপনাকে একটি রেফারাল লিংক দিবে,  সেই লিংকটি কপি করে নিচে বসান এবং স্ক্রিনশট দিন।'
+}
+
+
 # --- MIDDLEWARE (UPDATED FOR BAN SYSTEM) ---
 @app.before_request
 def before_request_checks():
@@ -112,6 +122,16 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def sub_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # শুধুমাত্র এই ইমেইলটি এক্সেস পাবে
+        if not g.user or g.user.get('email') != 'maxsuma1212bd@gmail.com':
+            flash("⛔ আপনার এই পেজে প্রবেশ করার অনুমতি নেই!", "error")
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+    
 # -------------------------------------------------------------------
 # 4. ROUTES
 # -------------------------------------------------------------------
@@ -167,6 +187,113 @@ def admin_drive_manage():
         except: continue
 
     return render_template('admin_drive.html', packs=packs, orders=final_orders)
+
+
+# --- 1. SPECIAL TASK SUBMISSION PAGE ---
+@app.route('/special-task', methods=['GET', 'POST'])
+@login_required
+def special_task():
+    # চেক করা ইউজার কি অলরেডি সাবমিট করেছে? (Pending or Approved)
+    existing = supabase.table('special_submissions').select('*').eq('user_id', session['user_id']).execute().data
+    
+    # যদি পেন্ডিং বা অ্যাপ্রুভ থাকে, তবে ঢুকতে দিবে না
+    if existing:
+        status = existing[0]['status']
+        if status in ['pending', 'approved']:
+            flash(f"⚠️ আপনার টাস্কটি বর্তমানে {status} অবস্থায় আছে।", "warning")
+            return redirect(url_for('tasks'))
+
+    if request.method == 'POST':
+        code = request.form.get('code')
+        file = request.files.get('screenshot')
+        
+        if not file or not code:
+            flash("কোড এবং স্ক্রিনশট উভয়ই প্রয়োজন!", "error")
+            return redirect(request.url)
+
+        try:
+            # ImgBB Upload
+            api_key = "268c981497486b178babae03a5e79a40"
+            image_string = base64.b64encode(file.read())
+            payload = { "key": api_key, "image": image_string }
+            response = requests.post("https://api.imgbb.com/1/upload", data=payload)
+            data = response.json()
+            
+            if data['success']:
+                img_url = data['data']['url']
+                
+                # Save to DB
+                supabase.table('special_submissions').insert({
+                    'user_id': session['user_id'],
+                    'code': code,
+                    'proof_link': img_url,
+                    'status': 'pending'
+                }).execute()
+                
+                flash("✅ স্পেশাল টাস্ক জমা হয়েছে!", "success")
+                return redirect(url_for('tasks'))
+            else:
+                flash("Image upload failed", "error")
+                
+        except Exception as e:
+            flash(f"Error: {str(e)}", "error")
+
+    return render_template('special_task.html', task=SPECIAL_TASK_INFO, user=g.user)
+
+
+# --- 2. SUB-ADMIN PANEL (/aw/result) ---
+@app.route('/aw/result')
+@login_required
+@sub_admin_required  # <--- Only Masuma access
+def aw_result():
+    # পেন্ডিং রিকোয়েস্ট আনা
+    try:
+        res = supabase.table('special_submissions').select('*').eq('status', 'pending').order('created_at', desc=True).execute()
+        submissions = res.data
+        
+        # ইউজার ইমেইল যুক্ত করা
+        final_data = []
+        for sub in submissions:
+            user = supabase.table('profiles').select('email').eq('id', sub['user_id']).single().execute().data
+            sub['user_email'] = user['email']
+            final_data.append(sub)
+            
+    except:
+        final_data = []
+
+    return render_template('aw_result.html', submissions=final_data)
+
+
+# --- 3. SUB-ADMIN ACTION (Approve/Reject) ---
+@app.route('/aw/action/<action>/<int:id>')
+@login_required
+@sub_admin_required
+def aw_action(action, id):
+    try:
+        sub_res = supabase.table('special_submissions').select('*').eq('id', id).single().execute()
+        submission = sub_res.data
+        
+        if not submission: return redirect(url_for('aw_result'))
+
+        if action == 'approve':
+            # ব্যালেন্স অ্যাড করা
+            user_res = supabase.table('profiles').select('balance').eq('id', submission['user_id']).single().execute()
+            new_bal = float(user_res.data['balance']) + SPECIAL_TASK_INFO['reward']
+            
+            supabase.table('profiles').update({'balance': new_bal}).eq('id', submission['user_id']).execute()
+            supabase.table('special_submissions').update({'status': 'approved'}).eq('id', id).execute()
+            flash("✅ Approved & Paid!", "success")
+            
+        elif action == 'reject':
+            # রিজেক্ট করলে ইউজার আবার সাবমিট করতে পারবে
+            supabase.table('special_submissions').update({'status': 'rejected'}).eq('id', id).execute()
+            flash("❌ Rejected.", "warning")
+            
+    except Exception as e:
+        flash(f"Error: {e}", "error")
+
+    return redirect(url_for('aw_result'))
+
 
 # --- USER: DRIVE ORDER HISTORY ---
 @app.route('/drive/history')
