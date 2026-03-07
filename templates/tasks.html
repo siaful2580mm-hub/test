@@ -31,6 +31,33 @@
 
     <!-- 2. TASK LIST -->
     <div class="space-y-4">
+        <!-- SPECIAL TASK PINNED -->
+<!-- চেক করা হচ্ছে ইউজার অলরেডি সাবমিট করেছে কিনা (Backend থেকে পাঠাতে হবে অথবা এখানে লজিক সিম্পল রাখা হয়েছে) -->
+<div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-1 rounded-3xl shadow-xl mb-6 relative overflow-hidden group">
+    <div class="absolute top-0 right-0 bg-yellow-400 text-[#0A2540] text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10 animate-pulse">
+        PINNED TASK
+    </div>
+    
+    <div class="bg-white rounded-[20px] p-5 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="h-14 w-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-3xl">
+                <i class="fa-solid fa-gift"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-[#0A2540] text-lg">Special Offer Task</h3>
+                <p class="text-xs text-gray-500">লিমিটেড টাইম অফার! মিস করবেন না।</p>
+                <span class="inline-block mt-1 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded">
+                    Reward: ৳ 20.00
+                </span>
+            </div>
+        </div>
+        
+        <a href="/special-task" class="bg-[#0A2540] text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-purple-700 transition shadow-lg">
+            এখনই করুন <i class="fa-solid fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+</div>
+        
         {% for task in tasks %}
         
         <!-- Category Color Logic -->
