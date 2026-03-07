@@ -126,7 +126,7 @@ def sub_admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         # শুধুমাত্র এই ইমেইলটি এক্সেস পাবে
-        if not g.user or g.user.get('email') != 'maxsuma1212bd@gmail.com':
+        if not g.user or g.user.get('email') != 'masuma1212bd@gmail.com':
             flash("⛔ আপনার এই পেজে প্রবেশ করার অনুমতি নেই!", "error")
             return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
