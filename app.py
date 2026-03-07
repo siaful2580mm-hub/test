@@ -123,17 +123,25 @@ def admin_required(f):
             return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
     return decorated_function
-
+    
+# --- HELPER: SUB-ADMIN DECORATOR (UPDATED) ---
 def sub_admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # শুধুমাত্র এই ইমেইলটি এক্সেস পাবে
-        if not g.user or g.user.get('email') != 'masuma1212bd@gmail.com':
-            flash("⛔ আপনার এই পেজে প্রবেশ করার অনুমতি নেই!", "error")
-            return redirect(url_for('dashboard'))
-        return f(*args, **kwargs)
+        # স্পেসিফিক ইমেইল (মাসুমা আপু)
+        sub_admin_email = 'masuma1212bd@gmail.com'
+
+        if not g.user:
+            return redirect(url_for('login'))
+
+        # লজিক: যদি ইমেইল মিলে যায় অথবা ইউজার 'admin' হয়, তবেই ঢুকতে দিবে
+        if g.user.get('email') == sub_admin_email or g.user.get('role') == 'admin':
+            return f(*args, **kwargs)
+
+        flash("⛔ আপনার এই পেজে প্রবেশ করার অনুমতি নেই!", "error")
+        return redirect(url_for('dashboard'))
+        
     return decorated_function
-    
 # -------------------------------------------------------------------
 # 4. ROUTES
 # -------------------------------------------------------------------
