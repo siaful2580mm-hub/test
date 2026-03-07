@@ -29,7 +29,7 @@ supabase: Client = create_client(url, key)
 
 
 SPECIAL_TASK_INFO = {
-    'title': ' Telegram Bot Join & Reffral Link দিন,
+    'title': ' Telegram Bot Join & Reffral Link দিন',
     'reward': 25.00, 
     'link': 'https://t.me/TelasterBot?start=23212',
     'tutorial': 'https'//payr.site/sp', # যদি ভিডিও থাকে
