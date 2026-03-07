@@ -27,15 +27,15 @@ if not url or not key:
 
 supabase: Client = create_client(url, key)
 
-# ==========================================
-# SPECIAL TASK CONFIGURATION
-# ==========================================
+
+
+# --- SPECIAL TASK CONFIG ---
 SPECIAL_TASK_INFO = {
-    'title': 'Telegram Bot Join & Reffral Link দিন',
+    'title': '🔥 Airdrop Transfer & Registration',
     'reward': 25.00,
-    'link': 'https://t.me/TelasterBot?start=23212',
+    'link': 'https://t.me/TelasterBot?start=23212', 
     'tutorial': 'https://payr.site/sp', 
-    'description': 'নিচের লিংকে ক্লিক করে টেলিগ্রাম বটটি Start করুন। বট আপনাকে একটি রেফারাল লিংক দিবে, সেই লিংকটি কপি করে নিচে বসান এবং স্ক্রিনশট দিন।'
+    'description': 'ভিডিও দেখে নিয়ম মেনে Bot  Start করে, রেপারাল লিংক কপি করুন এবং এয়ারড্রপ ট্রান্সফার করুন এবং প্রুফ জমা দিন।'
 }
 
 
