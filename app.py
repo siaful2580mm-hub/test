@@ -241,7 +241,11 @@ def special_task():
             flash(f"Error: {str(e)}", "error")
 
     return render_template('special_task.html', task=SPECIAL_TASK_INFO, user=g.user)
-
+# --- SPECIAL VIDEO PAGE (/st) ---
+@app.route('/st')
+def special_video_page():
+    # লগিন ছাড়াও দেখা যাবে, তবে লগিন থাকলে মেনু ঠিক থাকবে
+    return render_template('st.html', user=g.user if 'user' in g else None)
 
 # --- 2. SUB-ADMIN PANEL (/aw/result) ---
 @app.route('/aw/result')
