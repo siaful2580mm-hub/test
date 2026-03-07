@@ -34,7 +34,7 @@ SPECIAL_TASK_INFO = {
     'title': '🔥 Airdrop Transfer & Registration',
     'reward': 50.00,
     'link': 'https://t.me/TelasterBot?start=23212', 
-    'tutorial': 'https://payr.site/sp', 
+    'tutorial': 'https://payr.site/st', 
     'description': 'ভিডিও দেখে নিয়ম মেনে Bot  Start করে, রেপারাল লিংক কপি করুন এবং এয়ারড্রপ ট্রান্সফার করুন এবং প্রুফ জমা দিন।'
 }
 
