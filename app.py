@@ -27,13 +27,15 @@ if not url or not key:
 
 supabase: Client = create_client(url, key)
 
-
+# ==========================================
+# SPECIAL TASK CONFIGURATION
+# ==========================================
 SPECIAL_TASK_INFO = {
-    'title': ' Telegram Bot Join & Reffral Link দিন',
-    'reward': 25.00, 
+    'title': 'Telegram Bot Join & Reffral Link দিন',
+    'reward': 25.00,
     'link': 'https://t.me/TelasterBot?start=23212',
-    'tutorial': 'https'//payr.site/sp', # যদি ভিডিও থাকে
-    'description': 'নিচের লিংকে ক্লিক করে টেলিগ্রাম বটটি Start করুন। বট আপনাকে একটি রেফারাল লিংক দিবে,  সেই লিংকটি কপি করে নিচে বসান এবং স্ক্রিনশট দিন।'
+    'tutorial': 'https://payr.site/sp', 
+    'description': 'নিচের লিংকে ক্লিক করে টেলিগ্রাম বটটি Start করুন। বট আপনাকে একটি রেফারাল লিংক দিবে, সেই লিংকটি কপি করে নিচে বসান এবং স্ক্রিনশট দিন।'
 }
 
 
