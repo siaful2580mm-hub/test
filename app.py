@@ -286,55 +286,66 @@ def aw_result():
 
     return render_template('aw_result.html', submissions=final_data)
 # --- VIP PAGE (PLANS & DAILY CLAIM) ---
+# --- VIP PAGE (PLANS & DAILY CLAIM TO VIP BALANCE) ---
 @app.route('/vip', methods=['GET', 'POST'])
 @login_required
 def vip_page():
-    from datetime import datetime
+    from datetime import datetime, timezone
     
-    # ডেইলি ক্লেইম লজিক
+    # ডেইলি ক্লেইম লজিক (POST Request)
     if request.method == 'POST':
         action = request.form.get('action')
         
         if action == 'claim':
+            # ১. লেভেল চেক
             user_level = g.user.get('current_level', 0)
             if user_level == 0:
                 flash("⚠️ আপনি ফ্রি ইউজার। ক্লেইম করতে লেভেল কিনুন।", "warning")
                 return redirect(url_for('vip_page'))
 
-            # ডেট চেক
-            today = datetime.utcnow().date()
-            last_claim_str = g.user.get('last_daily_claim')
-            last_claim = datetime.strptime(last_claim_str, '%Y-%m-%d').date() if last_claim_str else None
+            # ২. মেয়াদ (Expiry) চেক
+            expiry_str = g.user.get('vip_expiry')
+            if expiry_str:
+                # Supabase টাইমস্ট্যাম্প কনভার্ট করা
+                expiry_date = datetime.fromisoformat(expiry_str.replace('Z', '+00:00'))
+                
+                if datetime.now(timezone.utc) > expiry_date:
+                    # মেয়াদ শেষ হলে লেভেল ০ করে দেওয়া
+                    supabase.table('profiles').update({'current_level': 0}).eq('id', session['user_id']).execute()
+                    flash("❌ আপনার প্যাকেজের মেয়াদ শেষ হয়েছে। নতুন প্যাক কিনুন।", "error")
+                    return redirect(url_for('vip_page'))
 
-            if last_claim == today:
+            # ৩. ডেট চেক (আজকে নিয়েছে কিনা)
+            today_str = datetime.utcnow().strftime('%Y-%m-%d')
+            last_claim = g.user.get('last_daily_claim')
+
+            if last_claim == today_str:
                 flash("⚠️ আজকের প্রফিট ইতিমধ্যে নিয়েছেন!", "warning")
                 return redirect(url_for('vip_page'))
 
-            # মেয়াদ চেক
-            expiry_str = g.user.get('vip_expiry')
-            if expiry_str:
-                expiry_date = datetime.fromisoformat(expiry_str.replace('Z', '+00:00'))
-                if datetime.now(timezone.utc) > expiry_date:
-                    # মেয়াদ শেষ, লেভেল ০ করে দাও
-                    supabase.table('profiles').update({'current_level': 0}).eq('id', session['user_id']).execute()
-                    flash("❌ আপনার প্যাকেজের মেয়াদ শেষ হয়েছে।", "error")
-                    return redirect(url_for('vip_page'))
-
-            # টাকা যোগ করা
+            # ৪. টাকা যোগ করা (VIP BALANCE এ)
             plan = VIP_PLANS.get(user_level)
-            profit = plan['daily_profit']
-            new_bal = float(g.user.get('balance')) + profit
             
-            supabase.table('profiles').update({
-                'balance': new_bal,
-                'last_daily_claim': str(today)
-            }).eq('id', session['user_id']).execute()
-            
-            flash(f"🎉 ৳{profit} প্রফিট যোগ হয়েছে!", "success")
+            if plan:
+                profit = plan['daily_profit']
+                
+                # ভিআইপি ব্যালেন্স আপডেট
+                current_vip_balance = float(g.user.get('vip_balance', 0.0))
+                new_vip_balance = current_vip_balance + profit
+                
+                supabase.table('profiles').update({
+                    'vip_balance': new_vip_balance,
+                    'last_daily_claim': today_str
+                }).eq('id', session['user_id']).execute()
+                
+                flash(f"🎉 ৳{profit} টাকা VIP ব্যালেন্সে যোগ হয়েছে!", "success")
+            else:
+                flash("Error: Plan not found", "error")
+                
             return redirect(url_for('vip_page'))
 
+    # পেজ রেন্ডার (GET Request)
     return render_template('vip.html', user=g.user, plans=VIP_PLANS)
-
 # --- BUY VIP (SUBMIT PROOF) ---
 @app.route('/vip/buy/<int:level_id>', methods=['GET', 'POST'])
 @login_required
@@ -1206,106 +1217,98 @@ def submission_action(action, sub_id):
 
     return redirect(url_for('admin_submissions'))
 # --- WITHDRAW ROUTE (FULL FINAL VERSION) ---
+# --- WITHDRAW ROUTE (DUAL BALANCE SYSTEM) ---
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
     
-    # ১. এক্টিভেশন সিকিউরিটি চেক
-    # যদি সেটিংস অন থাকে এবং ইউজার এক্টিভ না হয়, তবে এক্টিভেশন পেজে পাঠাবে
-    if g.settings.get('activation_required'):
-        if not g.user.get('is_active') and g.user.get('role') != 'admin':
-            flash("⚠️ টাকা উত্তোলনের জন্য আগে একাউন্ট ভেরিফাই করুন!", "error")
-            return redirect(url_for('activate_account'))
-
-    # ২. [NEW] পেমেন্ট মেথড সেটআপ চেক
-    # যদি ইউজার /adm পেজে গিয়ে নাম্বার সেট না করে থাকে, তবে সেখানে পাঠাবে
-    if not g.user.get('wallet_number') or not g.user.get('wallet_method'):
-        flash("⚠️ টাকা তোলার আগে পেমেন্ট মেথড (বিকাশ/নগদ) সেট আপ করুন।", "warning")
+    # পেমেন্ট মেথড চেক
+    if not g.user.get('wallet_number'):
+        flash("⚠️ পেমেন্ট মেথড সেট আপ করুন।", "warning")
         return redirect(url_for('adm_settings'))
 
-    # ৩. রেফারেল সংখ্যা গণনা (নির্ভুল পদ্ধতি)
+    # ব্যালেন্স লোড
+    main_balance = float(g.user.get('balance', 0.0))
+    vip_balance = float(g.user.get('vip_balance', 0.0))
+    
+    # রেফারেল কাউন্ট
     try:
-        response = supabase.table('profiles').select('id').eq('referred_by', session['user_id']).execute()
-        ref_count = len(response.data)
-    except Exception as e:
-        print(f"Ref Count Error: {e}")
-        ref_count = 0
+        res = supabase.table('profiles').select('id').eq('referred_by', session['user_id']).execute()
+        ref_count = len(res.data)
+    except: ref_count = 0
 
-    # ৪. একাউন্টের বয়স বের করা (Account Age)
-    account_days = 0
+    # একাউন্ট বয়স
     try:
         from datetime import datetime, timezone
-        join_str = g.user.get('created_at')
-        if join_str:
-            # ISO Format Time Conversion
-            join_date = datetime.fromisoformat(join_str.replace('Z', '+00:00'))
-            current_time = datetime.now(timezone.utc)
-            delta = current_time - join_date
-            account_days = delta.days
-    except Exception as e:
-        print(f"Date Error: {e}")
+        join_date = datetime.fromisoformat(g.user.get('created_at').replace('Z', '+00:00'))
+        account_days = (datetime.now(timezone.utc) - join_date).days
+    except: account_days = 0
 
-    # ৫. ব্যালেন্স লোড
-    current_balance = float(g.user.get('balance', 0.0))
-
-    # ৬. উইথড্র প্রসেস (POST Request)
     if request.method == 'POST':
+        wallet_type = request.form.get('wallet_type') # main or vip
         try:
             amount = float(request.form.get('amount'))
-        except:
-            amount = 0
-
-        # --- শর্ত চেক ---
+        except: amount = 0
         
-        # শর্ত ১: একাউন্ট বয়স
-        if account_days < 1:
-            flash(f"❌ একাউন্টের বয়স ১ দিন হতে হবে। (আপনার বয়স: {account_days} দিন)", "error")
+        # --- লজিক আলাদা করা ---
+        
+        if wallet_type == 'main':
+            # মেইন ব্যালেন্সের শর্ত (কঠিন)
+            if ref_count < 3:
+                flash("❌ মেইন ব্যালেন্সের জন্য ৩টি রেফার প্রয়োজন।", "error")
+                return redirect(url_for('withdraw'))
+            if account_days < 1:
+                flash("❌ একাউন্টের বয়স ১ দিন হতে হবে।", "error")
+                return redirect(url_for('withdraw'))
+            if amount < 300: # মেইন মিনিমাম ৩০০
+                flash("❌ মেইন ব্যালেন্স থেকে মিনিমাম ৩০০ টাকা তুলতে হবে।", "error")
+                return redirect(url_for('withdraw'))
+            if amount > main_balance:
+                flash("❌ মেইন ব্যালেন্সে পর্যাপ্ত টাকা নেই।", "error")
+                return redirect(url_for('withdraw'))
+                
+            # টাকা কাটা (Main)
+            new_bal = main_balance - amount
+            supabase.table('profiles').update({'balance': new_bal}).eq('id', session['user_id']).execute()
+
+        elif wallet_type == 'vip':
+            # ভিআইপি ব্যালেন্সের শর্ত (সহজ)
+            if amount < 50: # ভিআইপি মিনিমাম ৫০
+                flash("❌ ভিআইপি ব্যালেন্স থেকে মিনিমাম ৫০ টাকা তুলতে হবে।", "error")
+                return redirect(url_for('withdraw'))
+            if amount > vip_balance:
+                flash("❌ ভিআইপি ব্যালেন্সে পর্যাপ্ত টাকা নেই।", "error")
+                return redirect(url_for('withdraw'))
+            
+            # টাকা কাটা (VIP)
+            new_bal = vip_balance - amount
+            supabase.table('profiles').update({'vip_balance': new_bal}).eq('id', session['user_id']).execute()
+            
+        else:
+            flash("ভুল ওয়ালেট টাইপ!", "error")
             return redirect(url_for('withdraw'))
 
-        # শর্ত ২: রেফারেল
-        if ref_count < 3:
-            flash(f"❌ উইথড্র করতে ৩টি রেফার প্রয়োজন। আপনার আছে: {ref_count}টি।", "error")
-            return redirect(url_for('withdraw'))
-
-        # শর্ত ৩: মিনিমাম এমাউন্ট
-        if amount < 300:
-            flash("❌ সর্বনিম্ন উইথড্রয়াল ৩০০ টাকা।", "error")
-            return redirect(url_for('withdraw'))
-
-        # শর্ত ৪: ব্যালেন্স
-        if amount > current_balance:
-            flash("❌ পর্যাপ্ত ব্যালেন্স নেই।", "error")
-            return redirect(url_for('withdraw'))
-
-        # --- সব ঠিক থাকলে ডাটাবেসে সেভ ---
+        # রিকোয়েস্ট সেভ
         try:
-            # A. রিকোয়েস্ট সেভ (নাম্বার অটোমেটিক প্রোফাইল থেকে নিবে)
             supabase.table('withdrawals').insert({
                 'user_id': session['user_id'],
-                'method': g.user.get('wallet_method'), # Saved Method
-                'number': g.user.get('wallet_number'), # Saved Number
+                'method': g.user.get('wallet_method'),
+                'number': g.user.get('wallet_number'),
                 'amount': amount,
+                'wallet_type': wallet_type, # সেভ রাখা কোন ব্যালেন্স
                 'status': 'pending'
             }).execute()
 
-            # B. ব্যালেন্স থেকে টাকা কাটা
-            new_balance = current_balance - amount
-            supabase.table('profiles').update({'balance': new_balance}).eq('id', session['user_id']).execute()
-
-            flash("✅ সফল! টাকা শীঘ্রই পাঠানো হবে।", "success")
+            flash(f"✅ {wallet_type.upper()} ব্যালেন্স থেকে উইথড্র সফল!", "success")
             return redirect(url_for('history'))
-
         except Exception as e:
-            flash(f"System Error: {str(e)}", "error")
+            flash(f"Error: {e}", "error")
 
-    # ৭. পেজ রেন্ডার (GET Request)
     return render_template('withdraw.html', 
                            user=g.user, 
                            ref_count=ref_count, 
-                           account_days=account_days,
-                           settings=g.settings)
-
-
+                           account_days=account_days)
+    
 # --- ADMIN: USERX (ULTIMATE FILTER) ---
 @app.route('/admin/userx', methods=['GET', 'POST'])
 @login_required
