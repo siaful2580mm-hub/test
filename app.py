@@ -38,6 +38,15 @@ SPECIAL_TASK_INFO = {
     'description': 'ভিডিও দেখে নিয়ম মেনে Bot  Start করে, রেপারাল লিংক কপি করুন এবং এয়ারড্রপ ট্রান্সফার করুন এবং প্রুফ জমা দিন।'
 }
 
+# --- VIP LEVEL CONFIGURATION ---
+VIP_PLANS = {
+    1: {'name': 'Starter', 'price': 100, 'daily_profit': 10, 'days': 14, 'min_withdraw': 200},
+    2: {'name': 'Basic', 'price': 200, 'daily_profit': 20, 'days': 17, 'min_withdraw': 200},
+    3: {'name': 'Standard', 'price': 500, 'daily_profit': 30, 'days': 45, 'min_withdraw': 200},
+    4: {'name': 'Pro', 'price': 1000, 'daily_profit': 60, 'days': 60, 'min_withdraw': 200},
+    5: {'name': 'Elite', 'price': 5000, 'daily_profit': 350, 'days': 90, 'min_withdraw': 200}
+}
+
 
 # --- MIDDLEWARE (UPDATED FOR BAN SYSTEM) ---
 @app.before_request
@@ -276,7 +285,152 @@ def aw_result():
         final_data = []
 
     return render_template('aw_result.html', submissions=final_data)
+# --- VIP PAGE (PLANS & DAILY CLAIM) ---
+@app.route('/vip', methods=['GET', 'POST'])
+@login_required
+def vip_page():
+    from datetime import datetime
+    
+    # ডেইলি ক্লেইম লজিক
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'claim':
+            user_level = g.user.get('current_level', 0)
+            if user_level == 0:
+                flash("⚠️ আপনি ফ্রি ইউজার। ক্লেইম করতে লেভেল কিনুন।", "warning")
+                return redirect(url_for('vip_page'))
 
+            # ডেট চেক
+            today = datetime.utcnow().date()
+            last_claim_str = g.user.get('last_daily_claim')
+            last_claim = datetime.strptime(last_claim_str, '%Y-%m-%d').date() if last_claim_str else None
+
+            if last_claim == today:
+                flash("⚠️ আজকের প্রফিট ইতিমধ্যে নিয়েছেন!", "warning")
+                return redirect(url_for('vip_page'))
+
+            # মেয়াদ চেক
+            expiry_str = g.user.get('vip_expiry')
+            if expiry_str:
+                expiry_date = datetime.fromisoformat(expiry_str.replace('Z', '+00:00'))
+                if datetime.now(timezone.utc) > expiry_date:
+                    # মেয়াদ শেষ, লেভেল ০ করে দাও
+                    supabase.table('profiles').update({'current_level': 0}).eq('id', session['user_id']).execute()
+                    flash("❌ আপনার প্যাকেজের মেয়াদ শেষ হয়েছে।", "error")
+                    return redirect(url_for('vip_page'))
+
+            # টাকা যোগ করা
+            plan = VIP_PLANS.get(user_level)
+            profit = plan['daily_profit']
+            new_bal = float(g.user.get('balance')) + profit
+            
+            supabase.table('profiles').update({
+                'balance': new_bal,
+                'last_daily_claim': str(today)
+            }).eq('id', session['user_id']).execute()
+            
+            flash(f"🎉 ৳{profit} প্রফিট যোগ হয়েছে!", "success")
+            return redirect(url_for('vip_page'))
+
+    return render_template('vip.html', user=g.user, plans=VIP_PLANS)
+
+# --- BUY VIP (SUBMIT PROOF) ---
+@app.route('/vip/buy/<int:level_id>', methods=['GET', 'POST'])
+@login_required
+def vip_buy(level_id):
+    plan = VIP_PLANS.get(level_id)
+    
+    if request.method == 'POST':
+        method = request.form.get('method')
+        number = request.form.get('sender')
+        trx_id = request.form.get('trx_id')
+        
+        try:
+            supabase.table('vip_requests').insert({
+                'user_id': session['user_id'],
+                'level_id': level_id,
+                'amount': plan['price'],
+                'method': method,
+                'number': number,
+                'trx_id': trx_id,
+                'status': 'pending'
+            }).execute()
+            
+            flash("✅ রিকোয়েস্ট জমা হয়েছে! এডমিন চেক করে আপগ্রেড করে দিবে।", "success")
+            return redirect(url_for('vip_page'))
+        except Exception as e:
+            flash(f"Error: {e}", "error")
+
+    return render_template('vip_buy.html', plan=plan)
+
+# --- ADMIN: VIP REQUESTS ---
+@app.route('/admin/vip')
+@login_required
+@admin_required
+def admin_vip():
+    reqs = supabase.table('vip_requests').select('*').eq('status', 'pending').order('created_at', desc=True).execute().data
+    
+    # ইউজার ইনফো মার্জ
+    final_data = []
+    for r in reqs:
+        try:
+            u = supabase.table('profiles').select('email, referred_by').eq('id', r['user_id']).single().execute().data
+            r['user_email'] = u['email']
+            r['referred_by'] = u['referred_by']
+            final_data.append(r)
+        except: continue
+        
+    return render_template('admin_vip.html', requests=final_data)
+
+# --- ADMIN: VIP ACTION (APPROVE) ---
+@app.route('/admin/vip/action/<action>/<int:req_id>')
+@login_required
+@admin_required
+def vip_action(action, req_id):
+    from datetime import datetime, timedelta
+    
+    try:
+        req = supabase.table('vip_requests').select('*').eq('id', req_id).single().execute().data
+        if not req: return redirect(url_for('admin_vip'))
+
+        if action == 'approve':
+            plan = VIP_PLANS.get(req['level_id'])
+            
+            # ১. ইউজারের লেভেল আপডেট এবং মেয়াদ সেট করা
+            expiry_date = (datetime.utcnow() + timedelta(days=plan['days'])).isoformat()
+            
+            supabase.table('profiles').update({
+                'current_level': req['level_id'],
+                'vip_expiry': expiry_date
+            }).eq('id', req['user_id']).execute()
+            
+            # ২. রেফারেল কমিশন (5%)
+            user_info = supabase.table('profiles').select('referred_by').eq('id', req['user_id']).single().execute().data
+            referrer_id = user_info.get('referred_by')
+            
+            if referrer_id:
+                commission = (float(plan['price']) * 5) / 100 # 5% calculation
+                
+                # রেফারারের ব্যালেন্স আপডেট
+                ref_user = supabase.table('profiles').select('balance').eq('id', referrer_id).single().execute().data
+                if ref_user:
+                    new_ref_bal = float(ref_user['balance']) + commission
+                    supabase.table('profiles').update({'balance': new_ref_bal}).eq('id', referrer_id).execute()
+            
+            # ৩. রিকোয়েস্ট স্ট্যাটাস আপডেট
+            supabase.table('vip_requests').update({'status': 'approved'}).eq('id', req_id).execute()
+            flash("✅ VIP Approved & Commission Sent!", "success")
+            
+        elif action == 'reject':
+            supabase.table('vip_requests').update({'status': 'rejected'}).eq('id', req_id).execute()
+            flash("❌ Rejected", "warning")
+            
+    except Exception as e:
+        print(e)
+        flash("Error processing", "error")
+
+    return redirect(url_for('admin_vip'))
 
 # --- 3. SUB-ADMIN ACTION (Approve/Reject) ---
 @app.route('/aw/action/<action>/<int:id>')
