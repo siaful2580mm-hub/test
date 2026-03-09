@@ -377,7 +377,68 @@ def withdraw():
                            user=g.user, 
                            ref_count=ref_count, 
                            account_days=account_days,
-                           settings=g.settings)
+                           settings=g.setting
+                           # --- USER: INCOME SUMMARY PAGE ---
+@app.route('/income')
+@login_required
+def income_summary():
+    from datetime import datetime
+    today_date = datetime.utcnow().strftime('%Y-%m-%d')
+    
+    # 1. Balances
+    main_bal = float(g.user.get('balance', 0.0))
+    vip_bal = float(g.user.get('vip_balance', 0.0))
+    
+    # 2. Total Withdraw (Only Approved)
+    try:
+        with_res = supabase.table('withdrawals').select('amount').eq('user_id', session['user_id']).eq('status', 'approved').execute().data
+        total_withdraw = sum(float(w['amount']) for w in with_res)
+    except:
+        total_withdraw = 0.0
+        
+    # 3. Referrals Count
+    try:
+        ref_res = supabase.table('profiles').select('id').eq('referred_by', session['user_id']).execute().data
+        ref_count = len(ref_res)
+    except:
+        ref_count = 0
+        
+    # 4. Today's Income & Pending Income
+    today_income = 0.0
+    pending_income = 0.0
+    try:
+        # Normal Tasks
+        subs = supabase.table('submissions').select('*').eq('user_id', session['user_id']).execute().data
+        all_tasks = supabase.table('tasks').select('id, reward').execute().data
+        task_map = {t['id']: float(t['reward']) for t in all_tasks}
+        
+        for sub in subs:
+            reward = task_map.get(sub['task_id'], 0.0)
+            if sub['status'] == 'pending':
+                pending_income += reward
+            elif sub['status'] == 'approved' and sub['created_at'].split('T')[0] == today_date:
+                today_income += reward
+                
+        # Special Tasks (if any pending/approved today)
+        specs = supabase.table('special_submissions').select('*').eq('user_id', session['user_id']).execute().data
+        spec_reward = SPECIAL_TASK_INFO['reward']
+        for sp in specs:
+            if sp['status'] == 'pending':
+                pending_income += spec_reward
+            elif sp['status'] == 'approved' and sp['created_at'].split('T')[0] == today_date:
+                today_income += spec_reward
+                
+    except Exception as e:
+        print(f"Income Calc Error: {e}")
+
+    return render_template('income.html', 
+                           user=g.user,
+                           main_bal=main_bal,
+                           vip_bal=vip_bal,
+                           total_withdraw=total_withdraw,
+                           ref_count=ref_count,
+                           today_income=today_income,
+                           pending_income=pending_income)
 # --- 2. SUB-ADMIN PANEL (/aw/result) ---
 @app.route('/aw/result')
 @login_required
