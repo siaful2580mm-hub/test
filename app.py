@@ -28,7 +28,6 @@ if not url or not key:
 supabase: Client = create_client(url, key)
 
 
-
 # --- SPECIAL TASK CONFIG ---
 SPECIAL_TASK_INFO = {
     'title': '🔥 Airdrop Transfer & Registration',
