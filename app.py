@@ -175,8 +175,55 @@ def index():
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('home.html')
+    
     # --- ADMIN: ADVANCED CUSTOM FILTER (DYNAMIC) ---
 # --- ADMIN: MANAGE DRIVE PACKS --
+
+# ==========================================
+# NEWBIE CHECK PANEL (1st & 2nd Task Only)
+# ==========================================
+@app.route('/aw/newbie-check')
+@login_required
+@fatema_admin_required
+def newbie_check():
+    # ১. সব পেন্ডিং সাবমিশন নিয়ে আসা
+    try:
+        pending_subs = supabase.table('submissions').select('*').eq('status', 'pending').order('created_at', desc=True).execute().data
+        
+        valid_subs =[]
+        
+        # ২. চেক করা কোনটি ১ম বা ২য় সাবমিশন
+        for sub in pending_subs:
+            # এই ইউজারের সব সাবমিশন (পুরনো থেকে নতুন)
+            user_all_subs = supabase.table('submissions').select('id').eq('user_id', sub['user_id']).order('created_at').execute().data
+            
+            # প্রথম ২ টি সাবমিশনের আইডি নেওয়া
+            first_two_ids = [s['id'] for s in user_all_subs[:2]]
+            
+            # যদি বর্তমান পেন্ডিং আইডিটি প্রথম দুটির মধ্যে থাকে
+            if sub['id'] in first_two_ids:
+                try:
+                    # সাবমিশনটি কত নাম্বার তা বের করা (1 or 2)
+                    attempt_num = first_two_ids.index(sub['id']) + 1
+                    sub['attempt_num'] = attempt_num
+                    
+                    # ইউজার এবং টাস্কের তথ্য যুক্ত করা
+                    user_info = supabase.table('profiles').select('email').eq('id', sub['user_id']).single().execute().data
+                    task_info = supabase.table('tasks').select('title, reward').eq('id', sub['task_id']).single().execute().data
+                    
+                    sub['user_email'] = user_info['email']
+                    sub['task_title'] = task_info['title']
+                    sub['reward'] = task_info['reward']
+                    
+                    valid_subs.append(sub)
+                except:
+                    continue
+                    
+    except Exception as e:
+        print(f"Newbie Check Error: {e}")
+        valid_subs =[]
+
+    return render_template('newbie_check.html', submissions=valid_subs)
 
 # ==========================================
 # NEWBIE CHECK PANEL (1st & 2nd Task Only)
@@ -254,7 +301,10 @@ def newbie_action(action, sub_id):
             supabase.table('submissions').update({'status': 'rejected'}).eq('id', sub_id).execute()
             flash("❌ রিজেক্ট করা হয়েছে।", "error")
 
-    except Exceptio
+    except Exception as e:
+        flash(f"Error: {str(e)}", "error")
+
+    return redirect(url_for('newbie_check'
     
 @app.route('/admin/drive/manage', methods=['GET', 'POST'])
 @login_required
