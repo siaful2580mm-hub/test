@@ -398,7 +398,7 @@ def aw_result():
         final_data = []
 
     return render_template('aw_result.html', submissions=final_data)
-# --- VIP PAGE (MULTIPLE PLANS & CLAIM LOGIC) ---
+    # --- VIP PAGE (MULTIPLE PLANS & CLAIM LOGIC) ---
 @app.route('/vip', methods=['GET', 'POST'])
 @login_required
 def vip_page():
@@ -409,9 +409,9 @@ def vip_page():
         action = request.form.get('action')
         
         if action == 'claim':
-            vip_id = request.form.get('vip_id') # কোন প্যাকেজটি ক্লেইম করছে তার আইডি
+            vip_id = request.form.get('vip_id') 
             
-            # ১. ওই নির্দিষ্ট প্যাকেজটি ডাটাবেস থেকে আনা
+            # ১. প্যাকেজটি ডাটাবেস থেকে আনা
             vip_res = supabase.table('user_vips').select('*').eq('id', vip_id).eq('user_id', session['user_id']).single().execute()
             vip_data = vip_res.data
             
@@ -436,13 +436,10 @@ def vip_page():
             current_vip_balance = float(g.user.get('vip_balance', 0.0))
             new_vip_balance = current_vip_balance + profit
             
-            # প্রোফাইল আপডেট
             supabase.table('profiles').update({'vip_balance': new_vip_balance}).eq('id', session['user_id']).execute()
-            
-            # প্যাকেজের লাস্ট ক্লেইম ডেট আপডেট
             supabase.table('user_vips').update({'last_claim': today_str}).eq('id', vip_id).execute()
             
-            flash(f"🎉 Level {vip_data['level_id']} থেকে ৳{profit} প্রফিট যোগ হয়েছে!", "success")
+            flash(f"🎉 ৳{profit} প্রফিট যোগ হয়েছে!", "success")
             return redirect(url_for('vip_page'))
 
     # GET Method: ইউজারের সব 'active' প্যাকেজগুলো আনা
@@ -450,12 +447,10 @@ def vip_page():
     try:
         res = supabase.table('user_vips').select('*').eq('user_id', session['user_id']).eq('status', 'active').order('created_at', desc=False).execute()
         my_vips = res.data
-    except: pass
+    except Exception as e:
+        print(f"VIP Fetch Error: {e}")
 
     return render_template('vip.html', user=g.user, plans=VIP_PLANS, my_vips=my_vips, today_date=today_str)
-    
-    # পেজ রেন্ডার (GET Request)
-    return render_template('vip.html', user=g.user, plans=VIP_PLANS)
 # --- BUY VIP (SUBMIT PROOF) ---
 @app.route('/vip/buy/<int:level_id>', methods=['GET', 'POST'])
 @login_required
