@@ -46,7 +46,6 @@ VIP_PLANS = {
     5: {'name': 'Elite', 'price': 5000, 'daily_profit': 350, 'days': 90, 'min_withdraw': 200}
 }
 
-
 # --- MIDDLEWARE (UPDATED FOR BAN SYSTEM) ---
 @app.before_request
 def before_request_checks():
