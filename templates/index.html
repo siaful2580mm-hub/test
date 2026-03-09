@@ -3,14 +3,14 @@
 
 <style>
     /* Premium Animations */
-    .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
-    @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+    .fade-up { animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
     
-    .glass-card {
-        background: rgba(255, 255, 255, 0.75);
+    .glass-box {
+        background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     }
 
     /* VIP & Regular Theme Cards */
@@ -19,8 +19,23 @@
     }
     .hero-vip {
         background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%);
-        border: 1px solid rgba(234, 179, 8, 0.3);
+        border: 1px solid rgba(234, 179, 8, 0.4);
+        box-shadow: 0 10px 30px -10px rgba(234, 179, 8, 0.3);
     }
+
+    /* Shimmer Light Effect for Card */
+    .shimmer { position: relative; overflow: hidden; }
+    .shimmer::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -150%;
+        width: 50%; height: 100%;
+        background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+        transform: skewX(-25deg);
+        animation: shimmer 4s infinite;
+        z-index: 10;
+    }
+    @keyframes shimmer { 100% { left: 200%; } }
 
     .scroll-vertical { animation: scrollVert 20s linear infinite; }
     @keyframes scrollVert { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
@@ -28,15 +43,15 @@
 
 <div class="space-y-6 pb-32 pt-4 fade-up">
 
-    <!-- 1. HEADER PROFILE (Dynamic VIP/Regular) -->
-    <div class="flex justify-between items-center px-2">
+    <!-- 1. HEADER PROFILE -->
+    <div class="flex justify-between items-center px-1">
         <div class="flex items-center gap-3">
             <div class="relative">
-                <div class="h-12 w-12 rounded-full flex items-center justify-center text-xl font-bold border-2 shadow-sm
-                    {% if user.current_level > 0 %} bg-yellow-100 text-yellow-600 border-yellow-400 {% else %} bg-indigo-50 text-[#4F46E5] border-white {% endif %}">
+                <div class="h-12 w-12 rounded-[16px] flex items-center justify-center text-xl font-bold shadow-md
+                    {% if user.current_level > 0 %} bg-gradient-to-br from-yellow-400 to-yellow-600 text-white {% else %} bg-indigo-50 text-[#4F46E5] border border-indigo-100 {% endif %}">
                     {{ user.email[0] | upper }}
                 </div>
-                <div class="absolute bottom-0 right-0 h-3.5 w-3.5 bg-green-500 border-2 border-white rounded-full"></div>
+                <div class="absolute -bottom-1 -right-1 h-4 w-4 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
             <div>
                 <p class="text-[10px] font-bold uppercase tracking-wider mb-0.5 {{ 'text-yellow-600' if user.current_level > 0 else 'text-slate-400' }}" id="greeting">HELLO</p>
@@ -46,21 +61,21 @@
                 
                 <!-- Status Badge -->
                 {% if user.current_level > 0 %}
-                    <span class="inline-flex items-center gap-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-[10px] px-3 py-0.5 rounded-full font-bold mt-1 shadow-md">
-                        <i class="fa-solid fa-crown"></i> VIP LEVEL {{ user.current_level }}
+                    <span class="inline-flex items-center gap-1 text-yellow-600 text-[10px] font-bold mt-1">
+                        <i class="fa-solid fa-crown"></i> VIP Member
                     </span>
                 {% elif user.is_active %}
-                    <span class="inline-flex items-center gap-1 bg-green-50 text-green-600 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1">
+                    <span class="inline-flex items-center gap-1 text-green-600 text-[10px] font-bold mt-1">
                         <i class="fa-solid fa-check-circle"></i> Verified
                     </span>
                 {% else %}
-                    <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-500 text-[10px] px-2 py-0.5 rounded-full font-bold mt-1">
-                        Free Member
+                    <span class="inline-flex items-center gap-1 text-slate-500 text-[10px] font-bold mt-1">
+                        Free Plan
                     </span>
                 {% endif %}
             </div>
         </div>
-        <a href="/notice" class="h-10 w-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm border border-slate-100 relative hover:text-[#4F46E5] transition">
+        <a href="/notice" class="h-10 w-10 glass-box rounded-full flex items-center justify-center text-slate-600 hover:text-[#4F46E5] transition relative">
             <i class="fa-regular fa-bell"></i>
             {% if settings.notice_text %}
             <span class="absolute top-2 right-2.5 h-2 w-2 bg-red-500 rounded-full animate-ping"></span>
@@ -69,16 +84,28 @@
         </a>
     </div>
 
-    <!-- 2. DYNAMIC WALLET CARD (Changes based on VIP Status) -->
-    <div class="{% if user.current_level > 0 %} hero-vip {% else %} hero-regular {% endif %} rounded-[32px] p-6 text-white shadow-xl relative group overflow-hidden">
+    <!-- ⚠️ ACTIVATION ALERT -->
+    {% if settings.activation_required and not user.is_active %}
+    <div class="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 p-4 rounded-3xl relative overflow-hidden flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3 relative z-10">
+            <div class="bg-white text-red-500 h-10 w-10 rounded-full flex items-center justify-center shadow-sm text-lg animate-pulse">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-red-700 text-sm">একাউন্ট লকড</h3>
+                <p class="text-[10px] text-red-500">টাস্ক শুরু করতে ভেরিফাই করুন</p>
+            </div>
+        </div>
+        <a href="/activate" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg hover:bg-red-700 transition relative z-10">
+            ভেরিফাই
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- 2. DYNAMIC WALLET CARD (With Shimmer Effect) -->
+    <div class="{% if user.current_level > 0 %} hero-vip {% else %} hero-regular {% endif %} rounded-[32px] p-6 text-white relative group overflow-hidden shimmer">
         
-        <!-- Abstract Shapes -->
-        <div class="absolute top-0 right-0 w-48 h-48 bg-white opacity-5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-110 transition duration-700"></div>
-        {% if user.current_level > 0 %}
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-yellow-500 opacity-10 rounded-full blur-3xl -ml-10 -mb-10"></div>
-        {% else %}
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-pink-500 opacity-20 rounded-full blur-3xl -ml-10 -mb-10"></div>
-        {% endif %}
+        <div class="absolute top-0 right-0 w-48 h-48 bg-white opacity-5 rounded-full blur-3xl -mr-16 -mt-16 transition duration-700"></div>
 
         <div class="relative z-10">
             <!-- Dual Balance Display -->
@@ -105,101 +132,134 @@
                 </div>
             </div>
 
-            <!-- Action Buttons Row -->
+            <!-- Action Buttons -->
             <div class="flex justify-center gap-3 mt-6">
-                <a href="/withdraw" class="flex-1 bg-white/10 backdrop-blur-md border border-white/20 py-2.5 rounded-xl text-xs font-bold text-center hover:bg-white hover:text-[#0A2540] transition flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-arrow-up-from-bracket"></i> উইথড্র
+                <a href="/income" class="flex-1 bg-white/10 backdrop-blur-md border border-white/20 py-2.5 rounded-xl text-xs font-bold text-center hover:bg-white hover:text-[#0A2540] transition flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-chart-pie"></i> আমার আয়
                 </a>
                 
                 {% if user.current_level > 0 %}
-                    <!-- VIP User: Go to VIP page to claim -->
                     <a href="/vip" class="flex-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-slate-900 py-2.5 rounded-xl text-xs font-bold text-center shadow-lg hover:scale-105 transition flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-hand-holding-dollar"></i> প্রফিট ক্লেইম
+                        <i class="fa-solid fa-hand-holding-dollar"></i> প্রফিট নিন
                     </a>
                 {% else %}
-                    <!-- Regular User: Do Tasks -->
-                    <a href="/tasks" class="flex-1 bg-[#E2136E] py-2.5 rounded-xl text-xs font-bold text-center shadow-lg hover:scale-105 transition flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-play"></i> কাজ করুন
+                    <a href="/tasks" class="flex-1 bg-white text-[#4F46E5] py-2.5 rounded-xl text-xs font-bold text-center shadow-lg hover:scale-105 transition flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-play"></i> টাস্ক করুন
                     </a>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- 3. VIP EXCLUSIVE OR PROMO BANNER -->
-    {% if user.current_level > 0 %}
-        <!-- VIP Status Dashboard -->
-        <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-5 rounded-3xl border border-yellow-500/30 shadow-lg text-white flex items-center justify-between">
-            <div>
-                <p class="text-xs text-slate-400 font-bold uppercase mb-1">VIP Status</p>
-                <p class="text-sm font-bold text-yellow-400"><i class="fa-regular fa-clock"></i> Expires: {{ user.vip_expiry[:10] if user.vip_expiry else 'N/A' }}</p>
+    <!-- 3. DAILY CHECK-IN (Hides automatically after claiming) -->
+    {% if user.last_checkin != today_date %}
+    <div class="bg-white p-5 rounded-3xl shadow-sm border border-indigo-50">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-[#4F46E5]"></i> ডেইলি চেক-ইন
+            </h3>
+            <span class="text-[10px] text-[#4F46E5] font-bold bg-indigo-50 px-2 py-0.5 rounded">
+                Streak: {{ user.streak_count if user.streak_count else 0 }}/7
+            </span>
+        </div>
+        
+        <div class="flex justify-between gap-1 mb-4">
+            {% for day, reward in[(1,5), (2,7), (3,15), (4,18), (5,22), (6,25)] %}
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-slate-400">D{{ day }}</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-[#4F46E5] text-white shadow-md border-indigo-500' if user.streak_count >= day else 'bg-slate-50 text-slate-400 border-slate-200' }}">
+                    <span class="font-bold">৳{{ reward }}</span>
+                </div>
             </div>
-            <div class="text-right">
-                <p class="text-[10px] text-slate-400">Daily Earning</p>
-                <p class="text-lg font-bold text-green-400">Auto <i class="fa-solid fa-bolt"></i></p>
+            {% endfor %}
+            <div class="flex flex-col items-center gap-1">
+                <span class="text-[9px] font-bold text-yellow-600">D7</span>
+                <div class="h-9 w-8 rounded-lg flex flex-col items-center justify-center text-[9px] border transition-all
+                    {{ 'bg-yellow-500 text-white shadow-md border-yellow-600' if user.streak_count >= 7 else 'bg-yellow-50 text-yellow-600 border-yellow-200' }}">
+                    <i class="fa-solid fa-gift mb-0.5"></i>
+                    <span class="font-bold">৳30</span>
+                </div>
             </div>
         </div>
-    {% else %}
-        <!-- Upgrade Promo for Regular Users -->
-        <a href="/vip" class="block bg-gradient-to-r from-orange-50 to-yellow-50 border border-yellow-200 p-5 rounded-3xl relative overflow-hidden group hover:shadow-md transition">
-            <div class="absolute right-0 top-0 opacity-10 text-6xl transform translate-x-4 -translate-y-2 group-hover:scale-110 transition"><i class="fa-solid fa-crown"></i></div>
-            <div class="flex items-center gap-4 relative z-10">
-                <div class="h-12 w-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white text-xl shadow-lg animate-pulse">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
-                <div>
-                    <h3 class="font-bold text-slate-800 text-sm">VIP আপগ্রেড করুন!</h3>
-                    <p class="text-[10px] text-slate-500 mt-1">কোনো কাজ ছাড়াই প্রতিদিন <span class="font-bold text-orange-600">৩৫০ টাকা</span> পর্যন্ত অটো ইনকাম করুন।</p>
-                </div>
-            </div>
+
+        <a href="/daily-checkin" class="w-full block bg-[#0A2540] text-white text-center py-3 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-900 active:scale-95 transition">
+            আজকের বোনাস সংগ্রহ করুন
         </a>
+    </div>
     {% endif %}
 
-    <!-- 4. QUICK MENU GRID -->
-    <div class="slide-up delay-100">
+    <!-- 4. UPGRADE BANNER (For Free Users) -->
+    {% if user.current_level == 0 %}
+    <a href="/vip" class="block bg-gradient-to-r from-orange-50 to-yellow-50 border border-yellow-200 p-4 rounded-3xl relative overflow-hidden hover:shadow-md transition">
+        <div class="absolute right-0 top-0 opacity-10 text-6xl transform translate-x-4 -translate-y-2"><i class="fa-solid fa-crown"></i></div>
+        <div class="flex items-center gap-4 relative z-10">
+            <div class="h-12 w-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white text-xl shadow-lg animate-pulse">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-slate-800 text-sm">VIP আপগ্রেড করুন!</h3>
+                <p class="text-[10px] text-slate-500 mt-1">রেফারেল ছাড়া প্রতিদিন অটো ইনকাম করতে ভিআইপি কিনুন।</p>
+            </div>
+        </div>
+    </a>
+    {% endif %}
+
+    <!-- 5. MAIN NAVIGATION GRID (Updated with Income & Notice) -->
+    <div>
         <h3 class="font-bold text-slate-700 px-2 text-sm mb-3">সার্ভিসসমূহ</h3>
         <div class="grid grid-cols-4 gap-3">
-            <a href="/tasks" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+            
+            <a href="/income" class="glass-box p-3 rounded-[20px] flex flex-col items-center gap-2 hover:-translate-y-1 transition">
+                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-chart-pie"></i></div>
+                <span class="text-[10px] font-bold text-slate-600">আমার আয়</span>
+            </a>
+
+            <a href="/notice" class="glass-box p-3 rounded-[20px] flex flex-col items-center gap-2 hover:-translate-y-1 transition">
+                <div class="h-10 w-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-lg relative">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+                </div>
+                <span class="text-[10px] font-bold text-slate-600">নোটিশ</span>
+            </a>
+
+            <a href="/tasks" class="glass-box p-3 rounded-[20px] flex flex-col items-center gap-2 hover:-translate-y-1 transition">
                 <div class="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-brands fa-youtube"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">টাস্ক</span>
             </a>
-            <a href="/vip" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+
+            <a href="/withdraw" class="glass-box p-3 rounded-[20px] flex flex-col items-center gap-2 hover:-translate-y-1 transition">
+                <div class="h-10 w-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                <span class="text-[10px] font-bold text-slate-600">উইথড্র</span>
+            </a>
+
+            <a href="/vip" class="glass-box p-3 rounded-[20px] flex flex-col items-center gap-2 hover:-translate-y-1 transition">
                 <div class="h-10 w-10 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-crown"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">VIP প্যাক</span>
             </a>
-            <a href="/proofs" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
+
+            <a href="/proofs" class="glass-box p-3 rounded-[20px] flex flex-col items-center gap-2 hover:-translate-y-1 transition">
                 <div class="h-10 w-10 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-receipt"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">প্রুফ</span>
             </a>
-            <a href="/drive" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-wifi"></i></div>
-                <span class="text-[10px] font-bold text-slate-600">ড্রাইভ</span>
-            </a>
-            <a href="/history" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                <span class="text-[10px] font-bold text-slate-600">হিস্টোরি</span>
-            </a>
-            <a href="/referrals" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
+
+            <a href="/referrals" class="glass-box p-3 rounded-[20px] flex flex-col items-center gap-2 hover:-translate-y-1 transition">
+                <div class="h-10 w-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
                 <span class="text-[10px] font-bold text-slate-600">রেফার</span>
             </a>
-            <!-- Updated Support Link -->
-            <a href="https://t.me/PayRsupprt" target="_blank" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-sky-50 text-sky-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-brands fa-telegram"></i></div>
-                <span class="text-[10px] font-bold text-slate-600">সাপোর্ট</span>
-            </a>
-            <a href="/tutorial" class="bg-white p-3 rounded-2xl shadow-sm flex flex-col items-center gap-2 hover:-translate-y-1 transition border border-slate-50">
-                <div class="h-10 w-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-play"></i></div>
-                <span class="text-[10px] font-bold text-slate-600">ভিডিও</span>
+
+            <a href="/history" class="glass-box p-3 rounded-[20px] flex flex-col items-center gap-2 hover:-translate-y-1 transition">
+                <div class="h-10 w-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <span class="text-[10px] font-bold text-slate-600">হিস্টোরি</span>
             </a>
         </div>
     </div>
 
-    <!-- 5. LIVE PAYOUTS & LEADERBOARD -->
-    <div class="grid md:grid-cols-2 gap-4 slide-up delay-200">
+    <!-- 6. LIVE PAYOUTS & LEADERBOARD -->
+    <div class="grid md:grid-cols-2 gap-4">
         
         <!-- Live Payouts -->
-        <div class="glass-card p-5 rounded-3xl overflow-hidden h-52">
+        <div class="glass-box p-5 rounded-3xl overflow-hidden h-52">
             <h3 class="font-bold text-slate-700 text-xs mb-3 flex items-center gap-2">
                 <span class="relative flex h-2 w-2">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -213,7 +273,7 @@
         </div>
 
         <!-- Leaderboard -->
-        <div class="glass-card p-5 rounded-3xl">
+        <div class="glass-box p-5 rounded-3xl">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="font-bold text-slate-700 text-xs flex items-center gap-2">
                     <i class="fa-solid fa-trophy text-yellow-500"></i> টপ লিডারবোর্ড
@@ -253,7 +313,7 @@
     // 1. Generate Live Payouts
     function generatePayouts() {
         const container = document.getElementById('payoutList');
-        const methods = ['bKash', 'Nagad', 'Rocket'];
+        const methods =['bKash', 'Nagad', 'Rocket'];
         const prefixes =['017', '019', '018', '016'];
         let html = '';
         
