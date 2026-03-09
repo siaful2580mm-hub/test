@@ -285,65 +285,62 @@ def aw_result():
         final_data = []
 
     return render_template('aw_result.html', submissions=final_data)
-# --- VIP PAGE (PLANS & DAILY CLAIM) ---
-# --- VIP PAGE (PLANS & DAILY CLAIM TO VIP BALANCE) ---
+# --- VIP PAGE (MULTIPLE PLANS & CLAIM LOGIC) ---
 @app.route('/vip', methods=['GET', 'POST'])
 @login_required
 def vip_page():
     from datetime import datetime, timezone
+    today_str = datetime.utcnow().strftime('%Y-%m-%d')
     
-    # ডেইলি ক্লেইম লজিক (POST Request)
     if request.method == 'POST':
         action = request.form.get('action')
         
         if action == 'claim':
-            # ১. লেভেল চেক
-            user_level = g.user.get('current_level', 0)
-            if user_level == 0:
-                flash("⚠️ আপনি ফ্রি ইউজার। ক্লেইম করতে লেভেল কিনুন।", "warning")
-                return redirect(url_for('vip_page'))
-
-            # ২. মেয়াদ (Expiry) চেক
-            expiry_str = g.user.get('vip_expiry')
-            if expiry_str:
-                # Supabase টাইমস্ট্যাম্প কনভার্ট করা
-                expiry_date = datetime.fromisoformat(expiry_str.replace('Z', '+00:00'))
-                
-                if datetime.now(timezone.utc) > expiry_date:
-                    # মেয়াদ শেষ হলে লেভেল ০ করে দেওয়া
-                    supabase.table('profiles').update({'current_level': 0}).eq('id', session['user_id']).execute()
-                    flash("❌ আপনার প্যাকেজের মেয়াদ শেষ হয়েছে। নতুন প্যাক কিনুন।", "error")
-                    return redirect(url_for('vip_page'))
-
-            # ৩. ডেট চেক (আজকে নিয়েছে কিনা)
-            today_str = datetime.utcnow().strftime('%Y-%m-%d')
-            last_claim = g.user.get('last_daily_claim')
-
-            if last_claim == today_str:
-                flash("⚠️ আজকের প্রফিট ইতিমধ্যে নিয়েছেন!", "warning")
-                return redirect(url_for('vip_page'))
-
-            # ৪. টাকা যোগ করা (VIP BALANCE এ)
-            plan = VIP_PLANS.get(user_level)
+            vip_id = request.form.get('vip_id') # কোন প্যাকেজটি ক্লেইম করছে তার আইডি
             
-            if plan:
-                profit = plan['daily_profit']
-                
-                # ভিআইপি ব্যালেন্স আপডেট
-                current_vip_balance = float(g.user.get('vip_balance', 0.0))
-                new_vip_balance = current_vip_balance + profit
-                
-                supabase.table('profiles').update({
-                    'vip_balance': new_vip_balance,
-                    'last_daily_claim': today_str
-                }).eq('id', session['user_id']).execute()
-                
-                flash(f"🎉 ৳{profit} টাকা VIP ব্যালেন্সে যোগ হয়েছে!", "success")
-            else:
-                flash("Error: Plan not found", "error")
-                
+            # ১. ওই নির্দিষ্ট প্যাকেজটি ডাটাবেস থেকে আনা
+            vip_res = supabase.table('user_vips').select('*').eq('id', vip_id).eq('user_id', session['user_id']).single().execute()
+            vip_data = vip_res.data
+            
+            if not vip_data or vip_data['status'] != 'active':
+                flash("⚠️ প্যাকেজটি পাওয়া যায়নি বা মেয়াদ শেষ।", "error")
+                return redirect(url_for('vip_page'))
+
+            # ২. মেয়াদ চেক করা
+            expiry_date = datetime.fromisoformat(vip_data['expires_at'].replace('Z', '+00:00'))
+            if datetime.now(timezone.utc) > expiry_date:
+                supabase.table('user_vips').update({'status': 'expired'}).eq('id', vip_id).execute()
+                flash("❌ এই প্যাকেজটির মেয়াদ শেষ হয়ে গেছে।", "error")
+                return redirect(url_for('vip_page'))
+
+            # ৩. আজকের ডেট চেক (আজকে কি ক্লেইম করেছে?)
+            if vip_data['last_claim'] == today_str:
+                flash("⚠️ এই প্যাকেজের আজকের প্রফিট ইতিমধ্যে নেওয়া হয়েছে!", "warning")
+                return redirect(url_for('vip_page'))
+
+            # ৪. টাকা VIP Balance এ যোগ করা
+            profit = float(vip_data['profit'])
+            current_vip_balance = float(g.user.get('vip_balance', 0.0))
+            new_vip_balance = current_vip_balance + profit
+            
+            # প্রোফাইল আপডেট
+            supabase.table('profiles').update({'vip_balance': new_vip_balance}).eq('id', session['user_id']).execute()
+            
+            # প্যাকেজের লাস্ট ক্লেইম ডেট আপডেট
+            supabase.table('user_vips').update({'last_claim': today_str}).eq('id', vip_id).execute()
+            
+            flash(f"🎉 Level {vip_data['level_id']} থেকে ৳{profit} প্রফিট যোগ হয়েছে!", "success")
             return redirect(url_for('vip_page'))
 
+    # GET Method: ইউজারের সব 'active' প্যাকেজগুলো আনা
+    my_vips =[]
+    try:
+        res = supabase.table('user_vips').select('*').eq('user_id', session['user_id']).eq('status', 'active').order('created_at', desc=False).execute()
+        my_vips = res.data
+    except: pass
+
+    return render_template('vip.html', user=g.user, plans=VIP_PLANS, my_vips=my_vips, today_date=today_str)
+    
     # পেজ রেন্ডার (GET Request)
     return render_template('vip.html', user=g.user, plans=VIP_PLANS)
 # --- BUY VIP (SUBMIT PROOF) ---
@@ -393,56 +390,61 @@ def admin_vip():
         except: continue
         
     return render_template('admin_vip.html', requests=final_data)
-
-# --- ADMIN: VIP ACTION (APPROVE) ---
-@app.route('/admin/vip/action/<action>/<int:req_id>')
+# --- VIP PAGE (MULTIPLE PLANS & CLAIM LOGIC) ---
+@app.route('/vip', methods=['GET', 'POST'])
 @login_required
-@admin_required
-def vip_action(action, req_id):
-    from datetime import datetime, timedelta
+def vip_page():
+    from datetime import datetime, timezone
+    today_str = datetime.utcnow().strftime('%Y-%m-%d')
     
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'claim':
+            vip_id = request.form.get('vip_id') # কোন প্যাকেজটি ক্লেইম করছে তার আইডি
+            
+            # ১. ওই নির্দিষ্ট প্যাকেজটি ডাটাবেস থেকে আনা
+            vip_res = supabase.table('user_vips').select('*').eq('id', vip_id).eq('user_id', session['user_id']).single().execute()
+            vip_data = vip_res.data
+            
+            if not vip_data or vip_data['status'] != 'active':
+                flash("⚠️ প্যাকেজটি পাওয়া যায়নি বা মেয়াদ শেষ।", "error")
+                return redirect(url_for('vip_page'))
+
+            # ২. মেয়াদ চেক করা
+            expiry_date = datetime.fromisoformat(vip_data['expires_at'].replace('Z', '+00:00'))
+            if datetime.now(timezone.utc) > expiry_date:
+                supabase.table('user_vips').update({'status': 'expired'}).eq('id', vip_id).execute()
+                flash("❌ এই প্যাকেজটির মেয়াদ শেষ হয়ে গেছে।", "error")
+                return redirect(url_for('vip_page'))
+
+            # ৩. আজকের ডেট চেক (আজকে কি ক্লেইম করেছে?)
+            if vip_data['last_claim'] == today_str:
+                flash("⚠️ এই প্যাকেজের আজকের প্রফিট ইতিমধ্যে নেওয়া হয়েছে!", "warning")
+                return redirect(url_for('vip_page'))
+
+            # ৪. টাকা VIP Balance এ যোগ করা
+            profit = float(vip_data['profit'])
+            current_vip_balance = float(g.user.get('vip_balance', 0.0))
+            new_vip_balance = current_vip_balance + profit
+            
+            # প্রোফাইল আপডেট
+            supabase.table('profiles').update({'vip_balance': new_vip_balance}).eq('id', session['user_id']).execute()
+            
+            # প্যাকেজের লাস্ট ক্লেইম ডেট আপডেট
+            supabase.table('user_vips').update({'last_claim': today_str}).eq('id', vip_id).execute()
+            
+            flash(f"🎉 Level {vip_data['level_id']} থেকে ৳{profit} প্রফিট যোগ হয়েছে!", "success")
+            return redirect(url_for('vip_page'))
+
+    # GET Method: ইউজারের সব 'active' প্যাকেজগুলো আনা
+    my_vips =[]
     try:
-        req = supabase.table('vip_requests').select('*').eq('id', req_id).single().execute().data
-        if not req: return redirect(url_for('admin_vip'))
+        res = supabase.table('user_vips').select('*').eq('user_id', session['user_id']).eq('status', 'active').order('created_at', desc=False).execute()
+        my_vips = res.data
+    except: pass
 
-        if action == 'approve':
-            plan = VIP_PLANS.get(req['level_id'])
-            
-            # ১. ইউজারের লেভেল আপডেট এবং মেয়াদ সেট করা
-            expiry_date = (datetime.utcnow() + timedelta(days=plan['days'])).isoformat()
-            
-            supabase.table('profiles').update({
-                'current_level': req['level_id'],
-                'vip_expiry': expiry_date
-            }).eq('id', req['user_id']).execute()
-            
-            # ২. রেফারেল কমিশন (5%)
-            user_info = supabase.table('profiles').select('referred_by').eq('id', req['user_id']).single().execute().data
-            referrer_id = user_info.get('referred_by')
-            
-            if referrer_id:
-                commission = (float(plan['price']) * 5) / 100 # 5% calculation
-                
-                # রেফারারের ব্যালেন্স আপডেট
-                ref_user = supabase.table('profiles').select('balance').eq('id', referrer_id).single().execute().data
-                if ref_user:
-                    new_ref_bal = float(ref_user['balance']) + commission
-                    supabase.table('profiles').update({'balance': new_ref_bal}).eq('id', referrer_id).execute()
-            
-            # ৩. রিকোয়েস্ট স্ট্যাটাস আপডেট
-            supabase.table('vip_requests').update({'status': 'approved'}).eq('id', req_id).execute()
-            flash("✅ VIP Approved & Commission Sent!", "success")
-            
-        elif action == 'reject':
-            supabase.table('vip_requests').update({'status': 'rejected'}).eq('id', req_id).execute()
-            flash("❌ Rejected", "warning")
-            
-    except Exception as e:
-        print(e)
-        flash("Error processing", "error")
-
-    return redirect(url_for('admin_vip'))
-
+    return render_template('vip.html', user=g.user, plans=VIP_PLANS, my_vips=my_vips, today_date=today_str)
 # --- 3. SUB-ADMIN ACTION (Approve/Reject) ---
 @app.route('/aw/action/<action>/<int:id>')
 @login_required
