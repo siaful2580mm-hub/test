@@ -231,7 +231,7 @@ def special_task():
 
         try:
             # ImgBB Upload
-            api_key = "268c981497486b178babae03a5e79a40"
+            api_key = "2d69b70f4a3a8f863e63b82a896446bf"
             image_string = base64.b64encode(file.read())
             payload = { "key": api_key, "image": image_string }
             response = requests.post("https://api.imgbb.com/1/upload", data=payload)
