@@ -34,7 +34,7 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-yellow-800 text-base">VIP মেম্বারশিপ অ্যাক্টিভ</h3>
-                    <p class="text-xs text-yellow-700 mt-0.5 leading-relaxed font-medium">আপনার জন্য কোনো রেফারেল বা একাউন্ট বয়সের শর্ত নেই। শুধু মিনিমাম ব্যালেন্স হলেই উইথড্র করতে পারবেন।</p>
+                    <p class="text-xs text-yellow-700 mt-0.5 leading-relaxed font-medium">আপনার জন্য কোনো রেফারেল বা একাউন্ট বয়সের শর্ত নেই। মেইন এবং ভিআইপি যেকোনো ব্যালেন্স থেকে মিনিমাম ৫০ টাকা হলেই উইথড্র করতে পারবেন।</p>
                 </div>
             </div>
         </div>
@@ -107,18 +107,24 @@
                     <div class="p-4 border-2 border-slate-100 rounded-2xl bg-white peer-checked:border-[#4F46E5] peer-checked:bg-indigo-50 relative overflow-hidden transition">
                         <p class="text-[10px] text-slate-500 uppercase font-bold">Main Wallet</p>
                         <h3 class="text-xl font-bold text-slate-800 mt-1 font-mono">৳ {{ user.balance }}</h3>
-                        <p class="text-[9px] text-slate-400 mt-1 font-bold">Min: 300 ৳</p>
+                        
+                        <!-- Dynamic Text based on VIP Status -->
+                        {% if user.current_level > 0 %}
+                            <p class="text-[9px] text-green-600 mt-1 font-bold">Min: 50 ৳ | Cond: No</p>
+                        {% else %}
+                            <p class="text-[9px] text-red-400 mt-1 font-bold">Min: 300 ৳ | Cond: Yes</p>
+                        {% endif %}
                     </div>
                 </label>
 
                 <!-- VIP Wallet -->
                 <label class="cursor-pointer group">
-                    <input type="radio" name="wallet_type" value="vip" class="peer sr-only">
-                    <div class="p-4 border-2 border-slate-100 rounded-2xl bg-white peer-checked:border-yellow-500 peer-checked:bg-yellow-50 relative overflow-hidden transition">
+                    <input type="radio" name="wallet_type" value="vip" class="peer sr-only" {{ 'disabled' if user.current_level == 0 }}>
+                    <div class="p-4 border-2 border-slate-100 rounded-2xl bg-white peer-checked:border-yellow-500 peer-checked:bg-yellow-50 relative overflow-hidden transition {{ 'opacity-50 grayscale' if user.current_level == 0 }}">
                         <div class="absolute top-0 right-0 bg-yellow-500 text-white text-[8px] px-2 py-0.5 rounded-bl-lg font-bold tracking-wider">VIP</div>
                         <p class="text-[10px] text-slate-500 uppercase font-bold">VIP Wallet</p>
                         <h3 class="text-xl font-bold text-yellow-600 mt-1 font-mono">৳ {{ user.vip_balance or 0 }}</h3>
-                        <p class="text-[9px] text-slate-400 mt-1 font-bold">Min: 50 ৳</p>
+                        <p class="text-[9px] text-green-600 mt-1 font-bold">Min: 50 ৳ | Cond: No</p>
                     </div>
                 </label>
 
@@ -132,6 +138,7 @@
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <i class="fa-solid fa-bangladeshi-taka-sign"></i>
                 </div>
+                <!-- Min attribute dynamically changed via Javascript is tricky, so we set it generic -->
                 <input type="number" name="amount" required placeholder="পরিমাণ দিন" 
                        class="w-full pl-10 p-4 border border-slate-200 rounded-2xl focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-indigo-100 bg-slate-50 focus:bg-white transition text-lg font-bold text-slate-800 font-mono">
             </div>
@@ -143,12 +150,12 @@
             {% set is_vip = (user.current_level > 0) %}
             
             {% if is_vip or can_withdraw_free %}
-                <button type="submit" class="w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white py-4 rounded-2xl font-bold text-lg shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-95 transition flex items-center justify-center gap-2">
+                <button type="submit" class="w-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-95 transition flex items-center justify-center gap-2">
                     <span>উত্তোলন করুন</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
             {% else %}
-                <button type="button" disabled class="w-full bg-slate-200 text-slate-400 py-4 rounded-2xl font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                <button type="button" disabled class="w-full bg-slate-200 text-slate-400 py-4 rounded-xl font-bold cursor-not-allowed flex items-center justify-center gap-2">
                     <i class="fa-solid fa-lock"></i> শর্ত পূরণ হয়নি
                 </button>
             {% endif %}
