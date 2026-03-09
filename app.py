@@ -257,7 +257,7 @@ def newbie_action(action, sub_id):
     except Exception as e:
         flash(f"Error: {str(e)}", "error")
 
-    return redirect(url_for('newbie_check'
+    return redirect(url_for('newbie_check'))
     
 @app.route('/admin/drive/manage', methods=['GET', 'POST'])
 @login_required
