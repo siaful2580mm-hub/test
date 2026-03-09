@@ -150,6 +150,22 @@ def sub_admin_required(f):
         return redirect(url_for('dashboard'))
         
     return decorated_function
+# --- HELPER: FATEMA & ADMIN ACCESS DECORATOR ---
+def fatema_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        allowed_email = 'fatemaaktersamiya2@gmail.com'
+        if not g.user:
+            return redirect(url_for('login'))
+        
+        # যদি ইউজার এডমিন হয় অথবা ফাতেমা হয়, তবেই ঢুকতে দিবে
+        if g.user.get('email') == allowed_email or g.user.get('role') == 'admin':
+            return f(*args, **kwargs)
+            
+        flash("⛔ আপনার এই পেজে প্রবেশ করার অনুমতি নেই!", "error")
+        return redirect(url_for('dashboard'))
+    return decorated_function
+    
 # -------------------------------------------------------------------
 # 4. ROUTES
 # -------------------------------------------------------------------
@@ -160,7 +176,86 @@ def index():
         return redirect(url_for('dashboard'))
     return render_template('home.html')
     # --- ADMIN: ADVANCED CUSTOM FILTER (DYNAMIC) ---
-# --- ADMIN: MANAGE DRIVE PACKS ---
+# --- ADMIN: MANAGE DRIVE PACKS --
+
+# ==========================================
+# NEWBIE CHECK PANEL (1st & 2nd Task Only)
+# ==========================================
+@app.route('/aw/newbie-check')
+@login_required
+@fatema_admin_required
+def newbie_check():
+    # ১. সব পেন্ডিং সাবমিশন নিয়ে আসা
+    try:
+        pending_subs = supabase.table('submissions').select('*').eq('status', 'pending').order('created_at', desc=True).execute().data
+        
+        valid_subs =[]
+        
+        # ২. চেক করা কোনটি ১ম বা ২য় সাবমিশন
+        for sub in pending_subs:
+            # এই ইউজারের সব সাবমিশন (পুরনো থেকে নতুন)
+            user_all_subs = supabase.table('submissions').select('id').eq('user_id', sub['user_id']).order('created_at').execute().data
+            
+            # প্রথম ২ টি সাবমিশনের আইডি নেওয়া
+            first_two_ids = [s['id'] for s in user_all_subs[:2]]
+            
+            # যদি বর্তমান পেন্ডিং আইডিটি প্রথম দুটির মধ্যে থাকে
+            if sub['id'] in first_two_ids:
+                try:
+                    # সাবমিশনটি কত নাম্বার তা বের করা (1 or 2)
+                    attempt_num = first_two_ids.index(sub['id']) + 1
+                    sub['attempt_num'] = attempt_num
+                    
+                    # ইউজার এবং টাস্কের তথ্য যুক্ত করা
+                    user_info = supabase.table('profiles').select('email').eq('id', sub['user_id']).single().execute().data
+                    task_info = supabase.table('tasks').select('title, reward').eq('id', sub['task_id']).single().execute().data
+                    
+                    sub['user_email'] = user_info['email']
+                    sub['task_title'] = task_info['title']
+                    sub['reward'] = task_info['reward']
+                    
+                    valid_subs.append(sub)
+                except:
+                    continue
+                    
+    except Exception as e:
+        print(f"Newbie Check Error: {e}")
+        valid_subs =[]
+
+    return render_template('newbie_check.html', submissions=valid_subs)
+
+# --- ACTION: APPROVE / REJECT FOR NEWBIE PANEL ---
+@app.route('/aw/newbie-action/<action>/<int:sub_id>')
+@login_required
+@fatema_admin_required
+def newbie_action(action, sub_id):
+    try:
+        sub_res = supabase.table('submissions').select('*').eq('id', sub_id).single().execute()
+        submission = sub_res.data
+        
+        if submission['status'] == 'approved':
+            flash("⚠️ এটি আগেই অ্যাপ্রুভ করা হয়েছে!", "warning")
+            return redirect(url_for('newbie_check'))
+
+        if action == 'approve':
+            task_res = supabase.table('tasks').select('reward').eq('id', submission['task_id']).single().execute()
+            reward = float(task_res.data['reward'])
+            
+            user_res = supabase.table('profiles').select('balance').eq('id', submission['user_id']).single().execute()
+            current_balance = float(user_res.data['balance']) if user_res.data['balance'] else 0.0
+            
+            new_balance = current_balance + reward
+            
+            supabase.table('profiles').update({'balance': new_balance}).eq('id', submission['user_id']).execute()
+            supabase.table('submissions').update({'status': 'approved'}).eq('id', sub_id).execute()
+            flash(f"✅ অ্যাপ্রুভ সফল! ৳{reward} যোগ হয়েছে।", "success")
+
+        elif action == 'reject':
+            supabase.table('submissions').update({'status': 'rejected'}).eq('id', sub_id).execute()
+            flash("❌ রিজেক্ট করা হয়েছে।", "error")
+
+    except Exceptio
+    
 @app.route('/admin/drive/manage', methods=['GET', 'POST'])
 @login_required
 @admin_required
