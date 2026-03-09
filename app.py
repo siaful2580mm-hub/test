@@ -263,8 +263,7 @@ def special_task():
 def special_video_page():
     # লগিন ছাড়াও দেখা যাবে, তবে লগিন থাকলে মেনু ঠিক থাকবে
     return render_template('st.html', user=g.user if 'user' in g else None)
-
-# --- WITHDRAW ROUTE (FULL & FINAL) ---
+# --- WITHDRAW ROUTE (VIP MAIN BALANCE BYPASS) ---
 @app.route('/withdraw', methods=['GET', 'POST'])
 @login_required
 def withdraw():
@@ -322,11 +321,16 @@ def withdraw():
                 if account_days < 1:
                     flash("❌ আপনার একাউন্টের বয়স ১ দিন হতে হবে।", "error")
                     return redirect(url_for('withdraw'))
+                if amount < 300:
+                    flash("❌ ফ্রি ইউজারদের মেইন ব্যালেন্স থেকে সর্বনিম্ন উইথড্রয়াল ৩০০ টাকা।", "error")
+                    return redirect(url_for('withdraw'))
+            # 🟢 VIP ইউজারদের জন্য সহজ শর্ত (মেইন ব্যালেন্স)
+            else:
+                if amount < 50:
+                    flash("❌ VIP ইউজারদের মেইন ব্যালেন্স থেকে সর্বনিম্ন উইথড্রয়াল ৫০ টাকা।", "error")
+                    return redirect(url_for('withdraw'))
             
-            # 🟢 সবার জন্য কমন শর্ত (মিনিমাম ৩০০ টাকা মেইন ব্যালেন্সে)
-            if amount < 300:
-                flash("❌ মেইন ব্যালেন্স থেকে সর্বনিম্ন উইথড্রয়াল ৩০০ টাকা।", "error")
-                return redirect(url_for('withdraw'))
+            # ব্যালেন্স চেক (সবার জন্য)
             if amount > main_balance:
                 flash("❌ মেইন ব্যালেন্সে পর্যাপ্ত টাকা নেই।", "error")
                 return redirect(url_for('withdraw'))
@@ -375,8 +379,6 @@ def withdraw():
                            ref_count=ref_count, 
                            account_days=account_days,
                            settings=g.settings)
-
-
 # --- 2. SUB-ADMIN PANEL (/aw/result) ---
 @app.route('/aw/result')
 @login_required
