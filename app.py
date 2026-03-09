@@ -1768,29 +1768,65 @@ def dashboard():
                            pending_income=round(pending_income, 2),
                            leaderboard=leaderboard,
                            today_date=today_date)
-    # --- 1. UPDATED TASKS ROUTE (Hide Completed Tasks) ---
+
 @app.route('/tasks')
 @login_required
 def tasks():
     try:
-        # A. সব অ্যাক্টিভ টাস্ক আনা (নতুন টাস্ক আগে থাকবে)
-        # .order('id', desc=True) যোগ করা হয়েছে
+        # ১. সব অ্যাক্টিভ টাস্ক আনা
         all_tasks = supabase.table('tasks').select('*').eq('is_active', True).order('id', desc=True).execute().data
         
-        # B. ইউজার ইতিমধ্যে যেসব টাস্ক সাবমিট করেছে তাদের ID আনা
-        submitted_res = supabase.table('submissions').select('task_id').eq('user_id', session['user_id']).execute()
+        # ২. ইউজারের সাধারণ টাস্কের সাবমিশন আনা
+        subs = supabase.table('submissions').select('task_id, status').eq('user_id', session['user_id']).execute().data
         
-        # লিস্ট কম্প্রিহেনশন দিয়ে ID গুলো আলাদা করা
-        completed_task_ids = [item['task_id'] for item in submitted_res.data]
-        
-        # C. ফিল্টারিং: যেসব টাস্ক completed লিস্টে নেই, শুধু সেগুলোই দেখাবে
-        available_tasks = [task for task in all_tasks if task['id'] not in completed_task_ids]
-        
-    except Exception as e:
-        available_tasks = []
-        print(f"Error: {e}")
+        # সাবমিশন স্ট্যাটাস ম্যাপ করা
+        task_status_map = {}
+        for s in subs:
+            tid = s['task_id']
+            st = s['status']
+            # যদি একাধিক সাবমিশন থাকে, pending/approved কে প্রাধান্য দেওয়া
+            if tid not in task_status_map or st in ['pending', 'approved']:
+                task_status_map[tid] = st
 
-    return render_template('tasks.html', tasks=available_tasks, user=g.user)
+        # ৩. ফিল্টারিং লজিক (Pending/Approved হলে হাইড, Rejected বা নতুন হলে শো করবে)
+        available_tasks = []
+        for t in all_tasks:
+            tid = t['id']
+            status = task_status_map.get(tid)
+            
+            if status in ['pending', 'approved']:
+                continue # হাইড করো
+            
+            # যদি রিজেক্টেড হয়, তবে একটি ফ্ল্যাগ সেট করো
+            t['is_rejected'] = (status == 'rejected')
+            available_tasks.append(t)
+
+        # ৪. স্পেশাল টাস্ক স্ট্যাটাস চেক করা
+        spec_subs = supabase.table('special_submissions').select('status').eq('user_id', session['user_id']).execute().data
+        show_special = True
+        special_rejected = False
+        
+        if spec_subs:
+            for s in spec_subs:
+                if s['status'] in ['pending', 'approved']:
+                    show_special = False # হাইড করো
+                    break
+                elif s['status'] == 'rejected':
+                    special_rejected = True
+
+    except Exception as e:
+        print(f"Task Error: {e}")
+        available_tasks =[]
+        show_special = False
+        special_rejected = False
+
+    return render_template('tasks.html', 
+                           tasks=available_tasks, 
+                           show_special=show_special, 
+                           special_rejected=special_rejected,
+                           special_task=SPECIAL_TASK_INFO,
+                           user=g.user)
+    
 # --- 2. NEW HISTORY ROUTE (Task & Withdraw) ---
 @app.route('/history')
 @login_required
