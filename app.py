@@ -932,8 +932,7 @@ def notice():
         notices = []
 
     return render_template('notice.html', notices=notices, user=g.user)
-
-# --- ADMIN: VIEW WITHDRAWAL REQUESTS ---
+# --- ADMIN: VIEW WITHDRAWAL REQUESTS (UPDATED WITH REJECT COUNT & STATUS) ---
 @app.route('/admin/withdrawals')
 @login_required
 @admin_required
@@ -942,17 +941,25 @@ def admin_withdrawals():
     res = supabase.table('withdrawals').select('*').eq('status', 'pending').order('created_at', desc=True).execute()
     withdrawals = res.data
     
-    # ২. ইউজার ইমেইল যুক্ত করা
-    final_data = []
+    final_data =[]
     for item in withdrawals:
         try:
-            user = supabase.table('profiles').select('email').eq('id', item['user_id']).single().execute().data
+            # ২. ইউজার ইমেইল এবং এক্টিভেশন স্ট্যাটাস আনা
+            user = supabase.table('profiles').select('email, is_active').eq('id', item['user_id']).single().execute().data
             item['user_email'] = user['email']
+            item['is_active'] = user['is_active']
+
+            # ৩. ইউজারের আগের রিজেক্টেড উইথড্র সংখ্যা বের করা
+            reject_res = supabase.table('withdrawals').select('id', count='exact', head=True).eq('user_id', item['user_id']).eq('status', 'rejected').execute()
+            item['rejected_count'] = reject_res.count if reject_res.count else 0
+
             final_data.append(item)
-        except:
-            continue # ইউজার না পাওয়া গেলে স্কিপ
+        except Exception as e:
+            print(f"Withdrawal fetch error: {e}")
+            continue # ইউজার ডিলিট হয়ে গেলে স্কিপ করবে
 
     return render_template('admin_withdrawals.html', requests=final_data)
+    
 # --- ADMIN: OFFLINE / INACTIVE USERS (CSV) ---
 @app.route('/admin/offline-users')
 @login_required
